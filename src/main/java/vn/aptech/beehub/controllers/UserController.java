@@ -28,7 +28,7 @@ import org.springframework.http.HttpStatus;
 
 @Tag(name = "User")
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 public class UserController {
 	@Autowired 
 	private IUserService userService;
