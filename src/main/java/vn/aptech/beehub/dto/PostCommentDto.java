@@ -13,6 +13,6 @@ public class PostCommentDto {
 	private int id;
 	private String comment;
 	private LocalDateTime createdAt;
-	private int user;
-	private int post;
+	private Long user;
+	private Long post;
 }

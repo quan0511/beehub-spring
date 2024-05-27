@@ -18,15 +18,15 @@ public class MyMvcConfiguration implements WebMvcConfigurer {
 			registry.addResourceHandler("/public/**").addResourceLocations("file:///" + UPLOAD_DIR);
 			WebMvcConfigurer.super.addResourceHandlers(registry);
 		}
-	@Bean
-		public ModelMapper modelMapper() {
-			 ModelMapper mapper = new ModelMapper();
-			 mapper.getConfiguration()
-			 .setFieldMatchingEnabled(true)
-			 .setMatchingStrategy(MatchingStrategies.STRICT);
-			 return mapper;
-			 
-		}
+//	@Bean
+//		public ModelMapper modelMapper() {
+//			 ModelMapper mapper = new ModelMapper();
+//			 mapper.getConfiguration()
+//			 .setFieldMatchingEnabled(true)
+//			 .setMatchingStrategy(MatchingStrategies.STRICT);
+//			 return mapper;
+//			 
+//		}
 	@Override
 		public void addCorsMappings(CorsRegistry registry) {
 			registry.addMapping("/**")

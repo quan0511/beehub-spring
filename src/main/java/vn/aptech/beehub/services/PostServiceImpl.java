@@ -13,7 +13,8 @@ import com.amazonaws.SdkClientException;
 
 
 import vn.aptech.beehub.aws.S3Service;
-import vn.aptech.beehub.dto.PostDtoMe;
+import vn.aptech.beehub.dto.PostDto;
+import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
@@ -54,9 +55,9 @@ public class PostServiceImpl implements PostService {
 		return posts;
 	}
 	 
-	public Post savePost(PostDtoMe dto) { 
-		Post post = mapper.map(dto, Post .class);
-		post.setCreatedAt(LocalDateTime.now());
+	public Post savePost(PostMeDto dto) { 
+		Post post = mapper.map(dto, Post.class);
+		post.setCreate_at(LocalDateTime.now());
 		if(dto.getColor() == null || dto.getColor().isEmpty()) {
 			post.setColor("inherit");
 		}
@@ -66,15 +67,15 @@ public class PostServiceImpl implements PostService {
 		if(dto.getUser() > 0) {
 			userRepository.findById(dto.getUser()).ifPresent(post::setUser); 
 		}
-		post.setMedia(dto.getMediaUrl());
+		post.setMedias(dto.getMediaUrl());
 		Post saved = postRepository.save(post); 
 		return saved; 
 	}
-	public boolean deletePost(int id) {
+	public boolean deletePost(Long id) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-            String filename = post.getMedia();
+            String filename = post.getMedias();
             String fileExtract = extractFileNameFromUrl(filename);
             try {
                 if (filename != null && !filename.isEmpty()) {
@@ -101,11 +102,11 @@ public class PostServiceImpl implements PostService {
         }
         return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
-	public Post updatePost(PostDtoMe dto) {
+	public Post updatePost(PostMeDto dto) {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
 		if(optionalPost.isPresent()) {
 			Post post = optionalPost.get();
-			post.setCreatedAt(post.getCreatedAt());
+			post.setCreate_at(post.getCreate_at());
 			 if (dto.getText() != null) {
 		            post.setText(dto.getText());
 		        }
@@ -116,7 +117,7 @@ public class PostServiceImpl implements PostService {
 		            post.setBackground(dto.getBackground());
 		        }
 		        
-		        post.setMedia(dto.getMediaUrl());
+		        post.setMedias(dto.getMediaUrl());
 			Post postUpdate = postRepository.save(post);
 			return postUpdate;
 		}
@@ -125,7 +126,7 @@ public class PostServiceImpl implements PostService {
 		 } 	
 	}
 	
-	public Optional<Post> findByIdPost(int id) {
+	public Optional<Post> findByIdPost(Long id) {
 		return postRepository.findById(id);
 	}
 

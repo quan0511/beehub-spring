@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.controllers.PostController;
-import vn.aptech.beehub.dto.PostDtoMe;
+import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.services.PostService;
@@ -44,7 +44,7 @@ public class PostController {
 	}
 
 	@PostMapping(value = "/create")
-	public ResponseEntity<Post> create(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostDtoMe dto) {
+	public ResponseEntity<Post> create(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto) {
 	    try {
 	        if (media != null && !media.isEmpty()) {
 	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
@@ -62,7 +62,7 @@ public class PostController {
 	    }
 	}
 	@PostMapping(value = "/updatepost")
-	public ResponseEntity<Post>update(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostDtoMe dto){
+	public ResponseEntity<Post>update(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto){
 		try {
 	        if (media == null && !media.isEmpty()) {
 	            String fileUrl = s3Service.editToS3(media.getInputStream(), media.getOriginalFilename());
@@ -79,12 +79,12 @@ public class PostController {
 	    }
 	}
 	@PostMapping(value ="/deletepost/{id}")
-	public ResponseEntity<Boolean> delete(@PathVariable("id") int id){
+	public ResponseEntity<Boolean> delete(@PathVariable("id") Long id){
 		return ResponseEntity.ok(postService.deletePost(id));
 	}
 	
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<Post> findByIdPost(@PathVariable("id") int id){
+	public ResponseEntity<Post> findByIdPost(@PathVariable("id") Long id){
 		Optional<Post> result = postService.findByIdPost(id);
 		if(result.isPresent()) {
 			return ResponseEntity.ok(result.get());

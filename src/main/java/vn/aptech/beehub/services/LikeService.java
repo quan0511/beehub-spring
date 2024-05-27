@@ -8,12 +8,12 @@ import vn.aptech.beehub.models.LikeUser;
 public interface LikeService {
 	LikeUser addLike(LikeDto dto);
 	LikeUser updateLike(LikeDto dto);
-	boolean removeLike(int postId, int userId);
-	boolean checklike(int postId, int userId);
-	String getEnumEmoByUserIdAndPostId(int postId, int userId);
-	int countLikesByPost(int postId);
-	List<LikeUser> findLikeUserByPost(int postId);
-	List<LikeUser> findAllEmoByPost(int postId);
+	boolean removeLike(Long postId, Long userId);
+	boolean checklike(Long postId, Long userId);
+	String getEnumEmoByUserIdAndPostId(Long postId, Long userId);
+	int countLikesByPost(Long postId);
+	List<LikeUser> findLikeUserByPost(Long postId);
+	List<LikeUser> findAllEmoByPost(Long postId);
 	int countReactionByComment(int commentId);
-	List<LikeUser> findEmoByPostEnum(int postId,String emoji);
+	List<LikeUser> findEmoByPostEnum(Long postId,String emoji);
 }

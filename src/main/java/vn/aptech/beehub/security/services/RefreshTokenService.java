@@ -28,7 +28,7 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public RefreshToken createRefreshToken(int userId) {
+    public RefreshToken createRefreshToken(Long userId) {
         RefreshToken refreshToken = new RefreshToken();
 
         refreshToken.setUser(userRepository.findById(userId).get());
@@ -49,7 +49,7 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public int deleteByUserId(int userId) {
+    public int deleteByUserId(Long userId) {
         return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
     }
 }

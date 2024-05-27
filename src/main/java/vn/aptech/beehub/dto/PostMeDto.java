@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostDtoMe {
-	private int id;
+public class PostMeDto {
+	private Long id;
 	private String text;
+	//private MultipartFile media;
 	private String mediaUrl;
 	private String background;
 	private String color;
 	private String createdAt;
-	private int user;
+	private Long user;
 }

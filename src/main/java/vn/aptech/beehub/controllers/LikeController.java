@@ -25,17 +25,17 @@ public class LikeController {
 	private LikeService likeService;
 	
 	@GetMapping(value = "/emo/{postid}/{emoji}")
-	public ResponseEntity<List<LikeUser>> findEmoByPostEnum(@PathVariable("postid") int postid,@PathVariable("emoji")String emoji){
+	public ResponseEntity<List<LikeUser>> findEmoByPostEnum(@PathVariable("postid") Long postid,@PathVariable("emoji")String emoji){
 		List<LikeUser> result = likeService.findEmoByPostEnum(postid, emoji);
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/like/{postid}")
-	public ResponseEntity<List<LikeUser>> findLikeUserByPostId(@PathVariable("postid") int postid){
+	public ResponseEntity<List<LikeUser>> findLikeUserByPostId(@PathVariable("postid") Long postid){
 		List<LikeUser> result = likeService.findLikeUserByPost(postid);
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/like/user/{postid}")
-	public ResponseEntity<Integer> count(@PathVariable("postid") int postid){
+	public ResponseEntity<Integer> count(@PathVariable("postid") Long postid){
 		return ResponseEntity.ok(likeService.countLikesByPost(postid));
 	}
 	@PostMapping(value = "/like/create")
@@ -47,15 +47,15 @@ public class LikeController {
 		return ResponseEntity.ok(likeService.updateLike(dto)); 
 	}	
 	@PostMapping(value = "/like/remove/{userid}/{postid}")
-	public ResponseEntity<Boolean> delete(@PathVariable("userid") int userid, @PathVariable("postid") int postid){ 
+	public ResponseEntity<Boolean> delete(@PathVariable("userid") Long userid, @PathVariable("postid") Long postid){ 
 		return ResponseEntity.ok(likeService.removeLike(postid, userid)); 
 	}
 	@GetMapping(value = "/check/{userid}/{postid}")
-	public ResponseEntity<Boolean> check(@PathVariable("userid") int userid, @PathVariable("postid") int postid){ 
+	public ResponseEntity<Boolean> check(@PathVariable("userid") Long userid, @PathVariable("postid") Long postid){ 
 		return ResponseEntity.ok(likeService.checklike(postid, userid)); 
 	}
 	@GetMapping(value = "/getenum/{userid}/{postid}")
-	public ResponseEntity<String> getEnum(@PathVariable("userid") int userid, @PathVariable("postid") int postid){ 
+	public ResponseEntity<String> getEnum(@PathVariable("userid") Long userid, @PathVariable("postid") Long postid){ 
 		return ResponseEntity.ok(likeService.getEnumEmoByUserIdAndPostId(postid, userid)); 
 	}
 }

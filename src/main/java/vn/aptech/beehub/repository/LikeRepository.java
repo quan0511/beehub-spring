@@ -13,8 +13,8 @@ public interface LikeRepository extends JpaRepository<LikeUser, Integer> {
 	LikeUser findByPostAndUser(Post post, User user);
 	List<LikeUser> findByPost(Post post);
 	@Query("select lu from LikeUser lu where lu.post.id = :postId")
-	List<LikeUser> findEmoByPost(@Param("postId") int postId);
+	List<LikeUser> findEmoByPost(@Param("postId") Long postId);
 	@Query("select lu from LikeUser lu where lu.post.id = :postId and lu.enumEmo = :emoji")
-    List<LikeUser> findEmoByPostEnum(@Param("postId") int postId, @Param("emoji") String emoji);
+    List<LikeUser> findEmoByPostEnum(@Param("postId") Long postId, @Param("emoji") String emoji);
 	void deleteByPostId(int id);
 }

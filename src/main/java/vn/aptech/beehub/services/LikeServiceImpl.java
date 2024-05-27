@@ -84,7 +84,7 @@ public class LikeServiceImpl implements LikeService {
         }
 	}
 
-	public boolean removeLike(int postId, int userId) {
+	public boolean removeLike(Long postId, Long userId) {
         // Kiểm tra xem bài viết và người dùng tồn tại hay không
         Optional<Post> optionalPost = postRepository.findById(postId);
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -105,10 +105,10 @@ public class LikeServiceImpl implements LikeService {
             return false; // Bài viết hoặc người dùng không tồn tại
         }
     }
-	public List<LikeUser> findEmoByPostEnum(int postId,String emoji){
+	public List<LikeUser> findEmoByPostEnum(Long postId,String emoji){
 		return likeRepository.findEmoByPostEnum(postId, emoji);
 	}
-	public boolean checklike(int postId, int userId) {
+	public boolean checklike(Long postId, Long userId) {
 		 Optional<Post> optionalPost = postRepository.findById(postId);
 	     Optional<User> optionalUser = userRepository.findById(userId);
 	     Post post = optionalPost.get();
@@ -122,7 +122,7 @@ public class LikeServiceImpl implements LikeService {
              return false; 
          }
 	}
-	public String getEnumEmoByUserIdAndPostId(int postId, int userId) {
+	public String getEnumEmoByUserIdAndPostId(Long postId, Long userId) {
 		 Optional<Post> optionalPost = postRepository.findById(postId);
 	     Optional<User> optionalUser = userRepository.findById(userId);
 	     if (optionalPost.isPresent() && optionalUser.isPresent()) {
@@ -139,12 +139,12 @@ public class LikeServiceImpl implements LikeService {
 	         return null;
 	     }
 	}
-	public List<LikeUser> findLikeUserByPost(int postId){
+	public List<LikeUser> findLikeUserByPost(Long postId){
 		Optional<Post> optionalPost = postRepository.findById(postId);
 		Post post = optionalPost.get();
 		return (List<LikeUser>) likeRepository.findByPost(post);
 	}
-	public int countLikesByPost(int postId) {
+	public int countLikesByPost(Long postId) {
 	    Optional<Post> optionalPost = postRepository.findById(postId);
 	    if (optionalPost.isPresent()) {
 	        Post post = optionalPost.get();
@@ -155,7 +155,7 @@ public class LikeServiceImpl implements LikeService {
 	        return 0;
 	    }
 	}
-	public List<LikeUser> findAllEmoByPost(int postId){
+	public List<LikeUser> findAllEmoByPost(Long postId){
 		return likeRepository.findEmoByPost(postId);
 	}
 	public int countReactionByComment(int commentId) {

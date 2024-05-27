@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchingDto {
-	private List<PostDtoMe> posts;
+	private List<PostDto> posts;
 	private List<UserDto> people;
 	private List<GroupDto> groups;
 }

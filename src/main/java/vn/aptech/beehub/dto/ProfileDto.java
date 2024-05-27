@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProfileDto {
 	private Long id;
 	private String username;
@@ -29,6 +31,6 @@ public class ProfileDto {
 	private List<Object> group_joined;
 	private List<UserSettingDto> user_settings;
 	private List<UserDto> relationships;
-	private List<PostDtoMe> posts;
+	private List<PostDto> posts;
 	private List<GalleryDto> galleries;
 }

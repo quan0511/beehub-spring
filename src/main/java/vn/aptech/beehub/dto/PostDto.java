@@ -16,6 +16,7 @@ public class PostDto {
 	private String text;
 	@Nullable
 	private List<GalleryDto> media;
+
 	private Long user_id;
 	@Nullable
 	private Long group_id;

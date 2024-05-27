@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LikeDto {
 	private int id;
-	private int post;
-	private int user;
+	private Long post;
+	private Long user;
 	private String enumEmo;
 }

@@ -13,7 +13,7 @@ public class PostReactionDto {
 	private int id;
 	private String reaction;
 	private LocalDateTime createdAt;
-	private int post;
-	private int user;
+	private Long post;
+	private Long user;
 	private int postComment;
 }
