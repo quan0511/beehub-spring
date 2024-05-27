@@ -62,8 +62,12 @@ public class DatabaseSeeder {
     private void seedAdmin() {
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) {
-            User admin = new User("admin", "admin@gmail.com", passwordEncoder.encode("123456"));
-
+            User admin = new User();
+            
+            admin.setUsername("admin");
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword(passwordEncoder.encode("123456"));
+            		
             Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN).get();
             HashSet<Role> roles = new HashSet<>();
             roles.add(adminRole);
