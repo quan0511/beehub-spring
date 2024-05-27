@@ -1,5 +1,6 @@
 package vn.aptech.beehub.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import vn.aptech.beehub.services.IUserService;
 
 import org.springframework.http.HttpStatus;
 
+@Tag(name = "User")
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
