@@ -1,11 +1,14 @@
 package vn.aptech.beehub.security.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.aptech.beehub.exception.TokenRefreshException;
 import vn.aptech.beehub.models.RefreshToken;
+import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.RefreshTokenRepository;
 import vn.aptech.beehub.repository.UserRepository;
 
@@ -15,6 +18,7 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService {
+    private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
     @Value("${beehub.app.jwtRefreshExpirationMs}")
     private Long refreshTokenDurationMs;
 
@@ -29,13 +33,22 @@ public class RefreshTokenService {
     }
 
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
+        User user = userRepository.findById(userId).get();
+        Optional<RefreshToken> ifRefreshToken = refreshTokenRepository.findByUser(user);
+        if (ifRefreshToken.isPresent()) return ifRefreshToken.get();
 
-        refreshToken.setUser(userRepository.findById(userId).get());
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUser(user);
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
 
+
+        try {
         refreshToken = refreshTokenRepository.save(refreshToken);
+        } catch (Exception e) {
+            log.error("Error creating refresh token", e.getMessage());
+        }
+
         return refreshToken;
     }
 

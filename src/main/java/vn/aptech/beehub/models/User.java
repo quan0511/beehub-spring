@@ -59,7 +59,7 @@ public class User {
     @Size(max = 120)
     private String password;
     
-//    @NotBlank
+    @NotBlank
     @Size(max= 50)
     private String fullname;
     

@@ -12,6 +12,10 @@ public class SignupRequest {
     private String username;
 
     @NotBlank
+    @Size(min = 3, max = 30)
+    private String fullName;
+
+    @NotBlank
     @Size(max = 50)
     @Email
     private String email;

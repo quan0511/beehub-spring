@@ -2,6 +2,7 @@ package vn.aptech.beehub.controllers;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ import vn.aptech.beehub.dto.LikeDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.services.LikeService;
 
+@Tag(name = "Like")
 @RestController
 @RequestMapping("/api/posts")
 @Slf4j

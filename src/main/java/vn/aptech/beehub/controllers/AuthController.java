@@ -3,6 +3,7 @@ package vn.aptech.beehub.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import vn.aptech.beehub.exception.TokenRefreshException;
 import vn.aptech.beehub.models.ERole;
@@ -70,14 +73,18 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        User user = userRepository.findById(userDetails.getId()).get();
+
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
 
         return ResponseEntity.ok(
                 JwtResponse.builder()
+                        .id(userDetails.getId())
+                        .username(user.getUsername())
+                        .email(userDetails.getEmail())
                         .token(jwt)
                         .refreshToken(refreshToken.getToken())
-                        .id(userDetails.getId())
-                        .email(userDetails.getEmail())
                         .roles(roles)
                         .build()
                 );
@@ -94,10 +101,12 @@ public class AuthController {
         }
 
         // Create new user's account
-        User user = new User();
-        user.setUsername(signUpRequest.getUsername());
-        user.setEmail(signUpRequest.getEmail());
-        user.setPassword(encoder.encode(signUpRequest.getPassword()));
+        User user = User.builder()
+                .username(signUpRequest.getUsername())
+                .email(signUpRequest.getEmail())
+                .fullname(signUpRequest.getFullName())
+                .password(encoder.encode(signUpRequest.getPassword()))
+                .build();
 
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(ERole.ROLE_USER)
@@ -134,16 +143,16 @@ public class AuthController {
                         "Refresh token is not in database!"));
     }
 
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    @ResponseStatus(HttpStatus.BAD_REQUEST)
-//    @ResponseBody
-//    public Map<String, String> validationError(MethodArgumentNotValidException ex) {
-//        Map<String, String> errors = new HashMap<>();
-//        ex.getBindingResult().getAllErrors().forEach((error) -> {
-//            String fieldName = ((FieldError) error).getField();
-//            String errorMessage = error.getDefaultMessage();
-//            errors.put(fieldName, errorMessage);
-//        });
-//        return errors;
-//    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, String> validationError(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
+    }
 }
