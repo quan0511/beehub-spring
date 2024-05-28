@@ -33,4 +33,5 @@ public class ProfileDto {
 	private List<UserDto> relationships;
 	private List<PostDto> posts;
 	private List<GalleryDto> galleries;
+		
 }

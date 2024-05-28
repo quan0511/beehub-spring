@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.GroupMediaDto;
 import vn.aptech.beehub.dto.GroupMemberDto;
+import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ReportDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.UserDto;
@@ -31,6 +32,7 @@ import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
+
 
 
 @Service
@@ -126,35 +128,58 @@ public class GroupService implements IGroupService {
 		return mapGroup;
 	}
 	@Override
-	public Optional<GroupDto> getGroup(Long id_user, Long id_group) {
-		Optional<GroupDto> group = groupRep.findById(id_group).map((e) -> toDto(e));
+	public GroupDto getGroup(Long id_user, Long id_group) {
+		Optional<Group> group = groupRep.findById(id_group);
+		GroupDto groupDto = new GroupDto(); 
 		if(group.isPresent()) {
+			groupDto.setId(group.get().getId());
+			groupDto.setGroupname(group.get().getGroupname());
+			groupDto.setPublic_group(group.get().isPublic_group());
+			groupDto.setActive(group.get().isActive());
+			groupDto.setCreated_at(group.get().getCreated_at());
+			groupDto.setImage_group(group.get().getImage_group()!=null?group.get().getImage_group().getMedia():null);
+			groupDto.setBackground_group(group.get().getBackground_group()!=null?group.get().getBackground_group().getMedia():null);
 			Optional<GroupMember> checkMember = groupMemberRep.findMemberInGroupWithUser(id_group, id_user);
-			if(checkMember.isPresent()&& checkMember.get().getRole()!=EGroupRole.MEMBER) {
+			if(checkMember.isPresent()&& !(checkMember.get().getRole().equals(EGroupRole.MEMBER))) {
 				List<RequirementDto> requirements = new LinkedList<RequirementDto>();
 				requireRep.findByGroup_id(id_group).forEach((req)->{ 
+					UserDto userDto = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(),req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null?req.getSender().getImage().getMedia_type():null);
 					RequirementDto reqDto = new RequirementDto();
 					reqDto.set_accept(req.is_accept());
 					reqDto.setId(req.getId());
-					reqDto.setSender(mapper.map(req.getSender(), UserDto.class));
-					reqDto.setGroup(group.get());
+					reqDto.setSender(userDto);
 					reqDto.setType(req.getType().toString());
 					reqDto.setCreate_at(req.getCreate_at());
 					requirements.add(reqDto);});
 				List<ReportDto> reports = new LinkedList<ReportDto>();
 					reportRep.findByGroup_id(id_group).forEach((rep)->{
+						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null);
+						PostDto postReport = new PostDto(
+								rep.getTarget_post().getId(), 
+								rep.getTarget_post().getText(), 
+								rep.getTarget_post().getGroup_media()!=null? new GroupMediaDto(rep.getTarget_post().getGroup_media().getId(),rep.getTarget_post().getGroup_media().getMedia(),rep.getTarget_post().getGroup_media().getMedia_type()) :null, 
+								rep.getTarget_post().getCreate_at(), 
+								rep.getTarget_post().getUser().getUsername(), 
+								rep.getTarget_post().getUser().getFullname(), 
+								rep.getTarget_post().getUser().getImage()!=null?rep.getTarget_post().getUser().getImage().getMedia():null, 
+								rep.getTarget_post().getUser().getGender());
 						ReportDto reportG = new ReportDto();
+						reportG.setAdd_description(rep.getAdd_description());
+						reportG.setId(rep.getId());
+						reportG.setTarget_post(postReport);
+						reportG.setSender(sender);						
+						reportG.setCreate_at(rep.getCreate_at());
+						reportG.setUpdate_at(rep.getUpdate_at());
 						reports.add(reportG);
 					});;
-				group.get().setRequirements(requirements);
-				group.get().setReports_of_group(reports);
+				groupDto.setRequirements(requirements);
+				groupDto.setReports_of_group(reports);
 			}
 			if(checkMember.isPresent() || group.get().isPublic_group()) {
 				if(checkMember.isPresent()) {
-					group.get().setMember_role(checkMember.get().getRole().toString());
+					groupDto.setMember_role(checkMember.get().getRole().toString());
+					groupDto.setJoined(true);
 				}
-				group.get().setJoined(true);
-				group.get().setMember_count(group.get().getGroup_members().size());
 				List<GroupMemberDto> members = new LinkedList<GroupMemberDto>();
 				groupMemberRep.findByGroup_id(id_group).forEach((gm)->{
 					Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id_user, gm.getUser().getId());
@@ -184,12 +209,13 @@ public class GroupService implements IGroupService {
 							media.getUser().getFullname(),
 							id_group, media.getPost().getId()));
 				});
-				group.get().setGroup_members(members);
-				group.get().setPost_count(postRep.countPostsInGroup(id_group));
-				group.get().setGroup_medias(list_media);
+				groupDto.setGroup_members(members);
+				groupDto.setGroup_medias(list_media);
 			}	
+			groupDto.setPost_count(postRep.countPostsInGroup(id_group));
+			groupDto.setMember_count(group.get().getGroup_members().size());
 		}
-		return group;
+		return groupDto;
 	}
 
 	@Override
@@ -209,5 +235,4 @@ public class GroupService implements IGroupService {
 		});
 		return list;
 	}
-
 }

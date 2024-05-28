@@ -17,6 +17,7 @@ public interface IUserService {
 	public List<UserDto> getRelationship(Long id);
 	public Map<String, List<Object>> getGroupJoinedAndFriends(Long id);
 	public Map<String, List<UserDto>> getPeople(Long id);
-	
 	public SearchingDto getSearch(Long id,String search);
+	public Optional<UserDto> getUserByEmail(String email);
+	public boolean checkGroupMember (Long id_user, Long id_group);
 }

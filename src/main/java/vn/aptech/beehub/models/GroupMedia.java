@@ -29,7 +29,6 @@ public class GroupMedia {
 	private String media;
 	@NotBlank
 	private String media_type;
-	@NotBlank
 	private LocalDateTime create_at;
 	@ManyToOne
 	@JoinColumn(name = "user_id")
@@ -39,7 +38,7 @@ public class GroupMedia {
 	private Group group;
 
 	@Nullable
-	@ManyToOne
+	@OneToOne
 	@JoinColumn(name = "post_id")
 	private Post post;
 	
@@ -49,5 +48,19 @@ public class GroupMedia {
 	@Nullable
 	@OneToOne(mappedBy = "background_group")
 	private Group background_group;
+
+	public GroupMedia (String media,
+			String media_type,
+			LocalDateTime create_at,
+			User user,
+			Group group,
+			Post post) {
+		this.media = media;
+		this.media_type = media_type;
+		this.create_at = create_at;
+		this.user = user;
+		this.group = group;
+		this.post =post;
+	}
 
 }

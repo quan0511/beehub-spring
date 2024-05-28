@@ -68,6 +68,14 @@ public class UserController {
 	private List<PostDto> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "5") int limit){
 		return postService.newestPostsForUser(id, limit);
 	}
+	@GetMapping(path = "/load-posts/{id}")
+	private List<PostDto> allAllPost(@PathVariable Long id,@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "5") int limit){
+		return postService.getPostsForUser(id,page, limit);
+	}
+	@GetMapping(path = "/allposts/{id}")
+	private List<PostDto> allAllPost(@PathVariable Long id){
+		return postService.getAllPostForUser(id);
+	}
 	@GetMapping(path = "/peoplepage/{id}")
 	private Map<String, List<UserDto>> getPeople(@PathVariable Long id ){
 		return userService.getPeople(id);
@@ -81,7 +89,7 @@ public class UserController {
 		return userService.getSearch(id,search);
 	}
 	@GetMapping (path="/user/{id_user}/get-group/{id_group}")
-	private Optional<GroupDto> getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
+	private GroupDto getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
 		return groupService.getGroup(id_user, id_group);
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")

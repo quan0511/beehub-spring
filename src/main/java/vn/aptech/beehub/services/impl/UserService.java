@@ -19,9 +19,12 @@ import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
+import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
+import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GalleryRepository;
+import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
@@ -30,10 +33,9 @@ import vn.aptech.beehub.services.IPostService;
 import vn.aptech.beehub.services.IUserService;
 import vn.aptech.beehub.services.IUserSettingService;
 
-
 @Service
 public class UserService implements IUserService {
-	private Logger logger = LoggerFactory.getLogger(DatabaseSeeder.class);
+	private Logger logger = LoggerFactory.getLogger(UserService.class);
 	@Autowired
 	private UserRepository userRep;
 	@Autowired
@@ -46,6 +48,8 @@ public class UserService implements IUserService {
 	private IUserSettingService userSettingSer;
 	@Autowired
 	private IGroupService groupSer;
+	@Autowired
+	private GroupMemberRepository groupMember;
 	@Autowired 
 	private ModelMapper mapper;
 	private UserDto toDto(User user) {
@@ -203,7 +207,13 @@ public class UserService implements IUserService {
 			List<PostDto> posts = postSer.findByUserId(user.getId());
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
-				galleries.add(new GalleryDto(gallery.getId(), gallery.getUser().getId(),gallery.getPost().getId(), gallery.getMedia(), gallery.getMedia_type(), gallery.getCreate_at()));
+				galleries.add(new GalleryDto(
+						gallery.getId(), 
+						gallery.getUser().getId(),
+						gallery.getPost().getId(), 
+						gallery.getMedia(), 
+						gallery.getMedia_type(), 
+						gallery.getCreate_at()));
 			});
 			return new ProfileDto(
 					user.getId(),
@@ -260,7 +270,15 @@ public class UserService implements IUserService {
 		searchDto.setGroups(listGroups);
 		return searchDto;
 	}
-	
-	
+	@Override
+	public Optional<UserDto> getUserByEmail(String email) {
+		
+		return userRep.findByEmail(email).map((e)->toDto(e));
+	}
+	@Override
+	public boolean checkGroupMember(Long id_user, Long id_group) {
+		Optional<GroupMember> groupMem = groupMember.findMemberInGroupWithUser(id_group,id_user);
+		return groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.MEMBER);
+	}
 	
 }

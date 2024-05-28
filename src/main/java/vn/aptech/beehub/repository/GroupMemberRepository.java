@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import vn.aptech.beehub.models.GroupMember;
 
 @Repository
-public interface GroupMemberRepository extends JpaRepository<GroupMember, Integer>{
+public interface GroupMemberRepository extends JpaRepository<GroupMember, Long>{
 	@Query(value = "SELECT gm.* FROM group_members gm WHERE gm.group_id= ?1 AND gm.user_id=?2", nativeQuery = true)
 	Optional<GroupMember> findMemberInGroupWithUser(Long id_group, Long id_user);
 	
