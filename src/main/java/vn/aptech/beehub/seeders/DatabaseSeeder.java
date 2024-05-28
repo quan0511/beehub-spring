@@ -57,7 +57,6 @@ public class DatabaseSeeder {
     public void seed(ContextRefreshedEvent event) {
         seedRoles();
         seedAdmin();
-//        seederRole();
 //        seederUser();
 //        seederGroup();
 //        seederGroupMember();
@@ -93,7 +92,7 @@ public class DatabaseSeeder {
                     .fullname("admin")
                     .password(passwordEncoder.encode("123456"))
                     .build();
-            		
+
             Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN).get();
             HashSet<Role> roles = new HashSet<>();
             roles.add(adminRole);

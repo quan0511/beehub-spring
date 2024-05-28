@@ -35,6 +35,7 @@ public class RefreshTokenService {
     public RefreshToken createRefreshToken(Long userId) {
         User user = userRepository.findById(userId).get();
         Optional<RefreshToken> ifRefreshToken = refreshTokenRepository.findByUser(user);
+
         if (ifRefreshToken.isPresent()) return ifRefreshToken.get();
 
         RefreshToken refreshToken = new RefreshToken();
@@ -42,11 +43,10 @@ public class RefreshTokenService {
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
 
-
         try {
-        refreshToken = refreshTokenRepository.save(refreshToken);
+            refreshToken = refreshTokenRepository.save(refreshToken);
         } catch (Exception e) {
-            log.error("Error creating refresh token", e.getMessage());
+            log.error("Error creating refresh token: {}", e.getMessage());
         }
 
         return refreshToken;
@@ -57,12 +57,11 @@ public class RefreshTokenService {
             refreshTokenRepository.delete(token);
             throw new TokenRefreshException(token.getToken(), "Refresh token was expired. Please make a new signin request");
         }
-
         return token;
     }
 
     @Transactional
-    public int deleteByUserId(Long userId) {
-        return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+    public void deleteByUserId(Long userId) {
+        refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
     }
 }

@@ -7,10 +7,15 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
+import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.security.services.UserDetailsImpl;
 
 import javax.crypto.SecretKey;
@@ -25,6 +30,9 @@ public class JwtUtils {
 
     @Value("${beehub.app.jwtExpirationMs}")
     private int jwtExpirationMs;
+
+    @Value("${beehub.app.jwtRefreshCookieName}")
+    private String jwtRefreshCookie;
 
     public String generateJwtToken(UserDetailsImpl userPrincipal) {
         return generateTokenFromEmail(userPrincipal.getUsername());
@@ -45,6 +53,27 @@ public class JwtUtils {
 
     public String getEmailFromJwtToken(String token) {
         return Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    public ResponseCookie generateRefreshJwtCookie(String refreshToken) {
+        return generateCookie(jwtRefreshCookie, refreshToken, "/api/auth/refresh");
+    }
+
+    public String getJwtRefreshFromCookies(HttpServletRequest request) {
+        return getCookieValueByName(request, jwtRefreshCookie);
+    }
+
+    private ResponseCookie generateCookie(String name, String value, String path) {
+        return ResponseCookie.from(name, value).path(path).maxAge(24 * 60 * 60).httpOnly(true).build();
+    }
+
+    private String getCookieValueByName(HttpServletRequest request, String name) {
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if (cookie != null) {
+            return cookie.getValue();
+        } else {
+            return null;
+        }
     }
 
     public boolean validateJwtToken(String authToken) {

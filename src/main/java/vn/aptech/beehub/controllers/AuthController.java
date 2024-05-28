@@ -1,9 +1,12 @@
 package vn.aptech.beehub.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,7 +37,7 @@ import vn.aptech.beehub.security.services.UserDetailsImpl;
 import java.util.*;
 
 @Tag(name = "Auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -77,14 +80,16 @@ public class AuthController {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
+        ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());
 
-        return ResponseEntity.ok(
-                JwtResponse.builder()
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+                .body(JwtResponse.builder()
                         .id(userDetails.getId())
                         .username(user.getUsername())
                         .email(userDetails.getEmail())
                         .token(jwt)
-                        .refreshToken(refreshToken.getToken())
+                        .type("Bearer")
                         .roles(roles)
                         .build()
                 );
@@ -129,18 +134,20 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
-        String refreshToken = request.getRefreshToken();
-
-        return refreshTokenService.findByToken(refreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    String token = jwtUtils.generateTokenFromEmail(user.getEmail());
-                    return ResponseEntity.ok(new TokenRefreshResponse(token, refreshToken));
-                })
-                .orElseThrow(() -> new TokenRefreshException(refreshToken,
-                        "Refresh token is not in database!"));
+    public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
+        String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
+        if ((refreshToken != null) && (!refreshToken.isEmpty())) {
+            return refreshTokenService.findByToken(refreshToken)
+                    .map(refreshTokenService::verifyExpiration)
+                    .map(RefreshToken::getUser)
+                    .map(user -> {
+                        String token = jwtUtils.generateTokenFromEmail(user.getEmail());
+                        return ResponseEntity.ok(new TokenRefreshResponse(token));
+                    })
+                    .orElseThrow(() -> new TokenRefreshException(refreshToken,
+                            "Refresh token is not in database!"));
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Refresh Token is empty!"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

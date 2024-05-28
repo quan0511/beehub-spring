@@ -9,14 +9,8 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebMvc
 public class AppConfiguration implements WebMvcConfigurer {
-	String UPLOAD_DIR = System.getProperty("user.dir") +  "/static/";
-	@Override
-	 public void addResourceHandlers(ResourceHandlerRegistry registry) {
-			registry.addResourceHandler("/public/**").addResourceLocations("file:///" + UPLOAD_DIR);
-			WebMvcConfigurer.super.addResourceHandlers(registry);
-		}
+
 	@Bean
 		public ModelMapper modelMapper() {
 			 ModelMapper mapper = new ModelMapper();
