@@ -96,7 +96,6 @@ public class User {
     @Value("${some.key:true}")
     private boolean is_active;
     
-    private LocalDateTime active_at;
     
     private LocalDateTime create_at;
     
@@ -136,8 +135,7 @@ public class User {
     		String fullname, 
     		String gender, 
     		String phone, 
-    		LocalDateTime create_at,
-    		LocalDateTime active_at) {
+    		LocalDateTime create_at) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -145,7 +143,6 @@ public class User {
         this.gender = gender;
         this.phone = phone;
         this.create_at = create_at;
-        this.active_at = active_at;
     }
     @Override
     public String toString() {

@@ -26,12 +26,30 @@ public class ProfileDto {
 	private boolean email_verified;
 	private String phone;
 	private boolean is_active;
+	private String relationship_with_user;
 	private LocalDateTime active_at;
-	private LocalDateTime create_at;
 	private List<Object> group_joined;
 	private List<UserSettingDto> user_settings;
 	private List<UserDto> relationships;
 	private List<PostDto> posts;
 	private List<GalleryDto> galleries;
-		
+	@Override
+	public String toString() {
+		return "Username "+this.username+"\tFullname: "+this.fullname+"\tEmail: "+this.email+"\nGender: "+this.gender+"\tBirthday: "+this.birthday.toString()+"\tPhone: "+this.phone;
+	}
+	public ProfileDto(Long id2, String username2, String email2, String fullname2, String gender2, String image,
+			String bg, String bio2, LocalDate birthday2, boolean email_verified2, String phone2,
+			boolean is_active2) {
+		this.id = id2;
+		this.username = username2;
+		this.email = email2;
+		this.fullname = fullname2;
+		this.gender = gender2;
+		this.image =image;
+		this.background = bg;
+		this.bio = bio2;
+		this.birthday = birthday2;
+		this.email_verified = email_verified2;
+		this.phone = phone2;
+	}
 }

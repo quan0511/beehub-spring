@@ -123,7 +123,7 @@ public class DatabaseSeeder {
                 String gernateGen= i%2==0?"female":"male";
                 String phone = "09192343"+ (int) Math.floor(Math.random()*70+10);
                 logger.info(phone);
-                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123456"), "User "+i,gernateGen, phone, LocalDateTime.now(), LocalDateTime.now());
+                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123456"), "User "+i,gernateGen, phone, LocalDateTime.now());
                 HashSet<Role> user1roles = new HashSet<Role>();
                 user1roles.add(userRole);
                 user.setRoles(user1roles);

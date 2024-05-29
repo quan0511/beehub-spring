@@ -17,4 +17,8 @@ public class UserSettingDto {
 		this.user_id = user_id;
 		this.setting_type = setting_type;
 	}
+	public UserSettingDto(String item, String type) {
+		this.setting_item = item;
+		this.setting_type = type;
+	}
 }

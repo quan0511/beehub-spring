@@ -33,4 +33,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	List<User> findPeopleUserSendAddFriend(Long id);
 	@Query(value = "SELECT * FROM users WHERE id IN (SELECT u.id FROM users u WHERE u.id NOT IN (SELECT gm.user_id FROM group_members gm WHERE gm.group_id = ?1))  ORDER BY RAND() LIMIT 2",  nativeQuery = true)
 	List<User> findUsersNotJoinedGroup(Long id_group);
+	
 }
