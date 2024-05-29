@@ -28,8 +28,8 @@ import org.springframework.http.HttpStatus;
 
 @Tag(name = "User")
 @RestController
-@RequestMapping("/api/user")
-@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 public class UserController {
 	@Autowired 
 	private IUserService userService;
