@@ -88,7 +88,7 @@ public class UserController {
 	private SearchingDto getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
 		return userService.getSearch(id,search);
 	}
-	@GetMapping (path="/user/{id_user}/get-group/{id_group}")
+	@GetMapping (path="user/{id_user}/get-group/{id_group}")
 	private GroupDto getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
 		return groupService.getGroup(id_user, id_group);
 	}
