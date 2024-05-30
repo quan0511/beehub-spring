@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,14 @@ import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
+import vn.aptech.beehub.dto.UserSettingDto;
+import vn.aptech.beehub.models.ESettingType;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
 import vn.aptech.beehub.services.IUserService;
+import vn.aptech.beehub.services.IUserSettingService;
+import vn.aptech.beehub.services.impl.UserService;
 
 import org.springframework.http.HttpStatus;
 
@@ -31,6 +37,7 @@ import org.springframework.http.HttpStatus;
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 public class UserController {
+	private Logger logger = LoggerFactory.getLogger(UserController.class);
 	@Autowired 
 	private IUserService userService;
 	@Autowired
@@ -39,6 +46,8 @@ public class UserController {
 	private IGroupService groupService;
 	@Autowired
 	private IFilesStorageService storageService;
+	@Autowired
+	private IUserSettingService userSettingService;
 	
 	@GetMapping(path = "/users")
 	private List<UserDto> getAllUsers(){
@@ -48,9 +57,9 @@ public class UserController {
 	private Optional<UserDto> getUser(@PathVariable Long id){
 		return userService.getUser(id);
 	}
-	@GetMapping(path="/profile/{username}")
-	private Optional<ProfileDto> getProfile(@PathVariable String username){
-		return userService.getProfile(username);
+	@GetMapping(path="/user/{id}/profile/{username}")
+	private Optional<ProfileDto> getProfile(@PathVariable Long id,@PathVariable String username){
+		return userService.getProfile(username,id);
 	}
 	@GetMapping(path="/friends/{id}")
 	private List<UserDto> getFriends(@PathVariable Long id){
@@ -68,6 +77,14 @@ public class UserController {
 	private List<PostDto> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "5") int limit){
 		return postService.newestPostsForUser(id, limit);
 	}
+	@GetMapping(path = "/load-posts/{id}")
+	private List<PostDto> allAllPost(@PathVariable Long id,@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "5") int limit){
+		return postService.getPostsForUser(id,page, limit);
+	}
+	@GetMapping(path = "/allposts/{id}")
+	private List<PostDto> allAllPost(@PathVariable Long id){
+		return postService.getAllPostForUser(id);
+	}
 	@GetMapping(path = "/peoplepage/{id}")
 	private Map<String, List<UserDto>> getPeople(@PathVariable Long id ){
 		return userService.getPeople(id);
@@ -80,13 +97,56 @@ public class UserController {
 	private SearchingDto getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
 		return userService.getSearch(id,search);
 	}
-	@GetMapping (path="/user/{id_user}/get-group/{id_group}")
-	private Optional<GroupDto> getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
+	@GetMapping (path="user/{id_user}/get-group/{id_group}")
+	private GroupDto getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
 		return groupService.getGroup(id_user, id_group);
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")
 	private List<PostDto> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group){
 		return postService.newestPostInGroup(id_group, id_user, 8);
+	}
+	@GetMapping(path = "/check-user")
+	private boolean checExistUsername (@RequestParam(required = false) String username) {
+		if(username!=null && !username.isEmpty()) {
+			return userService.checkUsernameIsExist(username);			
+		}
+		return false;
+	}
+	@GetMapping(path = "/check-email")
+	private boolean checkExistEmail (@RequestParam(required = false) String email) {
+		if(email!=null && !email.isEmpty()){
+			return userService.getUserByEmail(email).isPresent();
+		}
+		return false;
+	}
+	@PostMapping(path = "/update/profile/{id}")
+	private void updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		userService.updateUser(id,profile);
+	}
+	@GetMapping(path="/check-password/{id}")
+	private boolean checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
+		logger.info(password);
+		return userService.checkPassword(id, password);
+	}
+	@PostMapping(path = "/update/profile/password/{id}")
+	private void updateUserPassword(@PathVariable("id") Long id,@RequestBody  String password) {
+		userService.updatePassword(id,password);
+	}
+	@GetMapping(path = "/check-setting/post/{id}")
+	private Map<String, String> checkSettingPost (@PathVariable("id") Long id) {
+		return userSettingService.checkSettingPost(id);
+	}
+	@PostMapping(path = "/update/setting/{id}")
+	private Map<String, Integer> updateSettingPost(@PathVariable("id") Long id,@RequestBody String settingType) {
+		return userSettingService.settingAllPost(id, settingType);
+	}
+	@PostMapping(path = "/setting/add/{id}")
+	private void updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
+		userSettingService.updateSettingItem(id, settingItem);
+	}
+	@GetMapping(path= "/get-setting/item/{id}")
+	private List<UserSettingDto> getAllSettingItem(@PathVariable("id") Long id){
+		return userSettingService.allSettingItemOfUser(id);
 	}
 	@GetMapping("/files/{filename:.+}")
 	@ResponseBody

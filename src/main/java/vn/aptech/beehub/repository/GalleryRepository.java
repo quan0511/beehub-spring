@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import vn.aptech.beehub.models.Gallery;
 
 @Repository
-public interface GalleryRepository extends JpaRepository<Gallery, Integer> {
+public interface GalleryRepository extends JpaRepository<Gallery, Long> {
 	List<Gallery> findByUser_id(Long id);
 }

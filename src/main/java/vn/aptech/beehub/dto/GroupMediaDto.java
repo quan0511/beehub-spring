@@ -17,4 +17,9 @@ public class GroupMediaDto {
 	private String fullname;
 	private Long group_id;
 	private Long post_id;
+	public GroupMediaDto (Long id,String media, String media_type) {
+		this.id = id;
+		this.media = media;
+		this.media_type = media_type;
+	}
 }

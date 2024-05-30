@@ -50,12 +50,12 @@ public class Post {
 	private Group group;
 	
 	@Nullable
-	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-	private List<Gallery> media;
+	@OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
+	private Gallery media;
 	
 	@Nullable
-	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-	private List<GroupMedia> group_media;
+	@OneToOne(mappedBy = "post", cascade = CascadeType.ALL)
+	private GroupMedia group_media;
 	
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostComment> comments;

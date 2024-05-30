@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GroupMemberDto {
-	private int id;
+	private Long id;
 	private Long user_id;
 	private String username;
 	private String user_image;

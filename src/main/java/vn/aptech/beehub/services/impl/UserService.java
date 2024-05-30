@@ -10,6 +10,8 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.GalleryDto;
@@ -19,10 +21,16 @@ import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
+import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
+import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GalleryRepository;
+import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
@@ -30,22 +38,25 @@ import vn.aptech.beehub.services.IPostService;
 import vn.aptech.beehub.services.IUserService;
 import vn.aptech.beehub.services.IUserSettingService;
 
-
 @Service
 public class UserService implements IUserService {
-	private Logger logger = LoggerFactory.getLogger(DatabaseSeeder.class);
+	private Logger logger = LoggerFactory.getLogger(UserService.class);
 	@Autowired
 	private UserRepository userRep;
 	@Autowired
 	private GalleryRepository galleryRep;
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
+	@Autowired
+	private RequirementRepository requirementRep;
 	@Autowired 
 	private IPostService postSer;
 	@Autowired
 	private IUserSettingService userSettingSer;
 	@Autowired
 	private IGroupService groupSer;
+	@Autowired
+	private GroupMemberRepository groupMember;
 	@Autowired 
 	private ModelMapper mapper;
 	private UserDto toDto(User user) {
@@ -195,15 +206,35 @@ public class UserService implements IUserService {
 	}
 	
 	@Override
-	public Optional<ProfileDto> getProfile(String username) {
+	public Optional<ProfileDto> getProfile(String username, Long user_id) {
 		return userRep.findByUsername(username).map((user)-> {
+			String relationship = null;
+			if(user.getId()!=user_id) {
+				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(user_id, user.getId());
+				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== user_id
+													? userRe.get().getType().toString()
+													: "BE_BLOCKED")
+												:null;
+				if(userRe.isEmpty()) {
+					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(user_id, user.getId());
+					relationship = requires.isPresent()? (requires.get().getSender().getId()==user_id?
+															"SENT_REQUEST": "NOT_ACCEPT"
+														): null;
+				}
+			}
 			List<Object> grList = groupSer.getGroupUserJoined(user.getId());
-			List<UserSettingDto> userSetting = userSettingSer.allSettingOfUser(user.getId());
+			List<UserSettingDto> userSetting = userSettingSer.allSettingItemOfUser(user.getId());
 			List<UserDto> relationshipList = getRelationship(user.getId());
 			List<PostDto> posts = postSer.findByUserId(user.getId());
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
-				galleries.add(new GalleryDto(gallery.getId(), gallery.getUser().getId(),gallery.getPost().getId(), gallery.getMedia(), gallery.getMedia_type(), gallery.getCreate_at()));
+				galleries.add(new GalleryDto(
+						gallery.getId(), 
+						gallery.getUser().getId(),
+						gallery.getPost().getId(), 
+						gallery.getMedia(), 
+						gallery.getMedia_type(), 
+						gallery.getCreate_at()));
 			});
 			return new ProfileDto(
 					user.getId(),
@@ -218,7 +249,7 @@ public class UserService implements IUserService {
 					user.isEmail_verified(),
 					user.getPhone(),
 					user.is_active(),
-					user.getActive_at(),
+					relationship,
 					user.getCreate_at(),
 					grList,
 					userSetting,
@@ -260,7 +291,46 @@ public class UserService implements IUserService {
 		searchDto.setGroups(listGroups);
 		return searchDto;
 	}
-	
-	
-	
+	@Override
+	public Optional<UserDto> getUserByEmail(String email) {
+		
+		return userRep.findByEmail(email).map((e)->toDto(e));
+	}
+	@Override
+	public boolean checkGroupMember(Long id_user, Long id_group) {
+		Optional<GroupMember> groupMem = groupMember.findMemberInGroupWithUser(id_group,id_user);
+		return groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.MEMBER);
+	}
+	@Override
+	public boolean checkUsernameIsExist(String username) {
+		
+		return userRep.existsByUsername(username);
+	}
+	@Override
+	public void updateUser(Long id,ProfileDto profile) {
+		User user = userRep.findById(id).get();
+		user.setUsername(profile.getUsername());
+		user.setEmail(profile.getEmail());
+		user.setFullname(profile.getFullname());
+		user.setGender(profile.getGender());
+		user.setPhone(profile.getPhone());
+		user.setBirthday(profile.getBirthday());
+		userRep.save(user);
+	}
+	@Override
+	public boolean checkPassword(Long id, String password) {
+		Optional<User> user = userRep.findById(id);
+		if(user.isPresent()) {
+			PasswordEncoder passwordEncode = new BCryptPasswordEncoder();
+			return passwordEncode.matches(password, user.get().getPassword());
+		}
+		return false;
+	}
+	@Override
+	public void updatePassword(Long id, String password) {
+		User user = userRep.findById(id).get();
+		PasswordEncoder passwordEncode = new BCryptPasswordEncoder();
+		user.setPassword(passwordEncode.encode(password));
+		userRep.save(user);
+	}
 }

@@ -1,6 +1,5 @@
 package vn.aptech.beehub.models;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Value;

@@ -24,13 +24,13 @@ import lombok.NoArgsConstructor;
 public class Gallery {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 	
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	private User user;
 	@Nullable
-	@ManyToOne
+	@OneToOne
 	@JoinColumn(name = "post_id")
 	private Post post;
 	@NotBlank
