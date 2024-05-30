@@ -48,7 +48,6 @@ public class UserService implements IUserService {
 	private RelationshipUsersRepository relationshipRep;
 	@Autowired
 	private RequirementRepository requirementRep;
-	
 	@Autowired 
 	private IPostService postSer;
 	@Autowired
@@ -56,7 +55,7 @@ public class UserService implements IUserService {
 	@Autowired
 	private IGroupService groupSer;
 	@Autowired
-	private GroupMemberRepository groupMember;
+	private GroupMemberRepository groupMemberRep;
 	@Autowired 
 	private ModelMapper mapper;
 	private UserDto toDto(User user) {
@@ -88,7 +87,7 @@ public class UserService implements IUserService {
 					user.getImage()!=null?user.getImage().getMedia():null,
 					user.getImage()!=null?user.getImage().getMedia_type():null,
 					ERelationshipType.FRIEND.toString(),
-					user.getGroup_joined().size(),
+					groupMemberRep.findByUser_id(user.getId()).size(),
 					findAllFriends(user.getId()).size()
 					));
 		});
@@ -114,7 +113,7 @@ public class UserService implements IUserService {
 					t.getGender(), 
 					t.getImage()!=null?t.getImage().getMedia():null,
 					t.getImage()!=null?t.getImage().getMedia_type():null);
-			user.setGroup_counter(t.getGroup_joined().size());
+			user.setGroup_counter(groupMemberRep.findByUser_id(id).size());
 			user.setFriend_counter(0);
 			user.setFriend_counter(findAllFriends(id).size());
 			return user;
@@ -163,7 +162,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, user.getGroup_joined().size(),
+						relationship, 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 				});
@@ -183,7 +183,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						ERelationshipType.FRIEND.toString(), user.getGroup_joined().size(),
+						ERelationshipType.FRIEND.toString(), 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 			});
@@ -204,7 +205,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, user.getGroup_joined().size(),
+						relationship, 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 			});			
@@ -297,7 +299,7 @@ public class UserService implements IUserService {
 							user.getImage()!=null?user.getImage().getMedia():null,
 							user.getImage()!=null?user.getImage().getMedia_type():null,
 							relationship,
-							user.getGroup_joined().size(),
+							groupMemberRep.findByUser_id(user.getId()).size(),
 							findAllFriends(user.getId()).size()));									
 				}
 				
@@ -320,7 +322,7 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean checkGroupMember(Long id_user, Long id_group) {
-		Optional<GroupMember> groupMem = groupMember.findMemberInGroupWithUser(id_group,id_user);
+		Optional<GroupMember> groupMem = groupMemberRep.findMemberInGroupWithUser(id_group,id_user);
 		return groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.MEMBER);
 	}
 	@Override

@@ -23,6 +23,7 @@ import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.repository.GroupMediaRepository;
 import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
@@ -59,21 +60,31 @@ public class GroupService implements IGroupService {
 		List<GroupDto> listGroups = new LinkedList<GroupDto>();
 		groupRep.findByGroupnameContains(search).forEach((group)->{
 			try {
-				Optional<GroupMember> groupmem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id_user);
-				GroupDto groupD = new GroupDto(
-						group.getId(), 
-						group.getGroupname(), 
-						group.isPublic_group(), 
-						group.getDescription(), 
-						group.isActive(), 
-						group.getCreated_at(), 
-						group.getImage_group() !=null?group.getImage_group().getMedia():null, 
-						group.getBackground_group() !=null?group.getBackground_group().getMedia():null,
-						groupmem.isPresent(),
-						groupmem.isPresent()? groupmem.get().getRole().toString(): null,
-						group.getGroup_members().size()
-						);
-				listGroups.add(groupD);
+				if(group.isActive()) {
+					String join = null;
+					Optional<GroupMember> groupmem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id_user);
+					if(groupmem.isPresent()) {
+						join = "joined";
+					}else {
+						Optional<Requirement> reqJoin = requireRep.findRequirementJoinGroup(id_user, group.getId());
+						join = reqJoin.isPresent()? "send request":null;
+					}
+					int count_member = groupMemberRep.findByGroup_id(group.getId()).size();
+					GroupDto groupD = new GroupDto(
+							group.getId(), 
+							group.getGroupname(), 
+							group.isPublic_group(), 
+							group.getDescription(), 
+							group.isActive(), 
+							group.getCreated_at(), 
+							group.getImage_group() !=null?group.getImage_group().getMedia():null, 
+									group.getBackground_group() !=null?group.getBackground_group().getMedia():null,
+											join,
+											groupmem.isPresent()? groupmem.get().getRole().toString(): null,
+													count_member
+							);
+					listGroups.add(groupD);					
+				}
 				
 			} catch (Exception e) {
 				logger.error(e.getMessage());
@@ -86,7 +97,15 @@ public class GroupService implements IGroupService {
 		Map<String, List<GroupDto>> mapGroup = new HashMap<String, List<GroupDto>>();
 		List<GroupDto> groupJoined = new LinkedList<GroupDto>();
 		groupRep.findAllGroupJoined(id_user).forEach((group)->{
+			String join = null;
 			Optional<GroupMember> getMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id_user);
+			if(getMem.isPresent()) {
+				join = "joined";
+			}else {
+				Optional<Requirement> reqJoin = requireRep.findRequirementJoinGroup(id_user, group.getId());
+				join = reqJoin.isPresent()? "send request":null;
+			}
+			int count_member = groupMemberRep.findByGroup_id(group.getId()).size();
 			groupJoined.add(new GroupDto(
 					group.getId(), 
 					group.getGroupname(), 
@@ -96,14 +115,22 @@ public class GroupService implements IGroupService {
 					group.getCreated_at(), 
 					group.getImage_group() !=null?group.getImage_group().getMedia():null, 
 					group.getBackground_group() !=null?group.getBackground_group().getMedia():null,
-					getMem.isPresent(),
+					join,
 					getMem.isPresent()?getMem.get().getRole().toString():null,
-					group.getGroup_members().size()
+					count_member
 					));
 		});
 		List<GroupDto> groupOwn = new LinkedList<GroupDto>();
 		groupRep.findAllOwnGroup(id_user).forEach((group)->{
+			String join = null;
 			Optional<GroupMember> getMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id_user);
+			if(getMem.isPresent()) {
+				join = "joined";
+			}else {
+				Optional<Requirement> reqJoin = requireRep.findRequirementJoinGroup(id_user, group.getId());
+				join = reqJoin.isPresent()? "send request":null;
+			}
+			int count_member = groupMemberRep.findByGroup_id(group.getId()).size();
 			groupOwn.add(new GroupDto(
 					group.getId(), 
 					group.getGroupname(), 
@@ -113,9 +140,9 @@ public class GroupService implements IGroupService {
 					group.getCreated_at(), 
 					group.getImage_group() !=null?group.getImage_group().getMedia():null, 
 					group.getBackground_group() !=null?group.getBackground_group().getMedia():null,
-					getMem.isPresent(),
+					join,
 					getMem.isPresent()?getMem.get().getRole().toString():null,
-					group.getGroup_members().size()
+					count_member
 					));
 		});
 		mapGroup.put("joined_groups", groupJoined);
@@ -173,7 +200,7 @@ public class GroupService implements IGroupService {
 			if(checkMember.isPresent() || group.get().isPublic_group()) {
 				if(checkMember.isPresent()) {
 					groupDto.setMember_role(checkMember.get().getRole().toString());
-					groupDto.setJoined(true);
+					groupDto.setJoined("joined");;
 				}
 				List<GroupMemberDto> members = new LinkedList<GroupMemberDto>();
 				groupMemberRep.findByGroup_id(id_group).forEach((gm)->{
@@ -208,7 +235,8 @@ public class GroupService implements IGroupService {
 				groupDto.setGroup_medias(list_media);
 			}	
 			groupDto.setPost_count(postRep.countPostsInGroup(id_group));
-			groupDto.setMember_count(group.get().getGroup_members().size());
+			int count_member = groupMemberRep.findByGroup_id(id_group).size();
+			groupDto.setMember_count(count_member);
 		}
 		return groupDto;
 	}

@@ -11,11 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.RequirementDto;
+import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.ERequirement;
+import vn.aptech.beehub.models.Group;
+import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
@@ -30,6 +34,8 @@ public class RequirementService implements IRequirementService {
 	private RelationshipUsersRepository relationshipRep;
 	@Autowired
 	private RequirementRepository requirementRep;
+	@Autowired
+	private GroupMemberRepository groupMemberRep;
 	@Autowired
 	private UserRepository userRep;
 	@Override
@@ -101,7 +107,9 @@ public class RequirementService implements IRequirementService {
 				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getSender().getId()==id) {
 					Requirement getReq = req.get();
 					logger.info(getReq.getId().toString());
+					
 					requirementRep.delete(getReq);
+					requirementRep.flush();
 					result.put("response",requirement.getType());
 				}else {
 					result.put("response","unsuccess");
@@ -143,11 +151,11 @@ public class RequirementService implements IRequirementService {
 				result.put("response","error");
 			}
 			break;
-		case "JOIN_GROUP":
+		case "JOIN":
 			try {
 				Requirement newReq = new Requirement();
 				newReq.setSender(userRep.findById(id).get());
-				newReq.setGroup_receiver(groupRep.findById(id).get());
+				newReq.setGroup_receiver(groupRep.findById(requirement.getGroup_id()).get());
 				newReq.setType(ERequirement.JOIN_GROUP);
 				newReq.setCreate_at(LocalDateTime.now());
 				newReq.set_accept(false);
@@ -158,13 +166,32 @@ public class RequirementService implements IRequirementService {
 				result.put("response","error");
 			}
 			break;
-		case "REJECT":
+		case "ACCEPT_MEMBER":
 			try {
-				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(id, requirement.getGroup_id());
+				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(requirement.getReceiver_id(), requirement.getGroup_id());
 				if(findReq.isPresent()) {
 					Requirement acceptReq = findReq.get();
-					acceptReq.set_accept(true);
-					requirementRep.save(acceptReq);
+					requirementRep.delete(acceptReq);
+					GroupMember newMem = new GroupMember();
+					newMem.setGroup(groupRep.findById(requirement.getGroup_id()).get());
+					newMem.setUser(userRep.findById(requirement.getReceiver_id()).get());
+					newMem.setRole(EGroupRole.MEMBER);
+					groupMemberRep.save(newMem);
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");				
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "REJECT":
+			try {
+				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(requirement.getReceiver_id(), requirement.getGroup_id());
+				if(findReq.isPresent()) {
+					Requirement acceptReq = findReq.get();
+					requirementRep.delete(acceptReq);
 					result.put("response",requirement.getType());
 				}else {
 					result.put("response","unsuccess");				
@@ -179,6 +206,7 @@ public class RequirementService implements IRequirementService {
 				Optional<Requirement> req = requirementRep.findRequirementJoinGroup(id, requirement.getGroup_id());
 				if(req.isPresent() && !req.get().is_accept() && req.get().getSender().getId()==id) {
 					requirementRep.delete(req.get());
+					logger.info("Require "+requirement.getGroup_id()+" \t User: "+requirement.getSender_id());
 					result.put("response",requirement.getType());
 				}else {
 					result.put("response","unsuccess");		
@@ -186,6 +214,98 @@ public class RequirementService implements IRequirementService {
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 				result.put("response","error");
+			}
+			break;
+		case "OUT_GROUP":
+			try {
+				Optional<GroupMember> groupMember = groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
+				if(groupMember.isPresent() && !groupMember.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					groupMemberRep.delete(groupMember.get());
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "KICK":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(),requirement.getReceiver_id());
+				if(groupMem.isPresent()&& !groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					groupMemberRep.delete(groupMem.get());
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "SET_MANAGER":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), requirement.getReceiver_id());
+				if(groupMem.isPresent()&&groupMem.get().getRole().equals(EGroupRole.MEMBER)){
+					GroupMember getGroupMember= groupMem.get();
+					getGroupMember.setRole(EGroupRole.GROUP_MANAGER);
+					groupMemberRep.save(getGroupMember);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "REMOVE_MANAGER":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), requirement.getReceiver_id());
+				if(groupMem.isPresent()&& groupMem.get().getRole().equals(EGroupRole.GROUP_MANAGER)) {
+					GroupMember getGroupMem = groupMem.get();
+					getGroupMem.setRole(EGroupRole.MEMBER);
+					groupMemberRep.save(getGroupMem);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "TOGGLE_ACTIVE_GROUP":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
+				if(groupMem.isPresent()&& groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					Group getGroup = groupMem.get().getGroup();
+					getGroup.setActive(!getGroup.isActive());
+					groupRep.save(getGroup);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "TOGGLE_PUBLIC_GROUP":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
+				if(groupMem.isPresent()&& groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					Group getGroup = groupMem.get().getGroup();
+					getGroup.setPublic_group(!getGroup.isPublic_group());
+					groupRep.save(getGroup);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
 			}
 			break;
 		default:

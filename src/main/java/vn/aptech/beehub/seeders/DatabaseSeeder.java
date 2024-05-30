@@ -123,7 +123,7 @@ public class DatabaseSeeder {
                 String gernateGen= i%2==0?"female":"male";
                 String phone = "09192343"+ (int) Math.floor(Math.random()*70+10);
                 logger.info(phone);
-                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123"), "User "+i,gernateGen, phone, LocalDateTime.now());
+                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123456"), "User "+i,gernateGen, phone, LocalDateTime.now());
                 HashSet<Role> user1roles = new HashSet<Role>();
                 user1roles.add(userRole);
                 user.setRoles(user1roles);
@@ -275,7 +275,7 @@ public class DatabaseSeeder {
             List<Group> groups = groupRepository.findAll();
 			for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
 				Group group = (Group) iterator.next();
-				List<GroupMember> members = group.getGroup_members();
+				List<GroupMember> members = groupMemberRepository.findByGroup_id(group.getId());
 				for (Iterator<GroupMember> iterator2 = members.iterator(); iterator2.hasNext();) {
 					GroupMember groupMember = (GroupMember) iterator2.next();
 					User member = groupMember.getUser();
@@ -365,7 +365,7 @@ public class DatabaseSeeder {
 			if(!groups.isEmpty()) {
 				for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
 					Group group = (Group) iterator.next();
-					List<GroupMember> groupMem = group.getGroup_members();
+					List<GroupMember> groupMem = groupMemberRepository.findByGroup_id(group.getId());
 					Optional<Post> getRandomPost = postRepository.randomPostFromGroupNotOwnByUser(group.getId(), groupMem.get(0).getUser().getId());
 					Optional<ReportTypes> getReportT = reportTypeRepository.getRandomReportType();
 					

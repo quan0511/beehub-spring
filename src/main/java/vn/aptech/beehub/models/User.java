@@ -105,26 +105,11 @@ public class User {
     private Set<Role> roles = new HashSet<>();
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
-    private List<GroupMember> group_joined;
-    
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<Requirement> requirements;
-    
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
-    private List<Requirement> sent_requirement;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Gallery> galleries;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Post> posts;
-    
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
-    private List<Report> reports_from_user;
-    
-    @OneToMany(mappedBy = "target_user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
-    private List<Report> reports_to_user;
-    
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<UserSetting> user_settings;
     
