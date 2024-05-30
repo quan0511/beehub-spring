@@ -1,0 +1,196 @@
+package vn.aptech.beehub.services.impl;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import vn.aptech.beehub.dto.RequirementDto;
+import vn.aptech.beehub.models.ERelationshipType;
+import vn.aptech.beehub.models.ERequirement;
+import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Requirement;
+import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.repository.GroupRepository;
+import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.RequirementRepository;
+import vn.aptech.beehub.repository.UserRepository;
+import vn.aptech.beehub.services.IRequirementService;
+@Service
+public class RequirementService implements IRequirementService {
+	private Logger logger = LoggerFactory.getLogger(RequirementService.class);
+	@Autowired
+	private GroupRepository groupRep;
+	@Autowired
+	private RelationshipUsersRepository relationshipRep;
+	@Autowired
+	private RequirementRepository requirementRep;
+	@Autowired
+	private UserRepository userRep;
+	@Override
+	public Map<String, String> handleRequirement(Long id, RequirementDto requirement) {
+		Map<String, String> result = new HashMap<String, String>();
+		switch (requirement.getType()) {
+		case "BLOCK":
+			try {
+				Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id, requirement.getReceiver_id());
+				if(relationship.isPresent()&& relationship.get().getType().equals(ERelationshipType.FRIEND)) {
+					relationshipRep.delete(relationship.get());
+					RelationshipUsers newRelationship =  new RelationshipUsers();
+					User sender = userRep.findById(id).get();
+					User receiver = userRep.findById(requirement.getReceiver_id()).get();
+					newRelationship.setUser1(sender);
+					newRelationship.setUser2(receiver);
+					newRelationship.setType(ERelationshipType.BLOCKED);
+					relationshipRep.save(newRelationship);
+					result.put("response",requirement.getType());
+				}else if(relationship.isEmpty()) {
+					RelationshipUsers blockRelationship =  new RelationshipUsers();
+					User sender = userRep.findById(id).get();
+					User receiver = userRep.findById(requirement.getReceiver_id()).get();
+					blockRelationship.setUser1(sender);
+					blockRelationship.setUser2(receiver);
+					blockRelationship.setType(ERelationshipType.BLOCKED);
+					relationshipRep.save(blockRelationship);
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+				
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "UN_BLOCK": 
+			try {
+				Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id, requirement.getReceiver_id());
+				if(relationship.isPresent()&& relationship.get().getUser1().getId()==id && relationship.get().getType().equals(ERelationshipType.BLOCKED)) {
+					relationshipRep.delete(relationship.get());
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "UN_FRIEND":
+			try {
+				Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id, requirement.getReceiver_id());
+				if(relationship.isPresent() && relationship.get().getType().equals(ERelationshipType.FRIEND)) {
+					relationshipRep.delete(relationship.get());
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "CANCEL_REQUEST":
+			try {
+				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
+				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getSender().getId()==id) {
+					Requirement getReq = req.get();
+					logger.info(getReq.getId().toString());
+					requirementRep.delete(getReq);
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "ACCEPT":
+			try {
+				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
+				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getReceiver().getId()==id) {
+					Requirement getReq = req.get();
+					RelationshipUsers newFriendship = new RelationshipUsers(getReq.getSender(),getReq.getReceiver(), ERelationshipType.FRIEND);
+					relationshipRep.save(newFriendship);
+					requirementRep.delete(req.get());
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "ADD_FRIEND":
+			try {
+				Requirement newReq = new Requirement();
+				newReq.setSender(userRep.findById(id).get());
+				newReq.setReceiver(userRep.findById(requirement.getReceiver_id()).get());
+				newReq.setType(ERequirement.ADD_FRIEND);
+				newReq.setCreate_at(LocalDateTime.now());
+				newReq.set_accept(false);
+				requirementRep.save(newReq);
+				result.put("response",requirement.getType());
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "JOIN_GROUP":
+			try {
+				Requirement newReq = new Requirement();
+				newReq.setSender(userRep.findById(id).get());
+				newReq.setGroup_receiver(groupRep.findById(id).get());
+				newReq.setType(ERequirement.JOIN_GROUP);
+				newReq.setCreate_at(LocalDateTime.now());
+				newReq.set_accept(false);
+				requirementRep.save(newReq);
+				result.put("response",requirement.getType());
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "REJECT":
+			try {
+				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(id, requirement.getGroup_id());
+				if(findReq.isPresent()) {
+					Requirement acceptReq = findReq.get();
+					acceptReq.set_accept(true);
+					requirementRep.save(acceptReq);
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");				
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		case "CANCEL_JOIN":
+			try {
+				Optional<Requirement> req = requirementRep.findRequirementJoinGroup(id, requirement.getGroup_id());
+				if(req.isPresent() && !req.get().is_accept() && req.get().getSender().getId()==id) {
+					requirementRep.delete(req.get());
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");		
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + requirement.getType());
+		}
+		return result;
+	}
+}
