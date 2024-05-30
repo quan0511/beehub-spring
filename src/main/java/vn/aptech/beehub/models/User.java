@@ -24,7 +24,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -105,28 +104,28 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<GroupMember> group_joined;
     
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
     private List<Requirement> requirements;
     
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Requirement> sent_requirement;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Gallery> galleries;
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Post> posts;
     
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Report> reports_from_user;
     
-    @OneToMany(mappedBy = "target_user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "target_user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<Report> reports_to_user;
     
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<UserSetting> user_settings;
     
     public User(String username, 

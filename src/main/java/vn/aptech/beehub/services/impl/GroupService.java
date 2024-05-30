@@ -53,11 +53,6 @@ public class GroupService implements IGroupService {
 	
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
-	@Autowired 
-	private ModelMapper mapper;
-	private GroupDto toDto(Group group) {
-		return mapper.map(group, GroupDto.class);
-	}
 	
 	@Override
 	public List<GroupDto> searchNameGroup(String search, Long id_user) {

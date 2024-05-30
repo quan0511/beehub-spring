@@ -19,16 +19,16 @@ import vn.aptech.beehub.dto.FileInfo;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
-import vn.aptech.beehub.models.ESettingType;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
+import vn.aptech.beehub.services.IRequirementService;
 import vn.aptech.beehub.services.IUserService;
 import vn.aptech.beehub.services.IUserSettingService;
-import vn.aptech.beehub.services.impl.UserService;
 
 import org.springframework.http.HttpStatus;
 
@@ -48,6 +48,8 @@ public class UserController {
 	private IFilesStorageService storageService;
 	@Autowired
 	private IUserSettingService userSettingService;
+	@Autowired
+	private IRequirementService requirementService;
 	
 	@GetMapping(path = "/users")
 	private List<UserDto> getAllUsers(){
@@ -147,6 +149,10 @@ public class UserController {
 	@GetMapping(path= "/get-setting/item/{id}")
 	private List<UserSettingDto> getAllSettingItem(@PathVariable("id") Long id){
 		return userSettingService.allSettingItemOfUser(id);
+	}
+	@PostMapping(path="/send-requirement/{id}")
+	private Map<String, String> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){
+		return requirementService.handleRequirement(id, requirement);
 	}
 	@GetMapping("/files/{filename:.+}")
 	@ResponseBody
