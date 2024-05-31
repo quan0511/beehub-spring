@@ -16,8 +16,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 			+ " AND g.active =1", nativeQuery = true)
 	List<Group> findAllGroupJoined(Long id);
 	@Query(value = "SELECT g.* FROM groups g"
-			+ " WHERE g.id IN (SELECT gm.group_id FROM group_members gm WHERE gm.user_id = ?1 AND (gm.role='GROUP_CREATOR' OR gm.role='GROUP_MANAGER'))"
-			+ " AND g.active =1", nativeQuery = true)
+			+ " WHERE g.id IN (SELECT gm.group_id FROM group_members gm WHERE gm.user_id = ?1 AND gm.role='GROUP_CREATOR')", nativeQuery = true)
 	List<Group> findAllOwnGroup(Long id);
 	@Query(value = "SELECT g.* FROM groups g WHERE g.id IN (SELECT gm.group_id FROM group_members gm WHERE gm.user_id = ?1)", nativeQuery = true)
 	List<Group> findGroupJoined(Long id);

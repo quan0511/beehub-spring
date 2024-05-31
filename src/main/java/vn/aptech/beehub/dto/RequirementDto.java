@@ -10,8 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RequirementDto {
 	private Integer id;
+	private Long sender_id;
 	private UserDto sender;
+	private Long receiver_id;
 	private UserDto receiver;
+	private Long group_id;
 	private GroupDto group;
 	private String type;
 	private boolean is_accept;

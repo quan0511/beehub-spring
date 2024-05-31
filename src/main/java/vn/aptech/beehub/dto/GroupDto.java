@@ -20,7 +20,7 @@ public class GroupDto {
 	private LocalDateTime created_at;
 	private String image_group;
 	private String background_group;
-	private boolean joined;
+	private String joined;
 	@Nullable
 	private String member_role;
 	private int member_count;
@@ -48,7 +48,7 @@ public class GroupDto {
 			String image_group,
 			LocalDateTime create_at,
 			boolean public_group,
-			boolean joined
+			String joined
 			){
 		this.groupname = groupname;
 		this.description = description;
@@ -67,7 +67,7 @@ public class GroupDto {
 			LocalDateTime created_at,
 			String image_group,
 			String background_group,
-			boolean joined,
+			String joined,
 			String member_role,
 			int member_count) {
 		this.id = id;

@@ -32,7 +32,6 @@ import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.repository.UserRepository;
-import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
 import vn.aptech.beehub.services.IUserService;
@@ -56,7 +55,7 @@ public class UserService implements IUserService {
 	@Autowired
 	private IGroupService groupSer;
 	@Autowired
-	private GroupMemberRepository groupMember;
+	private GroupMemberRepository groupMemberRep;
 	@Autowired 
 	private ModelMapper mapper;
 	private UserDto toDto(User user) {
@@ -88,7 +87,7 @@ public class UserService implements IUserService {
 					user.getImage()!=null?user.getImage().getMedia():null,
 					user.getImage()!=null?user.getImage().getMedia_type():null,
 					ERelationshipType.FRIEND.toString(),
-					user.getGroup_joined().size(),
+					groupMemberRep.findByUser_id(user.getId()).size(),
 					findAllFriends(user.getId()).size()
 					));
 		});
@@ -114,7 +113,7 @@ public class UserService implements IUserService {
 					t.getGender(), 
 					t.getImage()!=null?t.getImage().getMedia():null,
 					t.getImage()!=null?t.getImage().getMedia_type():null);
-			user.setGroup_counter(t.getGroup_joined().size());
+			user.setGroup_counter(groupMemberRep.findByUser_id(id).size());
 			user.setFriend_counter(0);
 			user.setFriend_counter(findAllFriends(id).size());
 			return user;
@@ -142,7 +141,20 @@ public class UserService implements IUserService {
 		List<UserDto> listPeople = new LinkedList<UserDto>();
 		try {
 			userRep.findPeopleSameGroup(id).forEach((user)-> {
-				String relationship = relationshipRep.getRelationship(id, user.getId()).isPresent()?relationshipRep.getRelationship(id, user.getId()).get().getType().toString():null;
+				String relationship = null;
+				if(user.getId()!=id) {
+					Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id, user.getId());
+					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id
+														? userRe.get().getType().toString()
+														: "BE_BLOCKED")
+													:null;
+					if(userRe.isEmpty()) {
+						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(id, user.getId());
+						relationship = requires.isPresent()? (requires.get().getSender().getId()==id?
+																"SENT_REQUEST": "NOT_ACCEPT"
+															): null;
+					}
+				}
 				listPeople.add(new UserDto(
 						user.getId(), 
 						user.getUsername(), 
@@ -150,7 +162,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, user.getGroup_joined().size(),
+						relationship, 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 				});
@@ -163,7 +176,6 @@ public class UserService implements IUserService {
 		List<UserDto> listFriends = new LinkedList<UserDto>();
 		try {
 			userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach((user)-> {
-				String relationship = relationshipRep.getRelationship(id, user.getId()).isPresent()?relationshipRep.getRelationship(id, user.getId()).get().getType().toString():null;
 				listFriends.add(new UserDto(
 						user.getId(), 
 						user.getUsername(), 
@@ -171,7 +183,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, user.getGroup_joined().size(),
+						ERelationshipType.FRIEND.toString(), 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 			});
@@ -192,7 +205,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, user.getGroup_joined().size(),
+						relationship, 
+						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
 			});			
@@ -268,17 +282,27 @@ public class UserService implements IUserService {
 		List<UserDto> listPeople = new LinkedList<UserDto>();
 		userRep.searchPeople(search,id).forEach((user)->{
 			try {
-				String relationship = relationshipRep.getRelationship(id, user.getId()).isPresent()?relationshipRep.getRelationship(id, user.getId()).get().getType().toString():null;
-				listPeople.add(new UserDto(
-						user.getId(),
-						user.getUsername(), 
-						user.getFullname(), 
-						user.getGender(), 
-						user.getImage()!=null?user.getImage().getMedia():null,
-						user.getImage()!=null?user.getImage().getMedia_type():null,
-						relationship,
-						user.getGroup_joined().size(),
-						findAllFriends(user.getId()).size()));				
+				Optional<RelationshipUsers> getRelationship =relationshipRep.getRelationship(id, user.getId());
+				if(getRelationship.isEmpty()|| !(getRelationship.get().getUser2().getId()==id &&getRelationship.get().getType().equals(ERelationshipType.BLOCKED))) {
+					String relationship = getRelationship.isPresent()? getRelationship.get().getType().toString():null;
+					if(relationship==null) {
+						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(id, user.getId());
+						relationship = requires.isPresent()? (requires.get().getSender().getId()==id?
+								"SENT_REQUEST": "NOT_ACCEPT"
+								): null;						
+					}
+					listPeople.add(new UserDto(
+							user.getId(),
+							user.getUsername(), 
+							user.getFullname(), 
+							user.getGender(), 
+							user.getImage()!=null?user.getImage().getMedia():null,
+							user.getImage()!=null?user.getImage().getMedia_type():null,
+							relationship,
+							groupMemberRep.findByUser_id(user.getId()).size(),
+							findAllFriends(user.getId()).size()));									
+				}
+				
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}
@@ -298,7 +322,7 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean checkGroupMember(Long id_user, Long id_group) {
-		Optional<GroupMember> groupMem = groupMember.findMemberInGroupWithUser(id_group,id_user);
+		Optional<GroupMember> groupMem = groupMemberRep.findMemberInGroupWithUser(id_group,id_user);
 		return groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.MEMBER);
 	}
 	@Override
@@ -333,4 +357,5 @@ public class UserService implements IUserService {
 		user.setPassword(passwordEncode.encode(password));
 		userRep.save(user);
 	}
+	
 }

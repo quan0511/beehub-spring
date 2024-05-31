@@ -56,21 +56,15 @@ public class Group {
 	@JoinColumn(name="background_id",referencedColumnName = "id")
 	private GroupMedia background_group;
 	
-	@Nullable
-	@OneToMany(mappedBy = "group_receiver", cascade = CascadeType.ALL)
-	private List<Requirement> requirements;
-	
-	@OneToMany(mappedBy = "group", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-	private List<GroupMember> group_members;
-	
-	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL)
+
+	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
 	private List<Post> posts;
 	
 	
-	@OneToMany(mappedBy = "target_group",cascade =  CascadeType.ALL)
+	@OneToMany(mappedBy = "target_group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
 	private List<Report> reports_of_group;
 	
-	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
 	private List<GroupMedia> group_medias;
 	
 	public Group(

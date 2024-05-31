@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.RelationshipUserDto;
+import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 
