@@ -52,13 +52,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
 			+ " LEFT JOIN users u ON p.user_id = u.id"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE ((ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN')"
-			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm WHERE gm.user_id = 1 ) "
-			+ " AND ( p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.type ='BLOCKED') "
-			+ " OR p.user_id NOT IN (SELECT ru3.user2_id FROM relationship_users ru3 WHERE ru3.type ='BLOCKED')))"
-			+ " ORDER BY p.create_at DESC"
-			+ " LIMIT ?2", nativeQuery = true)
-	List<Post> getNewestPostFromGroupAndFriend(Long id, int limit);
+			+ " WHERE ((ru.user1_id = :id_user OR ru.user2_id = :id_user) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN')"
+			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm WHERE gm.user_id = :id_user) "
+			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))))"
+			+ " ORDER BY p.create_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
+	List<Post> getNewestPostFromGroupAndFriend(@Param("id_user") Long id_user,@Param("limit") int limit,@Param("offset") int offset);
 
 	@Query(value = "SELECT DISTINCT p.* FROM posts p"
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"

@@ -76,8 +76,8 @@ public class UserController {
 		return postService.findByUserId(id);
 	}
 	@GetMapping(path = "/homepage/{id}")
-	private List<PostDto> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "5") int limit){
-		return postService.newestPostsForUser(id, limit);
+	private List<PostDto> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
+		return postService.newestPostsForUser(id, page,limit);
 	}
 	@GetMapping(path = "/load-posts/{id}")
 	private List<PostDto> allAllPost(@PathVariable Long id,@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "5") int limit){
