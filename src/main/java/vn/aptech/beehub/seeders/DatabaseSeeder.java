@@ -93,31 +93,9 @@ public class DatabaseSeeder {
         }
     }
 
-    private void seedAdmin() {
-//        List<User> users = userRepository.findAll();
-//        if (users.isEmpty()) {
-            User admin = User.builder()
-                    .username("admin")
-                    .email("admin@gmail.com")
-                    .fullname("admin")
-                    .password(passwordEncoder.encode("123456"))
-                    .build();
-
-            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN).get();
-            HashSet<Role> roles = new HashSet<>();
-            roles.add(adminRole);
-
-            admin.setRoles(roles);
-            userRepository.save(admin);
-            logger.info("Admin saved");
-//        } else {
-//            logger.trace("Seeding is not required");
-//        }
-    }
-
     private void seederUser() {
-//        List<User> users = userRepository.findAll();
-//        if(users.isEmpty()) {
+        List<User> users = userRepository.findAll();
+        if(users.isEmpty()) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER).get();
             for(int i =1; i<=6;i++) {
                 String gernateGen= i%2==0?"female":"male";
@@ -132,9 +110,24 @@ public class DatabaseSeeder {
                 userRepository.save(user);
                 logger.info("User "+i+" saved");
             }
-//        }else {
-//            logger.trace("Seeding User is not required");
-//        }
+
+            User admin = User.builder()
+                    .username("admin")
+                    .email("admin@gmail.com")
+                    .fullname("admin")
+                    .password(passwordEncoder.encode("123456"))
+                    .build();
+
+            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN).get();
+            HashSet<Role> roles = new HashSet<>();
+            roles.add(adminRole);
+
+            admin.setRoles(roles);
+            userRepository.save(admin);
+            logger.info("Admin saved");
+        }else {
+            logger.trace("Seeding User is not required");
+        }
     }
     private void seederGroup() {
         List<Group> groups = groupRepository.findAll();
