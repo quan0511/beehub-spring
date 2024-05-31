@@ -99,7 +99,7 @@ public class UserController {
 	private SearchingDto getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
 		return userService.getSearch(id,search);
 	}
-	@GetMapping (path="user/{id_user}/get-group/{id_group}")
+	@GetMapping (path="/user/{id_user}/get-group/{id_group}")
 	private GroupDto getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
 		return groupService.getGroup(id_user, id_group);
 	}
@@ -125,6 +125,10 @@ public class UserController {
 	private void updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
 		userService.updateUser(id,profile);
 	}
+	@PostMapping(path = "/update/bio-profile/{id}")
+	private void updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		userService.updateBio(id,profile);
+	}
 	@GetMapping(path="/check-password/{id}")
 	private boolean checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
 		logger.info(password);
@@ -149,6 +153,10 @@ public class UserController {
 	@GetMapping(path= "/get-setting/item/{id}")
 	private List<UserSettingDto> getAllSettingItem(@PathVariable("id") Long id){
 		return userSettingService.allSettingItemOfUser(id);
+	}
+	@PostMapping(path = "/update/group/{id}")
+	private Map<String, Boolean> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){
+		return groupService.updateGroup(id, group);
 	}
 	@PostMapping(path="/send-requirement/{id}")
 	private Map<String, String> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){

@@ -1,13 +1,9 @@
 package vn.aptech.beehub.models;
 
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -30,8 +26,6 @@ public class ReportTypes {
 	@NotBlank
 	private String description;
 
-	@OneToMany(mappedBy = "report_type", cascade = CascadeType.ALL)
-	private List<Report> reports;
 	
 	public ReportTypes(String title, String deString) {
 		this.title = title;

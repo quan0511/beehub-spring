@@ -12,4 +12,5 @@ public interface IGroupService {
 	public Map<String, List<GroupDto>> getListGroup(Long id);
 	public GroupDto getGroup(Long id_user, Long id_group);
 	public List<Object> getGroupUserJoined (Long id);
+	public Map<String, Boolean> updateGroup(Long id,GroupDto group);
 }

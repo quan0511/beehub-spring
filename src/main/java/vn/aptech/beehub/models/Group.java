@@ -57,14 +57,11 @@ public class Group {
 	private GroupMedia background_group;
 	
 
-	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
+	@OneToMany(mappedBy = "group",cascade =  CascadeType.REMOVE,fetch = FetchType.EAGER,orphanRemoval = true)
 	private List<Post> posts;
 	
 	
-	@OneToMany(mappedBy = "target_group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
-	private List<Report> reports_of_group;
-	
-	@OneToMany(mappedBy = "group",cascade =  CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
+	@OneToMany(mappedBy = "group",cascade =  CascadeType.REMOVE,fetch = FetchType.EAGER,orphanRemoval = true)
 	private List<GroupMedia> group_medias;
 	
 	public Group(

@@ -14,8 +14,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByUsername(String username);
     Boolean existsByEmail(String email);
     @Query(value = "SELECT *  FROM users u "
-			+ " WHERE u.id IN (SELECT ru.user2_id FROM relationship_users  ru WHERE ru.user1_id = ?1 AND ru.user2_id <> ?1 AND ru.type = ?2)", nativeQuery = true)
+			+ " WHERE u.id IN (SELECT ru.user2_id FROM relationship_users  ru WHERE ru.user1_id = ?1 AND ru.user2_id <> ?1 AND ru.type = ?2)"
+			+ " OR u.id IN (SELECT ru.user1_id FROM relationship_users  ru WHERE ru.user2_id = ?1 AND ru.user1_id <> ?1 AND ru.type = ?2)", nativeQuery = true)
 	List<User> findRelationship(Long id,String type);
+    @Query(value = "SELECT *  FROM users u "
+			+ " WHERE u.id IN (SELECT ru.user2_id FROM relationship_users  ru WHERE ru.user1_id = ?1 AND ru.user2_id <> ?1 AND ru.type = 'BLOCKED')", nativeQuery = true)
+	List<User> findBlocked(Long id);
+    
 	Optional<User> findByUsername(@Param("username") String username);
 	//Searching People by username or fullname
 	@Query(value = "SELECT * FROM users u WHERE ( u.username LIKE CONCAT('%',:search,'%') OR u.fullname LIKE CONCAT('%',:search,'%')) AND u.id <> :id", nativeQuery = true)
