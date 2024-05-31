@@ -91,7 +91,7 @@ public class UserService implements IUserService {
 					findAllFriends(user.getId()).size()
 					));
 		});
-		userRep.findRelationship(id, ERelationshipType.BLOCKED.toString()).forEach((user)->{
+		userRep.findBlocked(id).forEach((user)->{
 			list.add(new UserDto(
 					user.getId(),
 					user.getUsername(), 
@@ -144,7 +144,7 @@ public class UserService implements IUserService {
 				String relationship = null;
 				if(user.getId()!=id) {
 					Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id, user.getId());
-					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id
+					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id || userRe.get().getType().equals(ERelationshipType.FRIEND) 
 														? userRe.get().getType().toString()
 														: "BE_BLOCKED")
 													:null;
@@ -197,7 +197,6 @@ public class UserService implements IUserService {
 		List<UserDto> listSendRequest = new LinkedList<UserDto>();
 		try {
 			userRep.findPeopleUserSendAddFriend(id).forEach((user)->{
-				String relationship = relationshipRep.getRelationship(id, user.getId()).isPresent()?relationshipRep.getRelationship(id, user.getId()).get().getType().toString():null;
 				listSendRequest.add(new UserDto(
 						user.getId(), 
 						user.getUsername(), 
@@ -205,7 +204,7 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						relationship, 
+						"SENT_REQUEST", 
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -225,9 +224,10 @@ public class UserService implements IUserService {
 			String relationship = null;
 			if(user.getId()!=user_id) {
 				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(user_id, user.getId());
-				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== user_id
+				relationship = userRe.isPresent()? (userRe.get().getType().equals(ERelationshipType.FRIEND) || 
+													userRe.get().getUser1().getId()== user_id
 													? userRe.get().getType().toString()
-													: "BE_BLOCKED")
+													:"BE_BLOCKED")
 												:null;
 				if(userRe.isEmpty()) {
 					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(user_id, user.getId());
@@ -240,6 +240,9 @@ public class UserService implements IUserService {
 			List<UserSettingDto> userSetting = userSettingSer.allSettingItemOfUser(user.getId());
 			List<UserDto> relationshipList = getRelationship(user.getId());
 			List<PostDto> posts = postSer.findByUserId(user.getId());
+			if(relationship != "FRIEND" && user_id != user.getId() ) {
+				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN" || post.getSetting_type() =="FOR_FRIEND");
+			}
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
 				galleries.add(new GalleryDto(
@@ -316,9 +319,8 @@ public class UserService implements IUserService {
 		return searchDto;
 	}
 	@Override
-	public Optional<UserDto> getUserByEmail(String email) {
-		
-		return userRep.findByEmail(email).map((e)->toDto(e));
+	public Optional<User> getUserByEmail(String email) {
+			return userRep.findByEmail(email);
 	}
 	@Override
 	public boolean checkGroupMember(Long id_user, Long id_group) {
@@ -327,7 +329,7 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean checkUsernameIsExist(String username) {
-		
+		logger.info(userRep.existsByUsername(username).toString());
 		return userRep.existsByUsername(username);
 	}
 	@Override
@@ -340,6 +342,12 @@ public class UserService implements IUserService {
 		user.setPhone(profile.getPhone());
 		user.setBirthday(profile.getBirthday());
 		userRep.save(user);
+	}
+	@Override
+	public void updateBio(Long id, ProfileDto user) {
+		User userUp = userRep.findById(id).get();
+		userUp.setBio(user.getBio());
+		userRep.save(userUp);
 	}
 	@Override
 	public boolean checkPassword(Long id, String password) {
@@ -357,5 +365,6 @@ public class UserService implements IUserService {
 		user.setPassword(passwordEncode.encode(password));
 		userRep.save(user);
 	}
+	
 	
 }

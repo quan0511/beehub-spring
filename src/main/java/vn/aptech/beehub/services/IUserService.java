@@ -9,6 +9,7 @@ import vn.aptech.beehub.dto.RelationshipUserDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
+import vn.aptech.beehub.models.User;
 
 
 public interface IUserService {
@@ -20,10 +21,11 @@ public interface IUserService {
 	public Map<String, List<Object>> getGroupJoinedAndFriends(Long id);
 	public Map<String, List<UserDto>> getPeople(Long id);
 	public SearchingDto getSearch(Long id,String search);
-	public Optional<UserDto> getUserByEmail(String email);
+	public Optional<User> getUserByEmail(String email);
 	public boolean checkGroupMember (Long id_user, Long id_group);
 	public boolean checkUsernameIsExist(String username);
 	public boolean checkPassword(Long id, String password);
 	public void updateUser(Long id,ProfileDto user);
+	public void updateBio(Long id, ProfileDto user);
 	public void updatePassword(Long id, String password);
 }

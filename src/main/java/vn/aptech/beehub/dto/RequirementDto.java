@@ -16,6 +16,7 @@ public class RequirementDto {
 	private UserDto receiver;
 	private Long group_id;
 	private GroupDto group;
+	private Integer report_id;
 	private String type;
 	private boolean is_accept;
 	private LocalDateTime create_at;

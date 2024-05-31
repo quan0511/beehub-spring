@@ -17,6 +17,7 @@ import vn.aptech.beehub.dto.GroupMediaDto;
 import vn.aptech.beehub.dto.GroupMemberDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ReportDto;
+import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.EGroupRole;
@@ -24,6 +25,7 @@ import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
+import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GroupMediaRepository;
 import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
@@ -54,7 +56,8 @@ public class GroupService implements IGroupService {
 	
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
-	
+	@Autowired 
+	private ModelMapper mapper;
 	@Override
 	public List<GroupDto> searchNameGroup(String search, Long id_user) {
 		List<GroupDto> listGroups = new LinkedList<GroupDto>();
@@ -189,7 +192,8 @@ public class GroupService implements IGroupService {
 						reportG.setAdd_description(rep.getAdd_description());
 						reportG.setId(rep.getId());
 						reportG.setTarget_post(postReport);
-						reportG.setSender(sender);						
+						reportG.setSender(sender);
+						reportG.setType(mapper.map(rep.getReport_type(), ReportTypesDto.class));
 						reportG.setCreate_at(rep.getCreate_at());
 						reportG.setUpdate_at(rep.getUpdate_at());
 						reports.add(reportG);
@@ -257,5 +261,20 @@ public class GroupService implements IGroupService {
 					));
 		});
 		return list;
+	}
+	@Override
+	public Map<String, Boolean> updateGroup(Long id, GroupDto group) {
+		Map<String, Boolean> result =new HashMap<String, Boolean>();
+		Optional<Group> findGroup = groupRep.findById(group.getId());
+		if(findGroup.isPresent()) {
+			Group gr = findGroup.get();
+			gr.setGroupname(group.getGroupname());
+			gr.setDescription(group.getDescription());
+			groupRep.save(gr);
+			result.put("result", true);
+		}else {
+			result.put("result", false);
+		}
+		return result;
 	}
 }

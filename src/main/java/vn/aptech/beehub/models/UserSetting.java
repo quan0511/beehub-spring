@@ -1,6 +1,7 @@
 package vn.aptech.beehub.models;
 
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

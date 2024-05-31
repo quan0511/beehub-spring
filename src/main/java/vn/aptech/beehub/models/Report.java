@@ -40,7 +40,7 @@ public class Report {
 	private Group target_group;
 	
 	@Nullable
-	@ManyToOne
+	@ManyToOne()
 	@JoinColumn(name= "target_post_id")
 	private Post target_post;
 	

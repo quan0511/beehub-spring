@@ -16,14 +16,19 @@ import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.ERequirement;
 import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
+import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.repository.UserRepository;
+import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.services.IRequirementService;
 @Service
 public class RequirementService implements IRequirementService {
@@ -38,6 +43,12 @@ public class RequirementService implements IRequirementService {
 	private GroupMemberRepository groupMemberRep;
 	@Autowired
 	private UserRepository userRep;
+	@Autowired
+	private ReportRepository reportRep;
+	@Autowired 
+	private PostRepository postRep;
+	@Autowired 
+	private UserSettingRepository userSettingRep;
 	@Override
 	public Map<String, String> handleRequirement(Long id, RequirementDto requirement) {
 		Map<String, String> result = new HashMap<String, String>();
@@ -244,6 +255,20 @@ public class RequirementService implements IRequirementService {
 				result.put("response", "error");
 			}
 			break;
+		case "LEAVE_GROUP":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(),id);
+				if(groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					groupMemberRep.delete(groupMem.get());
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
 		case "SET_MANAGER":
 			try {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), requirement.getReceiver_id());
@@ -300,6 +325,54 @@ public class RequirementService implements IRequirementService {
 					getGroup.setPublic_group(!getGroup.isPublic_group());
 					groupRep.save(getGroup);
 					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "ACCEPT_REPORT":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
+				logger.info(groupMem.get().getRole().toString());
+				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
+					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
+						Report getReport = findReport.get();
+//						logger.info(getReport.getTarget_post().getId().toString());		
+//						Optional<Post> findPost = postRep.findById(getReport.getTarget_post().getId());
+//						if(findPost.isPresent()) {
+//							Post getPost = findPost.get();
+//							postRep.delete(getPost);
+//							logger.info(getReport.getReport_type().getTitle().toString());	
+//						}
+						reportRep.delete(getReport);
+						result.put("response", requirement.getType());
+					}else {
+						result.put("response", "unsuccess");
+					}
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "CANCEL_REPORT":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
+				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
+					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
+						Report report = findReport.get();
+						reportRep.delete(report);
+						result.put("response", requirement.getType());
+					}else {
+						result.put("response", "unsuccess");
+					}
 				}else {
 					result.put("response", "unsuccess");
 				}
