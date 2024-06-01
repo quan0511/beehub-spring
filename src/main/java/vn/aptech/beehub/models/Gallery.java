@@ -38,13 +38,6 @@ public class Gallery {
 	@NotBlank
 	private String media_type;
 	
-	@Nullable
-	@OneToOne(mappedBy = "image")
-	private User avatar;
-	@Nullable
-	@OneToOne(mappedBy = "background")
-	private User background;
-
 	private LocalDateTime create_at;
 	
 	public Gallery(User user, Post post, String media, String media_type) {
@@ -52,5 +45,11 @@ public class Gallery {
 		this.post = post;
 		this.media = media;
 		this.media_type = media_type;
+	}
+	public Gallery(User user, String media, String media_type,LocalDateTime create_at) {
+		this.user = user;
+		this.media = media;
+		this.media_type = media_type;
+		this.create_at = create_at;
 	}
 }

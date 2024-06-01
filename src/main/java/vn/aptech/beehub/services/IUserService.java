@@ -28,4 +28,7 @@ public interface IUserService {
 	public void updateUser(Long id,ProfileDto user);
 	public void updateBio(Long id, ProfileDto user);
 	public void updatePassword(Long id, String password);
+	public boolean updateImage(Long id, String image);
+	public boolean updateBackground(Long id, String background);
+	
 }

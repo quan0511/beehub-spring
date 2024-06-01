@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +24,7 @@ import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
+import vn.aptech.beehub.models.Gallery;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
@@ -122,7 +124,9 @@ public class UserService implements IUserService {
 	@Override
 	public List<UserDto> findAllFriends(Long id) {
 		List<UserDto> list = new LinkedList<UserDto>();
-		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(toDto(e)));
+		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				));
 		return list;
 	}
 	@Override
@@ -130,7 +134,9 @@ public class UserService implements IUserService {
 		Map<String, List<Object>> res= new HashMap<String, List<Object>>(); 
 		List<Object> listGroup =  groupSer.getGroupUserJoined(id);
 		List<Object> listFriend = new LinkedList<Object>();
-		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(toDto(e)));
+		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				));
 		res.put("groups", listGroup);
 		res.put("friends", listFriend);
 		return res;
@@ -251,7 +257,7 @@ public class UserService implements IUserService {
 				galleries.add(new GalleryDto(
 						gallery.getId(), 
 						gallery.getUser().getId(),
-						gallery.getPost().getId(), 
+						gallery.getPost()!=null?gallery.getPost().getId():null, 
 						gallery.getMedia(), 
 						gallery.getMedia_type(), 
 						gallery.getCreate_at()));
@@ -367,6 +373,38 @@ public class UserService implements IUserService {
 		PasswordEncoder passwordEncode = new BCryptPasswordEncoder();
 		user.setPassword(passwordEncode.encode(password));
 		userRep.save(user);
+	}
+	@Override
+	public boolean updateImage(Long id, String image) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()&& image!=null && !image.isEmpty()) {
+			User user = findUser.get();
+			try {
+				Gallery newGallery = galleryRep.save(new Gallery(user, image, "image", LocalDateTime.now()));
+				user.setImage(newGallery);
+				userRep.save(user);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+		}
+		return false;
+	}
+	@Override
+	public boolean updateBackground(Long id, String background) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()&& background!=null && !background.isEmpty()) {
+			User user = findUser.get();
+			try {
+				Gallery newGallery = galleryRep.save(new Gallery(user, background, "image", LocalDateTime.now()));
+				user.setBackground(newGallery);
+				userRep.save(user);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+		}
+		return false;
 	}
 	
 	

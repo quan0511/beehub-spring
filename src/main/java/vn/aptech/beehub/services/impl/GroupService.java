@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,7 @@ import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.Group;
+import vn.aptech.beehub.models.GroupMedia;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
@@ -233,7 +235,7 @@ public class GroupService implements IGroupService {
 							media.getCreate_at(), 
 							media.getUser().getUsername(), 
 							media.getUser().getFullname(),
-							id_group, media.getPost().getId()));
+							id_group, media.getPost()!=null?media.getPost().getId():null));
 				});
 				groupDto.setGroup_members(members);
 				groupDto.setGroup_medias(list_media);
@@ -276,5 +278,53 @@ public class GroupService implements IGroupService {
 			result.put("result", false);
 		}
 		return result;
+	}
+	@Override
+	public boolean uploadImage(Long id, GroupDto group) {
+		Optional<Group> findGroup = groupRep.findById(group.getId());
+		Optional<GroupMember> findMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id);
+		if(findGroup.isPresent()&& findMem.isPresent() && !findMem.get().getRole().equals(EGroupRole.MEMBER)) {
+			try {
+				Group gr = findGroup.get();
+				GroupMedia groupMedia = new GroupMedia();
+				groupMedia.setMedia(group.getImage_group());
+				groupMedia.setMedia_type("image");
+				groupMedia.setCreate_at(LocalDateTime.now());
+				groupMedia.setUser(findMem.get().getUser());
+				groupMedia.setGroup(gr);
+				GroupMedia savedImage= groupMediaRep.save(groupMedia);
+				gr.setImage_group(savedImage);
+				groupRep.save(gr);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return false;
+			}
+		}
+		return false;
+	}
+	@Override
+	public boolean uploadBackground(Long id, GroupDto group) {
+		Optional<Group> findGroup = groupRep.findById(group.getId());
+		Optional<GroupMember> findMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id);
+		if(findGroup.isPresent()&& findMem.isPresent() && !findMem.get().getRole().equals(EGroupRole.MEMBER)) {
+			try {
+				Group gr = findGroup.get();
+				GroupMedia groupMedia = new GroupMedia();
+				groupMedia.setMedia(group.getBackground_group());
+				groupMedia.setMedia_type("image");
+				groupMedia.setCreate_at(LocalDateTime.now());
+				groupMedia.setUser(findMem.get().getUser());
+				groupMedia.setGroup(gr);
+				GroupMedia savedImage= groupMediaRep.save(groupMedia);
+				gr.setBackground_group(savedImage);
+				groupRep.save(gr);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return false;
+			}
+		}
+		return false;
 	}
 }

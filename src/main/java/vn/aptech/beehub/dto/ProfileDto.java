@@ -35,7 +35,7 @@ public class ProfileDto {
 	private List<GalleryDto> galleries;
 	@Override
 	public String toString() {
-		return "Username "+this.username+"\tFullname: "+this.fullname+"\tEmail: "+this.email+"\nGender: "+this.gender+"\tBirthday: "+this.birthday.toString()+"\tPhone: "+this.phone;
+		return "Username "+this.username+"\tFullname: "+this.fullname+"\tEmail: "+this.email+"\nGender: "+this.gender+"\tBirthday: "+this.birthday.toString()+"\tPhone: "+this.phone+"\nImage: "+this.image+"\nBackground: "+this.background;
 	}
 	public ProfileDto(Long id2, String username2, String email2, String fullname2, String gender2, String image,
 			String bg, String bio2, LocalDate birthday2, boolean email_verified2, String phone2,
