@@ -1,11 +1,13 @@
 package vn.aptech.beehub.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import vn.aptech.beehub.services.PostReactionService;
 @Tag(name = "Reaction")
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class PostReactionController {
 	@Autowired
@@ -38,5 +41,30 @@ public class PostReactionController {
 	@GetMapping(value = "/recomment/comment/{commentid}")
 	public ResponseEntity<Integer> countReaction(@PathVariable("commentid") int commentid){
 		return ResponseEntity.ok(postReactionService.countReactionByComment(commentid));
+	}
+	@PostMapping(value = "/recomment/update")
+	public ResponseEntity<PostReaction>updatePostReaction(@RequestBody @Validated PostReactionDto dto){ 
+		return ResponseEntity.ok(postReactionService.editRecomment(dto)); 
+	}
+	@PostMapping(value = "/recomment/delete/{id}")
+	public ResponseEntity<Boolean>deletePostReaction(@PathVariable("id") int id){
+		return ResponseEntity.ok(postReactionService.deletePostReaction(id));
+	}
+	@GetMapping(value = "recommentpost/{id}")
+	public ResponseEntity<PostReactionDto> findReactionById(@PathVariable("id") int id){
+		Optional<PostReaction> result = postReactionService.findReactionById(id);
+		if(!result.isPresent()) {
+			return ResponseEntity.notFound().build();
+		}
+		PostReaction p = result.get();
+		PostReactionDto reaction = PostReactionDto.builder()
+				.id(p.getId())
+				.reaction(p.getReaction())
+				.createdAt(p.getCreatedAt())
+				.post(p.getPost().getId())
+				.user(p.getUser().getId())
+				.postComment(p.getPostComment().getId())
+				.build();
+		return ResponseEntity.ok(reaction);
 	}
 }

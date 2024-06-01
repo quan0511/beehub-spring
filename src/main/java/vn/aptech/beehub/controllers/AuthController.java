@@ -133,7 +133,7 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("You've been signed out!"));
     }
 
-    @PostMapping("/refresh")
+    @GetMapping("/refresh")
     public ResponseEntity<?> refreshtoken(HttpServletRequest request) {
         String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
         if ((refreshToken != null) && (!refreshToken.isEmpty())) {
@@ -142,7 +142,14 @@ public class AuthController {
                     .map(RefreshToken::getUser)
                     .map(user -> {
                         String token = jwtUtils.generateTokenFromEmail(user.getEmail());
-                        return ResponseEntity.ok(new TokenRefreshResponse(token));
+                        return ResponseEntity.ok(JwtResponse.builder()
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .email(user.getEmail())
+                                .token(token)
+                                .type("Bearer")
+                                .roles(user.getRoles().stream().map(role -> role.getName().name()).toList())
+                                .build());
                     })
                     .orElseThrow(() -> new TokenRefreshException(refreshToken,
                             "Refresh token is not in database!"));

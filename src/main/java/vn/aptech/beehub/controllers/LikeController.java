@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,12 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 import vn.aptech.beehub.dto.LikeDto;
+import vn.aptech.beehub.dto.LikeUserDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.services.LikeService;
 
 @Tag(name = "Like")
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class LikeController {
 	@Autowired
@@ -32,8 +35,8 @@ public class LikeController {
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/like/{postid}")
-	public ResponseEntity<List<LikeUser>> findLikeUserByPostId(@PathVariable("postid") Long postid){
-		List<LikeUser> result = likeService.findLikeUserByPost(postid);
+	public ResponseEntity<List<LikeUserDto>> findLikeUserByPostId(@PathVariable("postid") Long postid){
+		List<LikeUserDto> result = likeService.findLikeUserByPost(postid);
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/like/user/{postid}")

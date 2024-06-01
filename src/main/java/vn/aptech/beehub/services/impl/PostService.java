@@ -48,7 +48,9 @@ public class PostService implements IPostService {
 								post.getGroup()!=null?post.getGroup().getGroupname():null,
 								post.getGroup()!=null?post.getGroup().isPublic_group():false,
 								post.getGroup()!=null && post.getGroup().getImage_group()!=null?post.getGroup().getImage_group().getMedia():null,
-								post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString()
+								post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
+								post.getColor(),
+						        post.getBackground()		
 								));
 		});
 		return listPost;
@@ -73,7 +75,9 @@ public class PostService implements IPostService {
 					post.getGroup()!=null?post.getGroup().getGroupname():null,
 					post.getGroup()!=null?post.getGroup().isPublic_group():false,
 					post.getGroup()!=null && post.getGroup().getImage_group()!=null?post.getGroup().getImage_group().getMedia():null,
-					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString()
+					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
+					post.getColor(),
+					post.getBackground()		
 					));});
 		return listPost;
 	}
@@ -97,7 +101,9 @@ public class PostService implements IPostService {
 					post.getGroup()!=null?post.getGroup().getGroupname():null,
 					post.getGroup()!=null?post.getGroup().isPublic_group():false,
 					post.getGroup()!=null && post.getGroup().getImage_group() !=null?post.getGroup().getImage_group().getMedia():null,
-					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString()
+					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
+					post.getColor(),
+					post.getBackground()		
 					));});
 		postRep.searchPostsInGroupJoinedContain(search, id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
@@ -116,7 +122,9 @@ public class PostService implements IPostService {
 					post.getGroup()!=null?post.getGroup().getGroupname():null,
 					post.getGroup()!=null?post.getGroup().isPublic_group():false,
 					post.getGroup()!=null && post.getGroup().getImage_group()!=null?post.getGroup().getImage_group().getMedia():null,
-					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString()
+					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
+					post.getColor(),
+					post.getBackground()		
 					));});
 		return listPost;
 	}
@@ -140,11 +148,13 @@ public class PostService implements IPostService {
 						post.getUser().getFullname(),
 						post.getUser().getUsername(), 
 						post.getUser().getImage()!=null? post.getUser().getImage().getMedia():null, 
-								post.getUser().getGender(), 
-								post.getGroup().getGroupname(), 
-								post.getGroup().isPublic_group(), 
-								post.getGroup().getImage_group()!=null? post.getGroup().getImage_group().getMedia():null, 
-										post.getUser_setting()!=null? post.getUser_setting().getSetting_type().toString(): ESettingType.PUBLIC.toString()
+						post.getUser().getGender(), 
+						post.getGroup().getGroupname(), 
+						post.getGroup().isPublic_group(), 
+						post.getGroup().getImage_group()!=null? post.getGroup().getImage_group().getMedia():null, 
+						post.getUser_setting()!=null? post.getUser_setting().getSetting_type().toString(): ESettingType.PUBLIC.toString(),
+						post.getColor(),
+						post.getBackground()				
 						));
 			});;
 			
@@ -181,7 +191,9 @@ public class PostService implements IPostService {
 					post.getGroup()!=null?post.getGroup().getGroupname():null,
 					post.getGroup()!=null?post.getGroup().isPublic_group():false,
 					post.getGroup()!=null && post.getGroup().getImage_group()!=null?post.getGroup().getImage_group().getMedia():null,
-					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString()
+					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
+					post.getColor(),
+					post.getBackground()
 					));});
 		return listPost;
 	}
