@@ -240,8 +240,11 @@ public class UserService implements IUserService {
 			List<UserSettingDto> userSetting = userSettingSer.allSettingItemOfUser(user.getId());
 			List<UserDto> relationshipList = getRelationship(user.getId());
 			List<PostDto> posts = postSer.findByUserId(user.getId());
+			logger.info(relationship);
 			if(relationship != "FRIEND" && user_id != user.getId() ) {
 				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN" || post.getSetting_type() =="FOR_FRIEND");
+			}else if(relationship == "FRIEND" && user_id != user.getId()  ){
+				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN");
 			}
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{

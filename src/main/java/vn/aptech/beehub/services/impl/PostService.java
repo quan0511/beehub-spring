@@ -56,7 +56,8 @@ public class PostService implements IPostService {
 	@Override
 	public List<PostDto> newestPostsForUser(Long id, int page,int limit) {
 		List<PostDto> listPost = new LinkedList<PostDto>();
-		postRep.getNewestPostFromGroupAndFriend(id, limit, page).forEach((post)->{
+		int offset = page*3;
+		postRep.getNewestPostFromGroupAndFriend(id, limit, offset).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
 			listPost.add( new PostDto(
