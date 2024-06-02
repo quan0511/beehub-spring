@@ -155,9 +155,8 @@ public class LikeServiceImpl implements LikeService {
 	    if (optionalPost.isPresent()) {
 	        Post post = optionalPost.get();
 	        List<LikeUser> likeUsers = likeRepository.findByPost(post);
-	        return likeUsers.size(); // Trả về số lượng LikeUser cho bài đăng có postId tương ứng
+	        return likeUsers.size(); 
 	    } else {
-	        // Trả về 0 nếu không tìm thấy bài đăng với postId tương ứng
 	        return 0;
 	    }
 	}

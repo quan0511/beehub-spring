@@ -1,5 +1,7 @@
 package vn.aptech.beehub.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +18,6 @@ public class PostMeDto {
 	private String mediaUrl;
 	private String background;
 	private String color;
-	private String createdAt;
+	private LocalDateTime createdAt;
 	private Long user;
 }

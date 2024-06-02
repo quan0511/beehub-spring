@@ -1,21 +1,15 @@
 package vn.aptech.beehub.dto;
 
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-@Data
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostCommentDto {
+public class SharePostDto {
 	private int id;
-	private String comment;
-	private LocalDateTime createdAt;
-	private Long user;
 	private Long post;
-	private String username;
+	private Long user;
 }

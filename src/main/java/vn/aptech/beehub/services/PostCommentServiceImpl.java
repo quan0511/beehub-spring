@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.PostCommentDto;
+import vn.aptech.beehub.models.LikeUser;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.repository.PostCommentRepository;
@@ -79,4 +81,14 @@ public class PostCommentServiceImpl implements PostCommentService {
         }
         return false;
     }
+	public int CountCommentByPost(Long postid) {
+		Optional<Post> optionalPost = postRepository.findById(postid);
+		if (optionalPost.isPresent()) {
+	        Post post = optionalPost.get();
+	        List<PostComment> comments = postCommentRepository.findByPost(post);
+	        return comments.size(); 
+	    } else {
+	        return 0;
+	    }
+	}
 }

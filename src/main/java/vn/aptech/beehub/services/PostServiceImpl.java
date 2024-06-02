@@ -23,6 +23,7 @@ import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
+import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.models.UserSetting;
 import vn.aptech.beehub.repository.GalleryRepository;
@@ -30,6 +31,7 @@ import vn.aptech.beehub.repository.LikeRepository;
 import vn.aptech.beehub.repository.PostCommentRepository;
 import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
+import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
@@ -58,6 +60,9 @@ public class PostServiceImpl implements PostService {
 	private UserSettingRepository userSettingRepository;
 	
 	@Autowired
+	private RelationshipUsersRepository relationshipUsersRepository;
+	
+	@Autowired
 	private S3Service s3Service;
 	
 	@Autowired
@@ -69,6 +74,10 @@ public class PostServiceImpl implements PostService {
 		//Sort sortByCreatedAtDesc = Sort.by(Sort.Direction.DESC,"create_at");
 		List<Post> posts = postRepository.findAll();
 		return posts;
+	}
+	public List<RelationshipUsers> findUserByUser(Long id){
+		List<RelationshipUsers> rela = relationshipUsersRepository.findFriendsOfUser1(id);
+		return rela;
 	}
 	 
 	public Post savePost(PostMeDto dto) {
@@ -149,6 +158,8 @@ public class PostServiceImpl implements PostService {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
 		if(optionalPost.isPresent()) {
 			Post post = optionalPost.get();
+			String fileOld = post.getMedias();
+			String fileOldEx = extractFileNameFromUrl(fileOld);
 			post.setCreate_at(post.getCreate_at());
 			 if (dto.getText() != null) {
 		            post.setText(dto.getText());
@@ -158,6 +169,9 @@ public class PostServiceImpl implements PostService {
 		        } 
 		        if (dto.getBackground() != null) {
 		            post.setBackground(dto.getBackground());
+		        }
+		        if(fileOld != null && !fileOld.isEmpty()) {
+		        	s3Service.deleteToS3(fileOldEx);
 		        }
 		        if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
 		            post.setMedias(dto.getMediaUrl());
@@ -185,4 +199,5 @@ public class PostServiceImpl implements PostService {
 	public List<User> findAllUser(){
 		return userRepository.findAll();
 	}
+	
 }

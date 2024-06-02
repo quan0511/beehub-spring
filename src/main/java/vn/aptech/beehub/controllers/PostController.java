@@ -24,9 +24,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.controllers.PostController;
+import vn.aptech.beehub.dto.PostCommentDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
+import vn.aptech.beehub.dto.RelationshipUserDto;
+import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.Post;
+import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.PostService;
@@ -53,8 +57,12 @@ public class PostController {
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/user")
-	public ResponseEntity<List<User>> findAllUser(){
-		List<User> result = postService.findAllUser();
+	public ResponseEntity<List<UserDto>> findAllUser(){
+		List<UserDto> result = postService.findAllUser().stream().map((r) ->
+		UserDto.builder()
+				.username(r.getUsername())
+				
+				.build()).toList();
 		return ResponseEntity.ok(result);
 	}
 
@@ -79,17 +87,23 @@ public class PostController {
 	    }
 	}
 	@PostMapping(value = "/updatepost")
-	public ResponseEntity<Post>update(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto){
+	public ResponseEntity<PostMeDto>update(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto){
 		try {
-	        if (media == null && !media.isEmpty()) {
+	        if (media != null ) {
 	            String fileUrl = s3Service.editToS3(media.getInputStream(), media.getOriginalFilename());
 	            dto.setMediaUrl(fileUrl);
-
-	        }else {
-	        	dto.setMediaUrl(dto.getMediaUrl());
 	        }
-	        Post savedPost = postService.updatePost(dto);
-	        return ResponseEntity.ok(savedPost);
+	        Post p = postService.updatePost(dto);
+	        PostMeDto updatedDto = PostMeDto.builder()
+		            .id(p.getId())
+		            .text(p.getText())
+		            
+		            .color(p.getColor())
+		            .background(p.getBackground())
+		            .createdAt(p.getCreate_at())
+		            .user(p.getUser().getId())
+		            .build();
+		    return ResponseEntity.ok(updatedDto);
 	    } catch (Exception e) {
 	        log.error(e.getMessage());
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -110,7 +124,7 @@ public class PostController {
 	    PostMeDto post = PostMeDto.builder()
 	                              .id(p.getId())
 	                              .text(p.getText())
-	                              .createdAt(p.getCreate_at().toString()) 
+	                              .createdAt(p.getCreate_at()) 
 	                              .mediaUrl(p.getMedias())
 	                              .color(p.getColor())
 	                              .background(p.getBackground())
@@ -118,5 +132,13 @@ public class PostController {
 	                              .build();
 	    return ResponseEntity.ok(post);
 	}
-	
+	@GetMapping(value = "/relaUser/{id}")
+	public ResponseEntity<List<RelationshipUserDto>> findUserByUser(@PathVariable("id") Long id){
+		List<RelationshipUserDto> result = postService.findUserByUser(id).stream().map((r) ->
+		RelationshipUserDto.builder()
+				.userid(r.getUser2().getId())
+				.username(r.getUser2().getUsername())
+				.build()).toList();
+		return ResponseEntity.ok(result);		
+	}
 }

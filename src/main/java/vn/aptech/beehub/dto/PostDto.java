@@ -38,6 +38,7 @@ public class PostDto {
 	private String color; 
 	@Nullable
 	private String background;
+	private Long user_id; 
 	
 	public PostDto(
 			Long id, 
