@@ -29,6 +29,7 @@ import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
@@ -112,8 +113,9 @@ public class UserController {
 		return ResponseEntity.ok(groupService.getGroup(id_user, id_group));
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")
-	private ResponseEntity<List<PostDto>> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group){
-		return ResponseEntity.ok(postService.newestPostInGroup(id_group, id_user, 8));
+	private ResponseEntity<List<PostDto>> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
+		logger.info("Limit: "+limit+"\t Page: "+page);
+		return ResponseEntity.ok(postService.newestPostInGroup(id_group, id_user, limit, page));
 	}
 	@GetMapping(path = "/check-user")
 	private ResponseEntity<Boolean> checExistUsername (@RequestParam(required = false) String username) {
@@ -130,45 +132,50 @@ public class UserController {
 		return ResponseEntity.ok(false);
 	}
 	@PostMapping(path = "/update/profile/{id}")
-	private void updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
-		userService.updateUser(id,profile);
+	private ResponseEntity<Boolean> updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		boolean result=userService.updateUser(id,profile);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@PostMapping(path = "/update/bio-profile/{id}")
-	private void updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
-		userService.updateBio(id,profile);
+	private ResponseEntity<Boolean> updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		
+		boolean result = userService.updateBio(id,profile);
+		
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path="/check-password/{id}")
-	private boolean checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
-		logger.info(password);
-		return userService.checkPassword(id, password);
+	private ResponseEntity<Boolean> checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
+		return ResponseEntity.ok(userService.checkPassword(id, password));
 	}
 	@PostMapping(path = "/update/profile/password/{id}")
-	private void updateUserPassword(@PathVariable("id") Long id,@RequestBody  String password) {
-		userService.updatePassword(id,password);
+	private ResponseEntity<Boolean>  updateUserPassword(@PathVariable("id") Long id,@RequestBody  String password) {
+		boolean result = userService.updatePassword(id,password);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path = "/check-setting/post/{id}")
-	private Map<String, String> checkSettingPost (@PathVariable("id") Long id) {
-		return userSettingService.checkSettingPost(id);
+	private ResponseEntity<Map<String, String>> checkSettingPost (@PathVariable("id") Long id) {
+		return ResponseEntity.ok(userSettingService.checkSettingPost(id));
 	}
 	@PostMapping(path = "/update/setting/{id}")
-	private Map<String, Integer> updateSettingPost(@PathVariable("id") Long id,@RequestBody String settingType) {
-		return userSettingService.settingAllPost(id, settingType);
+	private ResponseEntity<Map<String, Integer>> updateSettingPost(@PathVariable("id") Long id,@RequestBody String settingType) {
+		return ResponseEntity.ok(userSettingService.settingAllPost(id, settingType));
 	}
 	@PostMapping(path = "/setting/add/{id}")
-	private void updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
-		userSettingService.updateSettingItem(id, settingItem);
+	private ResponseEntity<Boolean>  updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
+		boolean result=userSettingService.updateSettingItem(id, settingItem);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path= "/get-setting/item/{id}")
-	private List<UserSettingDto> getAllSettingItem(@PathVariable("id") Long id){
-		return userSettingService.allSettingItemOfUser(id);
+	private ResponseEntity<List<UserSettingDto>> getAllSettingItem(@PathVariable("id") Long id){
+		return ResponseEntity.ok(userSettingService.allSettingItemOfUser(id));
 	}
 	@PostMapping(path = "/update/group/{id}")
-	private Map<String, Boolean> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){
-		return groupService.updateGroup(id, group);
+	private ResponseEntity<Map<String, Boolean>> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){
+		return ResponseEntity.ok(groupService.updateGroup(id, group));
 	}
 	@PostMapping(path="/send-requirement/{id}")
-	private Map<String, String> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){
-		return requirementService.handleRequirement(id, requirement);
+	private ResponseEntity<Map<String, String>> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){
+		return ResponseEntity.ok(requirementService.handleRequirement(id, requirement));
 	}
 	@GetMapping("/files/{filename:.+}")
 	@ResponseBody

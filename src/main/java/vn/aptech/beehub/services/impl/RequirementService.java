@@ -2,6 +2,7 @@ package vn.aptech.beehub.services.impl;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -9,20 +10,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.amazonaws.SdkClientException;
+
+import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.ERequirement;
+import vn.aptech.beehub.models.Gallery;
 import vn.aptech.beehub.models.Group;
+import vn.aptech.beehub.models.GroupMedia;
 import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
+import vn.aptech.beehub.models.PostComment;
+import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.repository.GroupMediaRepository;
 import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
+import vn.aptech.beehub.repository.LikeRepository;
+import vn.aptech.beehub.repository.PostCommentRepository;
+import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.ReportRepository;
@@ -31,6 +45,7 @@ import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.services.IRequirementService;
 @Service
+@Transactional
 public class RequirementService implements IRequirementService {
 	private Logger logger = LoggerFactory.getLogger(RequirementService.class);
 	@Autowired
@@ -49,6 +64,16 @@ public class RequirementService implements IRequirementService {
 	private PostRepository postRep;
 	@Autowired 
 	private UserSettingRepository userSettingRep;
+	@Autowired 
+	private PostReactionRepository postReactRep;
+	@Autowired
+	private PostCommentRepository postComtRep;
+	@Autowired
+	private LikeRepository likeRep;
+	@Autowired
+	private GroupMediaRepository groupMediaRep;
+	@Autowired
+	private S3Service s3Service;
 	@Override
 	public Map<String, String> handleRequirement(Long id, RequirementDto requirement) {
 		Map<String, String> result = new HashMap<String, String>();
@@ -341,15 +366,30 @@ public class RequirementService implements IRequirementService {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
 					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
 						Report getReport = findReport.get();
-//						logger.info(getReport.getTarget_post().getId().toString());		
-//						Optional<Post> findPost = postRep.findById(getReport.getTarget_post().getId());
-//						if(findPost.isPresent()) {
-//							Post getPost = findPost.get();
-//							postRep.delete(getPost);
-//							logger.info(getReport.getReport_type().getTitle().toString());	
-//						}
-						reportRep.delete(getReport);
-						result.put("response", requirement.getType());
+						logger.info(getReport.getTarget_post().getId().toString());		
+						Optional<Post> findPost = postRep.findById(getReport.getTarget_post().getId());
+						if(findPost.isPresent()) {
+							Post getPost = findPost.get();
+				            List<PostComment> comment = getPost.getComments();
+				            postComtRep.deleteAll(comment);
+				            List<PostReaction> recomment = getPost.getReactions();
+				            postReactRep.deleteAll(recomment);
+				            List<LikeUser> like = getPost.getLikes();
+				            likeRep.deleteAll(like);
+				            if(getPost.getGroup_media()!=null) {
+				            	String filename = getPost.getGroup_media().getMedia();
+				            	String fileExtract = filename!=null? filename.substring(filename.lastIndexOf("/") + 1):null;
+				            	if(fileExtract !=null) {
+				            		s3Service.deleteToS3(fileExtract);
+				            	}
+				            	GroupMedia gallery = getPost.getGroup_media();
+				            	groupMediaRep.delete(gallery);				            	
+				            }
+				            reportRep.deletePostReposts(getPost.getId());
+							postRep.deletePost(getPost.getId());
+						}
+						
+						result.put("response", requirement.getType());						
 					}else {
 						result.put("response", "unsuccess");
 					}
@@ -367,8 +407,7 @@ public class RequirementService implements IRequirementService {
 				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
 					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
-						Report report = findReport.get();
-						reportRep.delete(report);
+						reportRep.deleteReport(requirement.getReport_id());
 						result.put("response", requirement.getType());
 					}else {
 						result.put("response", "unsuccess");
@@ -376,8 +415,43 @@ public class RequirementService implements IRequirementService {
 				}else {
 					result.put("response", "unsuccess");
 				}
+				
 			} catch (Exception e) {
 				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
+		case "DEACTIVE_ACCOUNT":
+			try {
+				Optional<User> findUser= userRep.findById(requirement.getReceiver_id());
+				if(findUser.isPresent() && requirement.getReceiver_id()== id) {
+					User getUser = findUser.get();
+					getUser.set_active(false);
+					userRep.save(getUser);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				result.put("response", "error");
+			}
+			break;
+		case "ACTIVE_ACCOUNT":
+			try {
+				Optional<User> findUser= userRep.findById(requirement.getReceiver_id());
+				if(findUser.isPresent() && requirement.getReceiver_id()== id) {
+					User getUser = findUser.get();
+					getUser.set_active(true);
+					userRep.save(getUser);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
 				result.put("response", "error");
 			}
 			break;

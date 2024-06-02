@@ -72,7 +72,7 @@ public class UserSettingService implements IUserSettingService {
 		return res;
 	}
 	@Override
-	public void updateSettingItem(Long id, Map<String, String> item) {
+	public boolean updateSettingItem(Long id, Map<String, String> item) {
 		List<UserSetting> findALl = userSettingRep.findByUser_id(id);
 		boolean check = true;
 		try {
@@ -93,9 +93,12 @@ public class UserSettingService implements IUserSettingService {
 				newSetting.setUser(userRep.findById(id).get());
 				userSettingRep.save(newSetting);
 			}			
+			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
+			return false;
 		}
+		return true;
 	}
 	@Override
 	public List<UserSettingDto> allSettingItemOfUser(Long id) {

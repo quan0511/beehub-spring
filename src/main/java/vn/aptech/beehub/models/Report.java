@@ -40,8 +40,8 @@ public class Report {
 	private Group target_group;
 	
 	@Nullable
-	@ManyToOne()
-	@JoinColumn(name= "target_post_id")
+	@ManyToOne
+	@JoinColumn(name= "target_post_id",referencedColumnName="id")
 	private Post target_post;
 	
 	@ManyToOne
