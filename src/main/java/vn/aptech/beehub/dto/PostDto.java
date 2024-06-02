@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostDto {
@@ -32,6 +34,10 @@ public class PostDto {
 	@Nullable
 	private String group_image;
 	private String setting_type;
+	@Nullable
+	private String color; 
+	@Nullable
+	private String background;
 	
 	public PostDto(
 			Long id, 

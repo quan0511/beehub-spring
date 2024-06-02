@@ -60,4 +60,31 @@ public class PostReactionServiceImpl implements PostReactionService {
 			return 0;
 		}
 	}
+	public Optional<PostReaction> findReactionById(int id){
+		return postReactionRepository.findById(id);
+	}
+	public PostReaction editRecomment(PostReactionDto dto) {
+		Optional<PostReaction> optionalRecomment = postReactionRepository.findById(dto.getId());
+		if(optionalRecomment.isPresent()) {
+			PostReaction postReaction = optionalRecomment.get();
+			if(dto.getPost() > 0) {
+				postRepository.findById(dto.getPost()).ifPresent(postReaction::setPost);
+			}
+			if(dto.getUser() > 0) {
+				userRepository.findById(dto.getUser()).ifPresent(postReaction::setUser); 
+			}
+			if(dto.getUser() > 0) {
+				postCommentRepository.findById(dto.getPostComment()).ifPresent(postReaction::setPostComment); 
+			}
+			postReaction.setReaction(dto.getReaction());
+			PostReaction saved = postReactionRepository.save(postReaction);
+			return saved;
+		}else {
+		    throw new RuntimeException("PostComment not found with id " + dto.getId());
+		}
+	}
+	public boolean deletePostReaction(int id) {
+        postReactionRepository.deleteById(id);
+        return true;
+    }
 }
