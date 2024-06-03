@@ -80,7 +80,7 @@ public class UserController {
 	private ResponseEntity<Map<String, List<Object>>> getGroupsAndFriends(@PathVariable Long id){
 		return ResponseEntity.ok(userService.getGroupJoinedAndFriends(id));
 	}
-	@GetMapping(path = "/post/{id}")
+	@GetMapping(path = "/user/get-post/{id}")
 	private ResponseEntity<List<PostDto>> getPosts(@PathVariable Long id){
 		return ResponseEntity.ok(postService.findByUserId(id));
 	}
