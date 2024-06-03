@@ -1,5 +1,7 @@
 package vn.aptech.beehub.models;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,12 +20,16 @@ import lombok.NoArgsConstructor;
 @Table(name="sharepost")
 public class SharePost {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
-	@ManyToOne
-	@JoinColumn(name = "post_id", referencedColumnName = "id")
-	private Post post;
-	@ManyToOne
-	@JoinColumn(name = "user_id", referencedColumnName = "id")
-	private User user;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @ManyToOne
+    @JoinColumn(name = "original_post")
+    private Post originalPost;
+
+    @ManyToOne
+    @JoinColumn(name = "shared_user")
+    private User sharedBy;
+
+    private LocalDateTime sharedAt;
 }

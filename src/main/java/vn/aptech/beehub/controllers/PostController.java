@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +32,7 @@ import vn.aptech.beehub.dto.RelationshipUserDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
+import vn.aptech.beehub.models.SharePost;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.PostService;
@@ -132,13 +134,9 @@ public class PostController {
 	                              .build();
 	    return ResponseEntity.ok(post);
 	}
-	@GetMapping(value = "/relaUser/{id}")
-	public ResponseEntity<List<RelationshipUserDto>> findUserByUser(@PathVariable("id") Long id){
-		List<RelationshipUserDto> result = postService.findUserByUser(id).stream().map((r) ->
-		RelationshipUserDto.builder()
-				.userid(r.getUser2().getId())
-				.username(r.getUser2().getUsername())
-				.build()).toList();
-		return ResponseEntity.ok(result);		
+	@PostMapping(value = "/share")
+	public ResponseEntity<?> sharePost(@RequestBody PostMeDto dto){
+		postService.sharePost(dto);
+		return ResponseEntity.ok(dto);
 	}
 }

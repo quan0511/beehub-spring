@@ -51,7 +51,13 @@ public class PostService implements IPostService {
 								post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
 								post.getColor(),
 						        post.getBackground(),
-						        post.getUser().getId() 
+						        post.getUser().getId(),
+						        post.getShare(),
+				                post.getMedias(),
+				                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null 		
 								));
 		});
 		return listPost;
@@ -80,7 +86,13 @@ public class PostService implements IPostService {
 					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
 					post.getColor(),
 					post.getBackground(),
-					post.getUser().getId() 
+					post.getUser().getId(),
+					post.getShare(),
+	                post.getMedias(),
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
 					));});
 		return listPost;
 	}
@@ -107,7 +119,13 @@ public class PostService implements IPostService {
 					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
 					post.getColor(),
 					post.getBackground(),
-					post.getUser().getId() 
+					post.getUser().getId(),
+					post.getShare(),
+	                post.getMedias(),
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
 					));});
 		postRep.searchPostsInGroupJoinedContain(search, id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
@@ -129,7 +147,13 @@ public class PostService implements IPostService {
 					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
 					post.getColor(),
 					post.getBackground(),
-					post.getUser().getId() 
+					post.getUser().getId(),
+					post.getShare(),
+	                post.getMedias(),
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
 					));});
 		return listPost;
 	}
@@ -160,7 +184,13 @@ public class PostService implements IPostService {
 						post.getUser_setting()!=null? post.getUser_setting().getSetting_type().toString(): ESettingType.PUBLIC.toString(),
 						post.getColor(),
 						post.getBackground(),
-						post.getUser().getId() 
+						post.getUser().getId(),
+						post.getShare(),
+		                post.getMedias(),
+		                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
 						));
 			});;
 			
@@ -200,7 +230,13 @@ public class PostService implements IPostService {
 					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
 					post.getColor(),
 					post.getBackground(),
-					post.getUser().getId() 
+					post.getUser().getId(),
+					post.getShare(),
+	                post.getMedias(),
+	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
+	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
 					));});
 		return listPost;
 	}

@@ -39,7 +39,18 @@ public class PostDto {
 	@Nullable
 	private String background;
 	private Long user_id; 
-	
+	@Nullable
+    private Boolean share; 
+    @Nullable
+    private String medias;
+    @Nullable
+    private String usershare_fullname;
+    @Nullable
+    private String usershare_username;
+    @Nullable
+    private String usershare_gender;
+    @Nullable
+    private LocalDateTime usershare_createdat;
 	public PostDto(
 			Long id, 
 			String text, 
