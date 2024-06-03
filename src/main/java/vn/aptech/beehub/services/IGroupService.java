@@ -15,4 +15,5 @@ public interface IGroupService {
 	public Map<String, Boolean> updateGroup(Long id,GroupDto group);
 	public boolean uploadImage(Long id, GroupDto group);
 	public boolean uploadBackground(Long id, GroupDto group);
+	public Long createGroup(Long id_user, GroupDto group);
 }

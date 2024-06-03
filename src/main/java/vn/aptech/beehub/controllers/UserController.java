@@ -263,4 +263,24 @@ public class UserController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 	    }
 	}
+	@PostMapping(value="/user/create-group/{id}")
+	public ResponseEntity<Long> createGroup(@PathVariable("id") Long id,@RequestParam(name= "background",required = true) MultipartFile background,@RequestParam(name= "image",required = true) MultipartFile imageGroup, @ModelAttribute  GroupDto group){
+		try {
+			if (background != null && !background.isEmpty()) {
+				String fileUrl1 = s3Service.uploadToS3(background.getInputStream(), background.getOriginalFilename());
+				logger.info(fileUrl1);
+	            group.setBackground_group(fileUrl1);
+	        }
+			if(imageGroup!=null&& !imageGroup.isEmpty()) {
+				String fileUrl2 = s3Service.uploadToS3(imageGroup.getInputStream(), imageGroup.getOriginalFilename());
+				logger.info(fileUrl2);
+				group.setImage_group(fileUrl2);
+			}
+			Long result =groupService.createGroup(id, group);
+			return  ResponseEntity.ok(result );
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 }

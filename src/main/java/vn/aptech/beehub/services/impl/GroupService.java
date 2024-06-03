@@ -35,6 +35,7 @@ import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
+import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
 
@@ -55,7 +56,8 @@ public class GroupService implements IGroupService {
 	private PostRepository postRep;
 	@Autowired
 	private ReportRepository reportRep;
-	
+	@Autowired
+	private UserRepository userRep;
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
 	@Autowired 
@@ -326,5 +328,40 @@ public class GroupService implements IGroupService {
 			}
 		}
 		return false;
+	}
+	@Override
+	public Long createGroup(Long id_user, GroupDto group) {
+		Optional<User> findUser = userRep.findById(id_user);
+		if(findUser.isPresent()) {
+			try {
+				User groupCreator= findUser.get();
+				Group newGroup = new Group();
+				newGroup.setGroupname(group.getGroupname());
+				newGroup.setDescription(group.getDescription());
+				newGroup.setCreated_at(LocalDateTime.now());
+				newGroup.setPublic_group(group.isPublic_group());
+				newGroup.setActive(true);
+				if(!group.getBackground_group().isEmpty()) {
+					GroupMedia groupMedia=  new GroupMedia(group.getBackground_group(), "image", LocalDateTime.now());
+					groupMedia.setUser(groupCreator);
+					GroupMedia savedBg= groupMediaRep.save(groupMedia);
+					newGroup.setBackground_group(savedBg);
+				}
+				if(!group.getImage_group().isEmpty()) {
+					GroupMedia groupMedia2=  new GroupMedia(group.getImage_group(), "image", LocalDateTime.now());
+					groupMedia2.setUser(groupCreator);
+					GroupMedia saveImg = groupMediaRep.save(groupMedia2);
+					newGroup.setImage_group(saveImg);
+				}
+				Group savedGroup = groupRep.save(newGroup);
+				GroupMember creator = new GroupMember(groupCreator,savedGroup,EGroupRole.GROUP_CREATOR);
+				groupMemberRep.save(creator);
+				return savedGroup.getId();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return (long) 0;
+			}
+		}
+		return (long) 0;
 	}
 }
