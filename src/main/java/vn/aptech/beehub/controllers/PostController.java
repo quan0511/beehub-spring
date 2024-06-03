@@ -4,10 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,21 +24,29 @@ import org.springframework.web.multipart.MultipartFile;
 
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.controllers.PostController;
+import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.PostService;
 import lombok.extern.slf4j.Slf4j;
 
 @Tag(name = "Posts")
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class PostController {
+	private Logger logger = LoggerFactory.getLogger(PostController.class);
+	
 	@Autowired
 	private PostService postService;
 	@Autowired
 	private S3Service s3Service;
+	@Autowired
+	private ModelMapper mapper;
+
 	@GetMapping
 	public ResponseEntity<List<Post>> findAllPost() {
 		List<Post> result = postService.findAllPost();
@@ -46,8 +59,10 @@ public class PostController {
 	}
 
 	@PostMapping(value = "/create")
-	public ResponseEntity<Post> create(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto) {
-	    try {
+	public ResponseEntity<?> create(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto) {
+		logger.info(dto.getUser().toString());
+		System.out.println(dto.getUser().toString());
+		try {
 	        if (media != null && !media.isEmpty()) {
 	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
 	            //String fileExtract = extractFileNameFromUrl(fileUrl);
@@ -56,15 +71,15 @@ public class PostController {
 	        }else {
 	        	dto.setMediaUrl(null);
 	        }
-	        Post savedPost = postService.savePost(dto);
-	        return ResponseEntity.ok(savedPost);
+	        postService.savePost(dto);
+	        return ResponseEntity.ok(dto);
 	    } catch (Exception e) {
 	        log.error(e.getMessage());
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 	    }
 	}
 	@PostMapping(value = "/updatepost")
-	public ResponseEntity<Post>update(@RequestParam(name= "media",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto){
+	public ResponseEntity<Post>update(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto){
 		try {
 	        if (media == null && !media.isEmpty()) {
 	            String fileUrl = s3Service.editToS3(media.getInputStream(), media.getOriginalFilename());
@@ -86,13 +101,22 @@ public class PostController {
 	}
 	
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<Post> findByIdPost(@PathVariable("id") Long id){
-		Optional<Post> result = postService.findByIdPost(id);
-		if(result.isPresent()) {
-			return ResponseEntity.ok(result.get());
-		}else {
-			return ResponseEntity.notFound().build();
-		}
+	public ResponseEntity<PostMeDto> findByIdPost(@PathVariable("id") Long id){
+	    Optional<Post> optionalPost = postService.findByIdPost(id);
+	    if (!optionalPost.isPresent()) {
+	        return ResponseEntity.notFound().build();
+	    }
+	    Post p = optionalPost.get();
+	    PostMeDto post = PostMeDto.builder()
+	                              .id(p.getId())
+	                              .text(p.getText())
+	                              .createdAt(p.getCreate_at().toString()) 
+	                              .mediaUrl(p.getMedias())
+	                              .color(p.getColor())
+	                              .background(p.getBackground())
+	                              .user(p.getUser().getId()) 
+	                              .build();
+	    return ResponseEntity.ok(post);
 	}
 	
 }

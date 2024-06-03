@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"comments", "reactions", "likes"})//cho chỉ định các thuộc tính sẽ bị bỏ qua trong quá trình tuần tự hóa.
+@JsonIgnoreProperties({"comments", "reactions", "likes","gallerys","reports_of_post"})//cho chỉ định các thuộc tính sẽ bị bỏ qua trong quá trình tuần tự hóa.
 public class Post {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,6 +63,9 @@ public class Post {
     
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LikeUser> likes;
+    
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Gallery> gallerys;
 	@NotBlank
 	private String text;
 	@Nullable
@@ -72,8 +75,7 @@ public class Post {
 	@NotNull
 	private LocalDateTime create_at;
 	private String medias;
-	 @OneToMany(mappedBy = "target_post",fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval=true)
-	 private List<Report> reports_of_post;
+	
 	public Post(
 			String text,
 			User user,
@@ -97,6 +99,21 @@ public class Post {
 		this.user = user;
 		this.create_at = create_at;		
 		this.user_setting = new UserSetting(user,type);
+	}
+	public Post(
+			String text,
+			User user,
+			LocalDateTime create_at,
+			ESettingType type,
+			String color,
+			String background
+			) {
+		this.text = text;
+		this.user = user;
+		this.create_at = create_at;		
+		this.user_setting = new UserSetting(user,type);
+		this.color = color;
+		this.background = background;
 	}
 	
 	@Override

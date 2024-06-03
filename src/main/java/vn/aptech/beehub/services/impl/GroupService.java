@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,7 @@ import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.Group;
+import vn.aptech.beehub.models.GroupMedia;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
@@ -33,6 +35,7 @@ import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
+import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
 
@@ -53,7 +56,8 @@ public class GroupService implements IGroupService {
 	private PostRepository postRep;
 	@Autowired
 	private ReportRepository reportRep;
-	
+	@Autowired
+	private UserRepository userRep;
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
 	@Autowired 
@@ -233,7 +237,7 @@ public class GroupService implements IGroupService {
 							media.getCreate_at(), 
 							media.getUser().getUsername(), 
 							media.getUser().getFullname(),
-							id_group, media.getPost().getId()));
+							id_group, media.getPost()!=null?media.getPost().getId():null));
 				});
 				groupDto.setGroup_members(members);
 				groupDto.setGroup_medias(list_media);
@@ -276,5 +280,88 @@ public class GroupService implements IGroupService {
 			result.put("result", false);
 		}
 		return result;
+	}
+	@Override
+	public boolean uploadImage(Long id, GroupDto group) {
+		Optional<Group> findGroup = groupRep.findById(group.getId());
+		Optional<GroupMember> findMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id);
+		if(findGroup.isPresent()&& findMem.isPresent() && !findMem.get().getRole().equals(EGroupRole.MEMBER)) {
+			try {
+				Group gr = findGroup.get();
+				GroupMedia groupMedia = new GroupMedia();
+				groupMedia.setMedia(group.getImage_group());
+				groupMedia.setMedia_type("image");
+				groupMedia.setCreate_at(LocalDateTime.now());
+				groupMedia.setUser(findMem.get().getUser());
+				groupMedia.setGroup(gr);
+				GroupMedia savedImage= groupMediaRep.save(groupMedia);
+				gr.setImage_group(savedImage);
+				groupRep.save(gr);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return false;
+			}
+		}
+		return false;
+	}
+	@Override
+	public boolean uploadBackground(Long id, GroupDto group) {
+		Optional<Group> findGroup = groupRep.findById(group.getId());
+		Optional<GroupMember> findMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id);
+		if(findGroup.isPresent()&& findMem.isPresent() && !findMem.get().getRole().equals(EGroupRole.MEMBER)) {
+			try {
+				Group gr = findGroup.get();
+				GroupMedia groupMedia = new GroupMedia();
+				groupMedia.setMedia(group.getBackground_group());
+				groupMedia.setMedia_type("image");
+				groupMedia.setCreate_at(LocalDateTime.now());
+				groupMedia.setUser(findMem.get().getUser());
+				groupMedia.setGroup(gr);
+				GroupMedia savedImage= groupMediaRep.save(groupMedia);
+				gr.setBackground_group(savedImage);
+				groupRep.save(gr);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return false;
+			}
+		}
+		return false;
+	}
+	@Override
+	public Long createGroup(Long id_user, GroupDto group) {
+		Optional<User> findUser = userRep.findById(id_user);
+		if(findUser.isPresent()) {
+			try {
+				User groupCreator= findUser.get();
+				Group newGroup = new Group();
+				newGroup.setGroupname(group.getGroupname());
+				newGroup.setDescription(group.getDescription());
+				newGroup.setCreated_at(LocalDateTime.now());
+				newGroup.setPublic_group(group.isPublic_group());
+				newGroup.setActive(true);
+				if(!group.getBackground_group().isEmpty()) {
+					GroupMedia groupMedia=  new GroupMedia(group.getBackground_group(), "image", LocalDateTime.now());
+					groupMedia.setUser(groupCreator);
+					GroupMedia savedBg= groupMediaRep.save(groupMedia);
+					newGroup.setBackground_group(savedBg);
+				}
+				if(!group.getImage_group().isEmpty()) {
+					GroupMedia groupMedia2=  new GroupMedia(group.getImage_group(), "image", LocalDateTime.now());
+					groupMedia2.setUser(groupCreator);
+					GroupMedia saveImg = groupMediaRep.save(groupMedia2);
+					newGroup.setImage_group(saveImg);
+				}
+				Group savedGroup = groupRep.save(newGroup);
+				GroupMember creator = new GroupMember(groupCreator,savedGroup,EGroupRole.GROUP_CREATOR);
+				groupMemberRep.save(creator);
+				return savedGroup.getId();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return (long) 0;
+			}
+		}
+		return (long) 0;
 	}
 }

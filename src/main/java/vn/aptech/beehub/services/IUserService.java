@@ -25,7 +25,10 @@ public interface IUserService {
 	public boolean checkGroupMember (Long id_user, Long id_group);
 	public boolean checkUsernameIsExist(String username);
 	public boolean checkPassword(Long id, String password);
-	public void updateUser(Long id,ProfileDto user);
-	public void updateBio(Long id, ProfileDto user);
-	public void updatePassword(Long id, String password);
+	public boolean updateUser(Long id,ProfileDto user);
+	public boolean updateBio(Long id, ProfileDto user);
+	public boolean updatePassword(Long id, String password);
+	public boolean updateImage(Long id, String image);
+	public boolean updateBackground(Long id, String background);
+	
 }

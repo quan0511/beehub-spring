@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.LikeDto;
+import vn.aptech.beehub.dto.LikeUserDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
@@ -139,10 +140,15 @@ public class LikeServiceImpl implements LikeService {
 	         return null;
 	     }
 	}
-	public List<LikeUser> findLikeUserByPost(Long postId){
+	public List<LikeUserDto> findLikeUserByPost(Long postId){
 		Optional<Post> optionalPost = postRepository.findById(postId);
 		Post post = optionalPost.get();
-		return (List<LikeUser>) likeRepository.findByPost(post);
+		List<LikeUserDto> likeUsers = likeRepository.findByPost(post).stream().map((user) ->
+				LikeUserDto.builder()
+						.user(user.getUser().getId())
+						.enumEmo(user.getEnumEmo())
+						.build()).toList();
+		return likeUsers;
 	}
 	public int countLikesByPost(Long postId) {
 	    Optional<Post> optionalPost = postRepository.findById(postId);

@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.GalleryDto;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
@@ -23,6 +26,7 @@ import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
+import vn.aptech.beehub.models.Gallery;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Requirement;
@@ -56,6 +60,8 @@ public class UserService implements IUserService {
 	private IGroupService groupSer;
 	@Autowired
 	private GroupMemberRepository groupMemberRep;
+	@Autowired
+	private S3Service s3Service;
 	@Autowired 
 	private ModelMapper mapper;
 	private UserDto toDto(User user) {
@@ -122,7 +128,9 @@ public class UserService implements IUserService {
 	@Override
 	public List<UserDto> findAllFriends(Long id) {
 		List<UserDto> list = new LinkedList<UserDto>();
-		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(toDto(e)));
+		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				));
 		return list;
 	}
 	@Override
@@ -130,7 +138,9 @@ public class UserService implements IUserService {
 		Map<String, List<Object>> res= new HashMap<String, List<Object>>(); 
 		List<Object> listGroup =  groupSer.getGroupUserJoined(id);
 		List<Object> listFriend = new LinkedList<Object>();
-		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(toDto(e)));
+		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				));
 		res.put("groups", listGroup);
 		res.put("friends", listFriend);
 		return res;
@@ -242,13 +252,15 @@ public class UserService implements IUserService {
 			List<PostDto> posts = postSer.findByUserId(user.getId());
 			if(relationship != "FRIEND" && user_id != user.getId() ) {
 				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN" || post.getSetting_type() =="FOR_FRIEND");
+			}else if(relationship == "FRIEND" && user_id != user.getId()  ){
+				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN");
 			}
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
 				galleries.add(new GalleryDto(
 						gallery.getId(), 
 						gallery.getUser().getId(),
-						gallery.getPost().getId(), 
+						gallery.getPost()!=null?gallery.getPost().getId():null, 
 						gallery.getMedia(), 
 						gallery.getMedia_type(), 
 						gallery.getCreate_at()));
@@ -329,25 +341,36 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean checkUsernameIsExist(String username) {
-		logger.info(userRep.existsByUsername(username).toString());
 		return userRep.existsByUsername(username);
 	}
 	@Override
-	public void updateUser(Long id,ProfileDto profile) {
-		User user = userRep.findById(id).get();
-		user.setUsername(profile.getUsername());
-		user.setEmail(profile.getEmail());
-		user.setFullname(profile.getFullname());
-		user.setGender(profile.getGender());
-		user.setPhone(profile.getPhone());
-		user.setBirthday(profile.getBirthday());
-		userRep.save(user);
+	public boolean updateUser(Long id,ProfileDto profile) {
+		try {
+			User user = userRep.findById(id).get();
+			user.setUsername(profile.getUsername());
+			user.setEmail(profile.getEmail());
+			user.setFullname(profile.getFullname());
+			user.setGender(profile.getGender());
+			user.setPhone(profile.getPhone());
+			user.setBirthday(profile.getBirthday());
+			userRep.save(user);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 	@Override
-	public void updateBio(Long id, ProfileDto user) {
-		User userUp = userRep.findById(id).get();
-		userUp.setBio(user.getBio());
-		userRep.save(userUp);
+	public boolean updateBio(Long id, ProfileDto user) {
+		try {
+			User userUp = userRep.findById(id).get();
+			userUp.setBio(user.getBio());
+			userRep.save(userUp);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 	@Override
 	public boolean checkPassword(Long id, String password) {
@@ -359,11 +382,67 @@ public class UserService implements IUserService {
 		return false;
 	}
 	@Override
-	public void updatePassword(Long id, String password) {
-		User user = userRep.findById(id).get();
-		PasswordEncoder passwordEncode = new BCryptPasswordEncoder();
-		user.setPassword(passwordEncode.encode(password));
-		userRep.save(user);
+	public boolean updatePassword(Long id, String password) {
+		try {
+			User user = userRep.findById(id).get();
+			PasswordEncoder passwordEncode = new BCryptPasswordEncoder();
+			user.setPassword(passwordEncode.encode(password));
+			userRep.save(user);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Transactional
+	@Override
+	public boolean updateImage(Long id, String image) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()&& image!=null && !image.isEmpty()) {
+			User user = findUser.get();
+			try {
+//				if(user.getImage()!=null) {
+//					String fileUrl = user.getImage().getMedia();
+//					String fileExtract= fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+//					s3Service.deleteToS3(fileExtract);
+//					Gallery gall= user.getImage();
+//					galleryRep.deleteGallery(gall.getId());
+//					logger.info("Deleted Old image");
+//				}
+				Gallery newGallery = galleryRep.save(new Gallery(user, image, "image", LocalDateTime.now()));
+				user.setImage(newGallery);
+				userRep.save(user);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+		}
+		return false;
+	}
+	@Transactional
+	@Override
+	public boolean updateBackground(Long id, String background) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()&& background!=null && !background.isEmpty()) {
+			User user = findUser.get();
+			try {
+//				if(user.getBackground()!=null) {
+//					String fileUrl = user.getBackground().getMedia();
+//					String fileExtract= fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+//					s3Service.deleteToS3(fileExtract);
+//					Gallery gall= user.getBackground();
+//					galleryRep.deleteGallery(gall.getId());
+//					logger.info("Deleted Old background");
+//				}
+				Gallery newGallery = galleryRep.save(new Gallery(user, background, "image", LocalDateTime.now()));
+				user.setBackground(newGallery);
+				userRep.save(user);
+				return true;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+		}
+		return false;
 	}
 	
 	

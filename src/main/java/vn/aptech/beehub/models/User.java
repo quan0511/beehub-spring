@@ -66,11 +66,11 @@ public class User {
     private String gender;
     
     @Nullable
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
 	@JoinColumn(name="image_id",referencedColumnName = "id")
     private Gallery image;
     @Nullable
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
 	@JoinColumn(name="background_id",referencedColumnName = "id")
     private Gallery background;
     
@@ -131,5 +131,8 @@ public class User {
     @Override
     public String toString() {
     	return "User "+this.id+"\tFullname: "+this.fullname+"\tusername:"+this.username+"\tgender: "+this.gender+"\tphone: "+this.phone+"\ncreate at: "+this.create_at+"\tis active: "+this.is_active+"\temail: "+this.email+"\temail_verified"+this.email_verified;
+    }
+    public void removeImage (Gallery image) {
+    	
     }
 }

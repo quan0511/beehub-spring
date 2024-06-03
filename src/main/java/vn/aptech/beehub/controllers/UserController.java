@@ -12,17 +12,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.FileInfo;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
+import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
+import vn.aptech.beehub.models.Post;
+import vn.aptech.beehub.models.User;
+import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
@@ -31,6 +38,7 @@ import vn.aptech.beehub.services.IUserService;
 import vn.aptech.beehub.services.IUserSettingService;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 @Tag(name = "User")
 @RestController
@@ -50,117 +58,124 @@ public class UserController {
 	private IUserSettingService userSettingService;
 	@Autowired
 	private IRequirementService requirementService;
-	
+	@Autowired
+	private S3Service s3Service;
 	@GetMapping(path = "/users")
-	private List<UserDto> getAllUsers(){
-		return userService.findAll();
+	private ResponseEntity<List<UserDto>> getAllUsers(){
+		return ResponseEntity.ok(userService.findAll());
 	}
 	@GetMapping(path = "/user/{id}")
-	private Optional<UserDto> getUser(@PathVariable Long id){
-		return userService.getUser(id);
+	private ResponseEntity<Optional<UserDto>> getUser(@PathVariable Long id){
+		return ResponseEntity.ok(userService.getUser(id));
 	}
 	@GetMapping(path="/user/{id}/profile/{username}")
-	private Optional<ProfileDto> getProfile(@PathVariable Long id,@PathVariable String username){
-		return userService.getProfile(username,id);
+	private ResponseEntity<Optional<ProfileDto>> getProfile(@PathVariable Long id,@PathVariable String username){
+		return ResponseEntity.ok(userService.getProfile(username,id));
 	}
 	@GetMapping(path="/friends/{id}")
-	private List<UserDto> getFriends(@PathVariable Long id){
-		return userService.findAllFriends(id);
+	private ResponseEntity<List<UserDto>> getFriends(@PathVariable Long id){
+		return ResponseEntity.ok(userService.findAllFriends(id));
 	}
 	@GetMapping(path="/groups_friends/{id}")
-	private Map<String, List<Object>> getGroupsAndFriends(@PathVariable Long id){
-		return userService.getGroupJoinedAndFriends(id);
+	private ResponseEntity<Map<String, List<Object>>> getGroupsAndFriends(@PathVariable Long id){
+		return ResponseEntity.ok(userService.getGroupJoinedAndFriends(id));
 	}
-	@GetMapping(path = "/post/{id}")
-	private List<PostDto> getPosts(@PathVariable Long id){
-		return postService.findByUserId(id);
+	@GetMapping(path = "/user/get-post/{id}")
+	private ResponseEntity<List<PostDto>> getPosts(@PathVariable Long id){
+		return ResponseEntity.ok(postService.findByUserId(id));
 	}
 	@GetMapping(path = "/homepage/{id}")
-	private List<PostDto> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
-		return postService.newestPostsForUser(id, page,limit);
+	private ResponseEntity<List<PostDto>> getFriendPost(@PathVariable Long id,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
+		return ResponseEntity.ok(postService.newestPostsForUser(id, page,limit));
 	}
 	@GetMapping(path = "/load-posts/{id}")
-	private List<PostDto> allAllPost(@PathVariable Long id,@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "5") int limit){
-		return postService.getPostsForUser(id,page, limit);
+	private ResponseEntity<List<PostDto>> allAllPost(@PathVariable Long id,@RequestParam(defaultValue = "1") int page,@RequestParam(defaultValue = "5") int limit){
+		return ResponseEntity.ok(postService.getPostsForUser(id,page, limit));
 	}
 	@GetMapping(path = "/allposts/{id}")
-	private List<PostDto> allAllPost(@PathVariable Long id){
-		return postService.getAllPostForUser(id);
+	private ResponseEntity<List<PostDto>> allAllPost(@PathVariable Long id){
+		return ResponseEntity.ok(postService.getAllPostForUser(id));
 	}
 	@GetMapping(path = "/peoplepage/{id}")
-	private Map<String, List<UserDto>> getPeople(@PathVariable Long id ){
-		return userService.getPeople(id);
+	private ResponseEntity<Map<String, List<UserDto>>> getPeople(@PathVariable Long id ){
+		return ResponseEntity.ok(userService.getPeople(id));
 	}
 	@GetMapping(path = "/listgroup_page/{id}")
-	private Map<String, List<GroupDto>> getListGroups(@PathVariable Long id){
-		return groupService.getListGroup(id);
+	private ResponseEntity<Map<String, List<GroupDto>>> getListGroups(@PathVariable Long id){
+		return ResponseEntity.ok(groupService.getListGroup(id));
 	}
 	@GetMapping(path = "/user/{id}/search_all")
-	private SearchingDto getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
-		return userService.getSearch(id,search);
+	private ResponseEntity<SearchingDto> getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
+		return ResponseEntity.ok(userService.getSearch(id,search));
 	}
 	@GetMapping (path="/user/{id_user}/get-group/{id_group}")
-	private GroupDto getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
-		return groupService.getGroup(id_user, id_group);
+	private ResponseEntity<GroupDto> getGroup(@PathVariable Long id_user, @PathVariable Long id_group) {
+		return ResponseEntity.ok(groupService.getGroup(id_user, id_group));
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")
-	private List<PostDto> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group){
-		return postService.newestPostInGroup(id_group, id_user, 8);
+	private ResponseEntity<List<PostDto>> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
+		logger.info("Limit: "+limit+"\t Page: "+page);
+		return ResponseEntity.ok(postService.newestPostInGroup(id_group, id_user, limit, page));
 	}
 	@GetMapping(path = "/check-user")
-	private boolean checExistUsername (@RequestParam(required = false) String username) {
+	private ResponseEntity<Boolean> checExistUsername (@RequestParam(required = false) String username) {
 		if(username!=null && !username.isEmpty()) {
-			return userService.checkUsernameIsExist(username);			
+			return ResponseEntity.ok(userService.checkUsernameIsExist(username));			
 		}
-		return false;
+		return ResponseEntity.ok(false);
 	}
 	@GetMapping(path = "/check-email")
-	private boolean checkExistEmail (@RequestParam(required = false) String email) {
+	private ResponseEntity<Boolean> checkExistEmail (@RequestParam(required = false) String email) {
 		if(email!=null && !email.isEmpty()){
-			return userService.getUserByEmail(email).isPresent();
+			return ResponseEntity.ok(userService.getUserByEmail(email).isPresent());
 		}
-		return false;
+		return ResponseEntity.ok(false);
 	}
 	@PostMapping(path = "/update/profile/{id}")
-	private void updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
-		userService.updateUser(id,profile);
+	private ResponseEntity<Boolean> updateUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		boolean result=userService.updateUser(id,profile);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@PostMapping(path = "/update/bio-profile/{id}")
-	private void updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
-		userService.updateBio(id,profile);
+	private ResponseEntity<Boolean> updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
+		
+		boolean result = userService.updateBio(id,profile);
+		
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path="/check-password/{id}")
-	private boolean checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
-		logger.info(password);
-		return userService.checkPassword(id, password);
+	private ResponseEntity<Boolean> checkPassword (@PathVariable("id") Long id,@RequestParam(required = true) String password) {
+		return ResponseEntity.ok(userService.checkPassword(id, password));
 	}
 	@PostMapping(path = "/update/profile/password/{id}")
-	private void updateUserPassword(@PathVariable("id") Long id,@RequestBody  String password) {
-		userService.updatePassword(id,password);
+	private ResponseEntity<Boolean>  updateUserPassword(@PathVariable("id") Long id,@RequestBody  String password) {
+		boolean result = userService.updatePassword(id,password);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path = "/check-setting/post/{id}")
-	private Map<String, String> checkSettingPost (@PathVariable("id") Long id) {
-		return userSettingService.checkSettingPost(id);
+	private ResponseEntity<Map<String, String>> checkSettingPost (@PathVariable("id") Long id) {
+		return ResponseEntity.ok(userSettingService.checkSettingPost(id));
 	}
 	@PostMapping(path = "/update/setting/{id}")
-	private Map<String, Integer> updateSettingPost(@PathVariable("id") Long id,@RequestBody String settingType) {
-		return userSettingService.settingAllPost(id, settingType);
+	private ResponseEntity<Map<String, Integer>> updateSettingPost(@PathVariable("id") Long id,@RequestBody String settingType) {
+		return ResponseEntity.ok(userSettingService.settingAllPost(id, settingType));
 	}
 	@PostMapping(path = "/setting/add/{id}")
-	private void updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
-		userSettingService.updateSettingItem(id, settingItem);
+	private ResponseEntity<Boolean>  updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
+		boolean result=userSettingService.updateSettingItem(id, settingItem);
+		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path= "/get-setting/item/{id}")
-	private List<UserSettingDto> getAllSettingItem(@PathVariable("id") Long id){
-		return userSettingService.allSettingItemOfUser(id);
+	private ResponseEntity<List<UserSettingDto>> getAllSettingItem(@PathVariable("id") Long id){
+		return ResponseEntity.ok(userSettingService.allSettingItemOfUser(id));
 	}
 	@PostMapping(path = "/update/group/{id}")
-	private Map<String, Boolean> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){
-		return groupService.updateGroup(id, group);
+	private ResponseEntity<Map<String, Boolean>> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){
+		return ResponseEntity.ok(groupService.updateGroup(id, group));
 	}
 	@PostMapping(path="/send-requirement/{id}")
-	private Map<String, String> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){
-		return requirementService.handleRequirement(id, requirement);
+	private ResponseEntity<Map<String, String>> createRelationship(@PathVariable("id") Long id,@RequestBody RequirementDto requirement){
+		return ResponseEntity.ok(requirementService.handleRequirement(id, requirement));
 	}
 	@GetMapping("/files/{filename:.+}")
 	@ResponseBody
@@ -181,4 +196,91 @@ public class UserController {
 
 	    return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	  }
+	@PostMapping(value = "/upload/profile/image/{id}")
+	public ResponseEntity<Boolean> uploadImageProfile(@PathVariable("id") Long id,@RequestParam(name= "media",required = true) MultipartFile media) {
+	    try {
+	        if (media != null && !media.isEmpty()) {
+	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
+	            
+	            boolean result = userService.updateImage(id,fileUrl);
+	            return ResponseEntity.ok(result);
+	        }else {
+	        	logger.error("Not found media");
+	        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	        }
+	    } catch (Exception e) {
+	        logger.error(e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	    }
+	}
+	@PostMapping(value = "/upload/profile/background/{id}")
+	public ResponseEntity<Boolean> uploadBackgroundProfile(@PathVariable("id") Long id,@RequestParam(name= "media",required = true) MultipartFile media) {
+	    try {
+	        if (media != null && !media.isEmpty()) {
+	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
+	            boolean result = userService.updateBackground(id,fileUrl);
+	            return ResponseEntity.ok(result);
+	        }else {
+	        	logger.error("Not found media");
+	        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	        }
+	    } catch (Exception e) {
+	        logger.error(e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	    }
+	}
+	@PostMapping(value = "/upload/group/image/{id}")
+	public ResponseEntity<Boolean> uploadImageGroup(@PathVariable("id") Long id,@RequestParam(name= "media",required = true) MultipartFile media, @ModelAttribute  GroupDto group) {
+	    try {
+	        if (media != null && !media.isEmpty()) {
+	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
+	            group.setImage_group(fileUrl);
+	            boolean result = groupService.uploadImage(id,group);
+	            return ResponseEntity.ok(result);
+	        }else {
+	        	logger.error("Not found media");
+	        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	        }
+	    } catch (Exception e) {
+	        logger.error(e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	    }
+	}
+	@PostMapping(value = "/upload/group/background/{id}")
+	public ResponseEntity<Boolean> uploadBackgroundGroup(@PathVariable("id") Long id,@RequestParam(name= "media",required = true) MultipartFile media, @ModelAttribute  GroupDto group) {
+	    try {
+	        if (media != null && !media.isEmpty()) {
+	            String fileUrl = s3Service.uploadToS3(media.getInputStream(), media.getOriginalFilename());
+	            group.setBackground_group(fileUrl);
+	            boolean result = groupService.uploadBackground(id,group);
+	            return ResponseEntity.ok(result);
+	        }else {
+	        	logger.error("Not found media");
+	        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	        }
+	    } catch (Exception e) {
+	        logger.error(e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	    }
+	}
+	@PostMapping(value="/user/create-group/{id}")
+	public ResponseEntity<Long> createGroup(@PathVariable("id") Long id,@RequestParam(name= "background",required = true) MultipartFile background,@RequestParam(name= "image",required = true) MultipartFile imageGroup, @ModelAttribute  GroupDto group){
+		try {
+			if (background != null && !background.isEmpty()) {
+				String fileUrl1 = s3Service.uploadToS3(background.getInputStream(), background.getOriginalFilename());
+				logger.info(fileUrl1);
+	            group.setBackground_group(fileUrl1);
+	        }
+			if(imageGroup!=null&& !imageGroup.isEmpty()) {
+				String fileUrl2 = s3Service.uploadToS3(imageGroup.getInputStream(), imageGroup.getOriginalFilename());
+				logger.info(fileUrl2);
+				group.setImage_group(fileUrl2);
+			}
+			Long result =groupService.createGroup(id, group);
+			return  ResponseEntity.ok(result );
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 }

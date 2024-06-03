@@ -62,5 +62,13 @@ public class GroupMedia {
 		this.group = group;
 		this.post =post;
 	}
+	public GroupMedia (String media,
+			String media_type,
+			LocalDateTime create_at
+			) {
+		this.media = media;
+		this.media_type = media_type;
+		this.create_at = create_at;
+	}
 
 }

@@ -22,12 +22,10 @@ public class DatabaseSeeder {
     private GroupMemberRepository groupMemberRepository;
     private ReportTypeRepository reportTypeRepository;
     private PostRepository postRepository;
-    private GalleryRepository galleryRepository;
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private RelationshipUsersRepository relationshipUsersRepository;
     private PasswordEncoder passwordEncoder;
-    private GroupMediaRepository groupMediaRepository;
     private RequirementRepository requirementRep;
     private ReportRepository reportRep;
 
@@ -40,9 +38,7 @@ public class DatabaseSeeder {
             GroupMemberRepository groupMemberRepository,
             ReportTypeRepository reportTypeRepository,
             PostRepository postRepository,
-            GalleryRepository galleryRepository,
             RelationshipUsersRepository relationshipUsersRepository,
-            GroupMediaRepository groupMediaRepository,
             RequirementRepository requirementRep,
             ReportRepository reportRep
             ) {
@@ -54,9 +50,7 @@ public class DatabaseSeeder {
         this.groupMemberRepository = groupMemberRepository;
         this.reportTypeRepository = reportTypeRepository;
         this.postRepository = postRepository;
-        this.galleryRepository = galleryRepository;
         this.relationshipUsersRepository = relationshipUsersRepository;
-        this.groupMediaRepository = groupMediaRepository;
         this.requirementRep = requirementRep;
         this.reportRep= reportRep;
     }
@@ -256,7 +250,8 @@ public class DatabaseSeeder {
                     new Post("I will go to the cinema",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
                     new Post("Deadline like the death in line",users.get(5) , LocalDateTime.now(),ESettingType.HIDDEN),
                     new Post("Just seeding some posts",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("Trying post",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC)
+                    new Post("Trying post",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
+                    new Post("Post color test", users.get(1), LocalDateTime.now(), ESettingType.PUBLIC,"#fff","rgb(0, 157, 255)")
             );
             for (Iterator<Post> iterator = listPo.iterator(); iterator.hasNext();) {
                 Post post = (Post) iterator.next();
@@ -278,38 +273,7 @@ public class DatabaseSeeder {
 					postFromMem.setBackground("inherit");
 					postRepository.save(postFromMem);
 					logger.info("Saved Post to Group "+group.getGroupname());
-					
-					//Post in Group with Gallery
-					LocalDateTime datePost = LocalDateTime.now().minusDays(randomDay-1);
-					Post postFromMem2 = new Post(
-							"Seeding post with image"+group.getGroupname()+" from user "+member.getUsername(),
-							member, 
-							datePost,
-							group);
-					Post postGrSaved=postRepository.save(postFromMem2);
-					GroupMedia newGroupMedia= new GroupMedia(
-							"pic2.png", 
-							"image", 
-							datePost, 
-							member, 
-							group, 
-							postGrSaved);
-					groupMediaRepository.save(newGroupMedia);
-					
 				}
-			}
-			//POst with gallery
-			List<Post> listposts = Arrays.asList(
-					new Post("Post with image", users.get(2), LocalDateTime.now(), ESettingType.PUBLIC),
-					new Post("My Image", users.get(4), LocalDateTime.now(), ESettingType.FOR_FRIEND)
-					);
-			for (Iterator<Post> iterator = listposts.iterator(); iterator.hasNext();) {
-				Post post = (Post) iterator.next();
-				Post postSaved = postRepository.save(post);
-				Gallery newGallery = new Gallery(postSaved.getUser(), postSaved, "pic1.png", "image");
-				newGallery.setCreate_at(LocalDateTime.now());
-				galleryRepository.save(newGallery);
-				logger.info("Saved Post AND Gallery to Group");
 			}
         }else {
             logger.trace("Seeding Post is not required");

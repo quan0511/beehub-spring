@@ -24,4 +24,5 @@ public class GalleryDto {
 		this.media = media;
 		this.media_type = media_type;
 	}
+	
 }
