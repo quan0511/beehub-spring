@@ -89,7 +89,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " WHERE u1.is_active=1 AND p.group_id IN ( SELECT gm.group_id FROM group_members gm "
 			+ " LEFT JOIN users u ON u.id = gm.user_id"
 			+ " LEFT JOIN groups g ON g.id = gm.group_id"
-			+ " WHERE gm.user_id = 1 AND g.public_group=1 )"
+			+ " WHERE gm.user_id = :id AND g.public_group=1 )"
 			+ " AND ( p.user_id NOT IN (SELECT ru.user1_id FROM relationship_users ru WHERE ru.user2_id=:id AND ru.type='BLOCKED')"
 			+ " AND p.user_id NOT IN (SELECT ru.user2_id FROM relationship_users ru WHERE ru.user1_id=:id AND ru.type='BLOCKED') )"
 			+ " AND p.text LIKE '%:search%'"
