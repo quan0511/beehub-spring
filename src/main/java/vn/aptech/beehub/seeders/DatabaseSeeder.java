@@ -22,12 +22,10 @@ public class DatabaseSeeder {
     private GroupMemberRepository groupMemberRepository;
     private ReportTypeRepository reportTypeRepository;
     private PostRepository postRepository;
-    private GalleryRepository galleryRepository;
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private RelationshipUsersRepository relationshipUsersRepository;
     private PasswordEncoder passwordEncoder;
-    private GroupMediaRepository groupMediaRepository;
     private RequirementRepository requirementRep;
     private ReportRepository reportRep;
 
@@ -40,9 +38,7 @@ public class DatabaseSeeder {
             GroupMemberRepository groupMemberRepository,
             ReportTypeRepository reportTypeRepository,
             PostRepository postRepository,
-            GalleryRepository galleryRepository,
             RelationshipUsersRepository relationshipUsersRepository,
-            GroupMediaRepository groupMediaRepository,
             RequirementRepository requirementRep,
             ReportRepository reportRep
             ) {
@@ -54,9 +50,7 @@ public class DatabaseSeeder {
         this.groupMemberRepository = groupMemberRepository;
         this.reportTypeRepository = reportTypeRepository;
         this.postRepository = postRepository;
-        this.galleryRepository = galleryRepository;
         this.relationshipUsersRepository = relationshipUsersRepository;
-        this.groupMediaRepository = groupMediaRepository;
         this.requirementRep = requirementRep;
         this.reportRep= reportRep;
     }

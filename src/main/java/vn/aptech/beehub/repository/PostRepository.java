@@ -80,7 +80,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " ) AND s.setting_type='PUBLIC') OR (p.user_id IN (SELECT  u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id"
 			+ " WHERE ru.type='FRIEND'  AND u.is_active=1 AND (ru.user1_id = :id OR ru.user2_id = :id)) AND s.setting_type='FOR_FRIEND')) "
 			+ " AND p.group_id IS NULL"
-			+ " ORDER BY p.create_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
+			+ " ORDER BY p.create_at DESC", nativeQuery = true)
 	
 	List<Post> searchPublicPostsContain( @Param("search") String search, @Param("id") Long id );
 	
