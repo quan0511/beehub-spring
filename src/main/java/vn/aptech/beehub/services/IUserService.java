@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.RelationshipUserDto;
+import vn.aptech.beehub.dto.ReportFormDto;
+import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
@@ -30,5 +32,7 @@ public interface IUserService {
 	public boolean updatePassword(Long id, String password);
 	public boolean updateImage(Long id, String image);
 	public boolean updateBackground(Long id, String background);
+	public List<ReportTypesDto> getListReportType();
+	public String createReport(Long id_user, ReportFormDto report);
 	
 }
