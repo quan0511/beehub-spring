@@ -1,6 +1,7 @@
 package vn.aptech.beehub.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import vn.aptech.beehub.models.Group;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
+	Optional<Group> findByGroupname(String groupname);
 	List<Group> findByGroupnameContains(String groupname);
 	@Query(value = "SELECT g.* FROM groups g"
 			+ " WHERE g.id IN (SELECT gm.group_id FROM group_members gm WHERE gm.user_id = ?1)"

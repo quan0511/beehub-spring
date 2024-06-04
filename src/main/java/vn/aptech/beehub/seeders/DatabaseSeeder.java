@@ -16,6 +16,7 @@ import java.util.*;
 @Component
 public class DatabaseSeeder {
 
+    private final GalleryRepository galleryRepository;
     private Logger logger = LoggerFactory.getLogger(DatabaseSeeder.class);
     private RequirementRepository requirementRepository;
     private GroupRepository groupRepository;
@@ -28,6 +29,7 @@ public class DatabaseSeeder {
     private PasswordEncoder passwordEncoder;
     private RequirementRepository requirementRep;
     private ReportRepository reportRep;
+    private GroupMediaRepository groupMediaRepository;
 
     public DatabaseSeeder(
             UserRepository userRepository,
@@ -40,8 +42,9 @@ public class DatabaseSeeder {
             PostRepository postRepository,
             RelationshipUsersRepository relationshipUsersRepository,
             RequirementRepository requirementRep,
-            ReportRepository reportRep
-            ) {
+            ReportRepository reportRep,
+            GalleryRepository galleryRepository,
+            GroupMediaRepository groupMediaRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -53,21 +56,23 @@ public class DatabaseSeeder {
         this.relationshipUsersRepository = relationshipUsersRepository;
         this.requirementRep = requirementRep;
         this.reportRep= reportRep;
+        this.galleryRepository = galleryRepository;
+        this.groupMediaRepository = groupMediaRepository;
     }
 
     @EventListener
     public void seed(ContextRefreshedEvent event) {
-//        seedRoles();
-//        seederUser();
-//        seederGroup();
-//        seederGroupMember();
-//        seederRelationshipUser();
-//        seederReportType();
-//        seederPosts();
-//        seederRequirements();
-//        seederGroupRequirements();
-//        seederGroupReports();
-
+        seedRoles();
+        seederUser();
+        seederGroup();
+        seederGroupMember();
+        seederRelationshipUser();
+        seederReportType();
+        seederPosts();
+        seederRequirements();
+        seederGroupRequirements();
+        seedReports();
+        seederGroupReports();
     }
 
     private void seedRoles() {
@@ -229,6 +234,88 @@ public class DatabaseSeeder {
             }
         }else {
             logger.trace("Seeding Report Type is not required");
+        }
+    }
+    private void seedReports() {
+        List<Report> reports = reportRep.findAll();
+
+        if (reports.isEmpty()) {
+            ReportTypes violence = reportTypeRepository.findByTitle("violence").get();
+            ReportTypes spam = reportTypeRepository.findByTitle("spam").get();
+            ReportTypes nudity = reportTypeRepository.findByTitle("nudity").get();
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER).get();
+            HashSet<Role> roles = new HashSet<>();
+            roles.add(userRole);
+
+            User bumblebee = User.builder()
+                    .username("Bumblebee")
+                    .email("bumblebee@gmail.com")
+                    .password(passwordEncoder.encode("123123"))
+                    .roles(roles)
+                    .build();
+            bumblebee = userRepository.save(bumblebee);
+            Gallery bumbleBeeImage = galleryRepository.save(new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.EmRwBDZe4rBVjntQ1uzpVwHaHa?w=164&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()));
+            bumblebee = userRepository.findByUsername("Bumblebee").get();
+            bumblebee.setImage(bumbleBeeImage);
+            galleryRepository.saveAll(List.of(
+                    new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.EmRwBDZe4rBVjntQ1uzpVwHaHa?w=164&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
+                    new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.VIHMP3vrUeXRhNq6yaR9sAHaEK?w=321&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
+                    new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.Eiw8hrGkSx-wxgXOHedEbgHaEp?w=307&h=192&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now())
+            ));
+            userRepository.save(bumblebee);
+
+            User optimus = User.builder()
+                    .username("Optimus")
+                    .email("optimus@gmail.com")
+                    .password(passwordEncoder.encode("123123"))
+                    .roles(roles)
+                    .build();
+            optimus = userRepository.save(optimus);
+            Gallery optimusImage = galleryRepository.save(new Gallery(optimus, "https://th.bing.com/th/id/OIP.UhzoNGGIvKYW8YahcshtwAHaHa?w=184&h=184&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()));
+            optimus = userRepository.findByUsername("Optimus").get();
+            optimus.setImage(optimusImage);
+            galleryRepository.saveAll(List.of(
+                    new Gallery(optimus, "https://th.bing.com/th/id/OIP.FGuDQu58aABECzJerNm30wHaEQ?w=326&h=187&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
+                    new Gallery(optimus, "https://th.bing.com/th/id/OIP.kPzrHJuZuOnHmgNDs90xOAHaD5?w=324&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
+                    new Gallery(optimus, "https://th.bing.com/th/id/OIP.YXGRuNl-quzuxAwT7EEVAAHaEJ?w=319&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now())
+            ));
+            userRepository.save(optimus);
+
+            Group optimusGang = groupRepository.save(new Group("OptimusGang", "Buy car features"));
+            GroupMedia optimusGangImage = groupMediaRepository.save(new GroupMedia("https://th.bing.com/th/id/OIP.UhzoNGGIvKYW8YahcshtwAHaHa?w=184&h=184&c=7&r=0&o=5&pid=1.7","image", LocalDateTime.now()));
+            optimusGang = groupRepository.findByGroupname("OptimusGang").get();
+            optimusGang.setImage_group(optimusGangImage);
+            groupRepository.save(optimusGang);
+            groupMemberRepository.save(new GroupMember(optimus, optimusGang, EGroupRole.GROUP_CREATOR));
+            groupMemberRepository.save(new GroupMember(bumblebee, optimusGang, EGroupRole.MEMBER));
+            Post optimusPost = new Post();
+            Gallery postImage = new Gallery(optimus, "https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain", "image", LocalDateTime.now());
+            galleryRepository.save(postImage);
+            optimusPost.setText("Victory Dance");
+            optimusPost.setMedia(postImage);
+            optimusPost.setCreate_at(LocalDateTime.now());
+            postRepository.save(optimusPost);
+            Report report1 = new Report();
+            report1.setCreate_at(LocalDateTime.now());
+            report1.setUpdate_at(LocalDateTime.now());
+            report1.setSender(bumblebee);
+            report1.setTarget_user(optimus);
+            report1.setReport_type(nudity);
+            reportRep.save(report1);
+            Report report2 = new Report();
+            report2.setCreate_at(LocalDateTime.now());
+            report2.setUpdate_at(LocalDateTime.now());
+            report2.setSender(bumblebee);
+            report2.setTarget_group(optimusGang);
+            report2.setReport_type(spam);
+            reportRep.save(report2);
+            Report report3 = new Report();
+            report3.setCreate_at(LocalDateTime.now());
+            report3.setUpdate_at(LocalDateTime.now());
+            report3.setSender(bumblebee);
+            report3.setTarget_post(optimusPost);
+            report3.setReport_type(violence);
+            reportRep.save(report3);
         }
     }
     private void seederPosts() {
