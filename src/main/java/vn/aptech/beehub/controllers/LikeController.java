@@ -30,8 +30,15 @@ public class LikeController {
 	private LikeService likeService;
 	
 	@GetMapping(value = "/emo/{postid}/{emoji}")
-	public ResponseEntity<List<LikeUser>> findEmoByPostEnum(@PathVariable("postid") Long postid,@PathVariable("emoji")String emoji){
-		List<LikeUser> result = likeService.findEmoByPostEnum(postid, emoji);
+	public ResponseEntity<List<LikeUserDto>> findEmoByPostEnum(@PathVariable("postid") Long postid,@PathVariable("emoji")String emoji){
+		List<LikeUserDto> result = likeService.findEmoByPostEnum(postid, emoji).stream().map((l)->
+		LikeUserDto.builder()
+			.enumEmo(l.getEnumEmo())
+			.user(l.getUser().getId())
+			.username(l.getUser().getUsername())
+			.gender(l.getUser().getGender())
+			.build()).toList();
+		
 		return ResponseEntity.ok(result);
 	}
 	@GetMapping(value = "/like/{postid}")

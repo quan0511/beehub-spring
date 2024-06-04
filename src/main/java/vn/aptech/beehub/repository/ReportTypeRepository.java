@@ -12,4 +12,5 @@ import vn.aptech.beehub.models.ReportTypes;
 public interface ReportTypeRepository extends JpaRepository<ReportTypes, Integer> {
 	@Query(value = "SELECT * FROM report_types ORDER BY RAND() LIMIT 1",nativeQuery = true)
 	Optional<ReportTypes> getRandomReportType();
+	Optional<ReportTypes> findByTitle(String title);
 }

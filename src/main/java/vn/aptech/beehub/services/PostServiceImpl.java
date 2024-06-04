@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.amazonaws.SdkClientException;
 
-
+import jakarta.transaction.Transactional;
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
@@ -23,6 +23,8 @@ import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
+import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.SharePost;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.models.UserSetting;
 import vn.aptech.beehub.repository.GalleryRepository;
@@ -30,6 +32,8 @@ import vn.aptech.beehub.repository.LikeRepository;
 import vn.aptech.beehub.repository.PostCommentRepository;
 import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
+import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.ShareRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
@@ -49,6 +53,9 @@ public class PostServiceImpl implements PostService {
 	private LikeRepository likeRepository;
 	
 	@Autowired
+	private ShareRepository shareRepository;
+	
+	@Autowired
 	private PostReactionRepository postReactionRepository;
 	
 	@Autowired
@@ -56,6 +63,7 @@ public class PostServiceImpl implements PostService {
 	
 	@Autowired
 	private UserSettingRepository userSettingRepository;
+	
 	
 	@Autowired
 	private S3Service s3Service;
@@ -72,8 +80,6 @@ public class PostServiceImpl implements PostService {
 	}
 	 
 	public Post savePost(PostMeDto dto) {
-		logger.info(dto.getUser().toString());
-		System.out.println(dto.getUser().toString());
 	    Post post = mapper.map(dto, Post.class);
 	    post.setCreate_at(LocalDateTime.now());
 	    
@@ -88,18 +94,13 @@ public class PostServiceImpl implements PostService {
 	    }
 	    post.setMedias(dto.getMediaUrl());
 	    
-	    // Create and save UserSetting
 	    UserSetting userSetting = new UserSetting();
 	    userSetting.setSetting_type(ESettingType.PUBLIC);
 	    userSetting.setUser(post.getUser());
 	    userSetting = userSettingRepository.save(userSetting);
 	    
-	    // Associate the UserSetting with the Post
 	    post.setUser_setting(userSetting);
-	    
 	    Post saved = postRepository.save(post);
-	    
-	    // Save gallery if media URL is provided
 	    if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
 		    Gallery gallery = new Gallery();
 		    gallery.setUser(post.getUser()); 
@@ -109,36 +110,47 @@ public class PostServiceImpl implements PostService {
 		    gallery.setCreate_at(LocalDateTime.now());
 		    galleryRepository.save(gallery);
 	    }
-	    
 	    return saved;
 	}
+	@Transactional
 	public boolean deletePost(Long id) {
-        Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            String filename = post.getMedias();
-            String fileExtract = extractFileNameFromUrl(filename);
-            try {
-                if (filename != null && !filename.isEmpty()) {
-                    s3Service.deleteToS3(fileExtract);
-                }
-                List<PostComment> comment = post.getComments();
-                postCommentRepository.deleteAll(comment);
-                List<PostReaction> recomment = post.getReactions();
-                postReactionRepository.deleteAll(recomment);
-                List<LikeUser> like = post.getLikes();
-                likeRepository.deleteAll(like);
-                List<Gallery> gallery = post.getGallerys();
-                galleryRepository.deleteAll(gallery);
-                postRepository.deleteById(id);
-                return true;
-            } catch (SdkClientException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
+	    Optional<Post> optionalPost = postRepository.findById(id);
+	    if (optionalPost.isPresent()) {
+	        Post post = optionalPost.get();
+	        String filename = post.getMedias();
+	        String fileExtract = extractFileNameFromUrl(filename);
+	        try {
+	            if (filename != null && !filename.isEmpty()) {
+	                s3Service.deleteToS3(fileExtract);
+	            }
+	            List<PostComment> comments = post.getComments();
+	            postCommentRepository.deleteAll(comments);
+	            List<PostReaction> reactions = post.getReactions();
+	            postReactionRepository.deleteAll(reactions);
+	            List<LikeUser> likes = post.getLikes();
+	            likeRepository.deleteAll(likes);
+	            List<Gallery> galleries = post.getGallerys();
+	            galleryRepository.deleteAll(galleries);
+
+	            // Ensure UserSetting deletion if not required elsewhere
+	            UserSetting userSetting = post.getUser_setting();
+	            if (userSetting != null) {
+	                userSettingRepository.deleteById(userSetting.getId());
+	            }
+
+	            // Now delete the post itself
+	            postRepository.deleteById(id);
+	            return true;
+	        } catch (SdkClientException e) {
+	            logger.error("Error deleting media from S3", e);
+	            return false;
+	        } catch (Exception e) {
+	            logger.error("Error deleting post", e);
+	            return false;
+	        }
+	    }
+	    return false;
+	}
 	private String extractFileNameFromUrl(String fileUrl) {
         if (fileUrl == null || fileUrl.isEmpty()) {
             return null;
@@ -149,6 +161,8 @@ public class PostServiceImpl implements PostService {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
 		if(optionalPost.isPresent()) {
 			Post post = optionalPost.get();
+			String fileOld = post.getMedias();
+			String fileOldEx = extractFileNameFromUrl(fileOld);
 			post.setCreate_at(post.getCreate_at());
 			 if (dto.getText() != null) {
 		            post.setText(dto.getText());
@@ -158,6 +172,9 @@ public class PostServiceImpl implements PostService {
 		        } 
 		        if (dto.getBackground() != null) {
 		            post.setBackground(dto.getBackground());
+		        }
+		        if(fileOld != null && !fileOld.isEmpty()) {
+		        	s3Service.deleteToS3(fileOldEx);
 		        }
 		        if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
 		            post.setMedias(dto.getMediaUrl());
@@ -185,4 +202,62 @@ public class PostServiceImpl implements PostService {
 	public List<User> findAllUser(){
 		return userRepository.findAll();
 	}
+	public Post sharePost(PostMeDto dto) {
+		Optional<Post> optionalPost = postRepository.findById(dto.getId());
+		Optional<User> optionalUser = userRepository.findById(dto.getId());
+		Post post = optionalPost.get();
+		User user = optionalUser.get();
+		User sharedUser = userRepository.findById(dto.getUser()).get();
+		Post sharePost = new Post();
+		sharePost.setText(post.getText());
+		sharePost.setBackground(post.getBackground());
+		sharePost.setColor(post.getColor());
+		sharePost.setCreate_at(LocalDateTime.now());
+		sharePost.setUser(sharedUser);
+		sharePost.setMedias(post.getMedias());
+		sharePost.setShare(true);
+		sharePost.setTimeshare(post.getCreate_at());
+		UserSetting userSetting = new UserSetting();
+	    userSetting.setSetting_type(ESettingType.PUBLIC);
+	    userSetting.setUser(sharePost.getUser());
+	    userSetting = userSettingRepository.save(userSetting);
+	    sharePost.setUser_setting(userSetting);
+		SharePost share = new SharePost();
+		share.setOriginalPost(post);
+		share.setSharedBy(sharedUser);
+		share.setSharedAt(sharePost.getTimeshare());
+		share = shareRepository.save(share);
+		sharePost.setPostshare(share);
+		return postRepository.save(sharePost);
+	}
+//	public SharePost sharePost(Long postid, Long useid) {
+//	    Optional<Post> optionalOriginalPost = postRepository.findById(postid);
+//	    if (!optionalOriginalPost.isPresent()) {
+//	        throw new RuntimeException("Original post not found with id " + postid);
+//	    }
+//	    Post originalPost = optionalOriginalPost.get();
+//
+//	    Optional<User> optionalSharedBy = userRepository.findById(useid);
+//	    if (!optionalSharedBy.isPresent()) {
+//	        throw new RuntimeException("User not found with id " + useid);
+//	    }
+//	    User sharedBy = optionalSharedBy.get();
+//	    SharePost sharePost = new SharePost();
+//	    sharePost.setOriginalPost(originalPost);
+//	    sharePost.setSharedBy(sharedBy);
+//	    sharePost.setSharedAt(LocalDateTime.now());
+//	    shareRepository.save(sharePost);
+//	    Post newPost = new Post();
+//	    newPost.setUser(sharedBy);
+//	    newPost.setText(originalPost.getText());
+//	    newPost.setColor(originalPost.getColor());
+//	    newPost.setBackground(originalPost.getBackground());
+//	    newPost.setCreate_at(LocalDateTime.now());
+//	    newPost.setMedias(originalPost.getMedias());
+//	    newPost.setShare(sharePost.getId());
+//	    newPost.setTimeshare(sharePost.getSharedAt());
+//	    newPost = postRepository.save(newPost);
+//	    return shareRepository.save(sharePost);
+//	}
+	
 }

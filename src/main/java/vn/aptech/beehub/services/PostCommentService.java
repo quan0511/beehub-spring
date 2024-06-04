@@ -12,4 +12,5 @@ public interface PostCommentService {
 	PostComment editComment(PostCommentDto dto);
 	boolean deleteComment(int id);
 	Optional<PostComment> findCommenyById(int id);
+	int CountCommentByPost(Long postid);
 }

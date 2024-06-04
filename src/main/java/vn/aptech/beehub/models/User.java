@@ -58,11 +58,9 @@ public class User {
     @Size(max = 120)
     private String password;
     
-    @NotBlank
     @Size(max= 50)
     private String fullname;
     
-//    @NotNull
     private String gender;
     
     @Nullable
@@ -87,8 +85,7 @@ public class User {
     
     @Nullable
     private String email_verification_token;
-    
-//    @NotBlank
+
     @Pattern(regexp = "^(84|0[35789])+([0-9]{8})$",message = "Phone is invalid")
     private String phone;
     

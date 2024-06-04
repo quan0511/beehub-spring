@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -28,7 +29,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"comments", "reactions", "likes","gallerys","reports_of_post"})//cho chỉ định các thuộc tính sẽ bị bỏ qua trong quá trình tuần tự hóa.
+@JsonIgnoreProperties({"comments", "reactions", "likes","gallerys","reports_of_post","shares"})//cho chỉ định các thuộc tính sẽ bị bỏ qua trong quá trình tuần tự hóa.
 public class Post {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +42,10 @@ public class Post {
 	@ManyToOne(cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "user_id")
 	private User user;
+	
+	@ManyToOne(cascade = CascadeType.REMOVE)
+	@JoinColumn(name = "usershare")
+	private SharePost postshare;
 
 	@Nullable
 	@ManyToOne(cascade = CascadeType.REMOVE)
@@ -64,6 +69,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LikeUser> likes;
     
+    @OneToMany(mappedBy = "originalPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SharePost> shares;
+    
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Gallery> gallerys;
 	@NotBlank
@@ -75,7 +83,8 @@ public class Post {
 	@NotNull
 	private LocalDateTime create_at;
 	private String medias;
-	
+	private Boolean share;
+	private LocalDateTime timeshare;
 	public Post(
 			String text,
 			User user,

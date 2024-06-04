@@ -1,9 +1,10 @@
 package vn.aptech.beehub.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,6 +13,8 @@ public class RelationshipUserDto {
 	private Long user1_id;
 	private Long user2_id;
 	private String type;
+	private String username;
+	private Long userid;
 	public RelationshipUserDto(
 			Long user1_id,Long user2_id, String type
 			) {

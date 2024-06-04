@@ -15,6 +15,7 @@ public class PostReactionDto {
 	private String reaction;
 	private LocalDateTime createdAt;
 	private Long post;
+	private String username;
 	private Long user;
 	private int postComment;
 }
