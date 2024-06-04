@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
+import vn.aptech.beehub.dto.PostCommentDto;
 import vn.aptech.beehub.dto.PostReactionDto;
 import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.services.PostReactionService;
@@ -30,9 +31,18 @@ public class PostReactionController {
 	private PostReactionService postReactionService;
 	
 	@GetMapping(value = "/recomment/{id}")
-	public ResponseEntity<List<PostReaction>> findReCommentByPostId(@PathVariable("id") int id){
-		List<PostReaction> result = postReactionService.findRecommentByComment(id);
-		return ResponseEntity.ok(result);
+	public ResponseEntity<List<PostReactionDto>> findReCommentByPostId(@PathVariable("id") int id){
+		List<PostReactionDto> result = postReactionService.findRecommentByComment(id).stream().map((p) ->
+		PostReactionDto.builder()
+				.id(p.getId())
+				.reaction(p.getReaction())
+				.user(p.getUser().getId())
+				.post(p.getPost().getId())
+				.postComment(p.getPostComment().getId())
+				.username(p.getUser().getUsername())
+				.createdAt(p.getCreatedAt())
+				.build()).toList();
+return ResponseEntity.ok(result);
 	}
 	@PostMapping(value = "/recomment/create")
 	public ResponseEntity<PostReaction>create(@RequestBody @Validated PostReactionDto dto){
@@ -43,8 +53,18 @@ public class PostReactionController {
 		return ResponseEntity.ok(postReactionService.countReactionByComment(commentid));
 	}
 	@PostMapping(value = "/recomment/update")
-	public ResponseEntity<PostReaction>updatePostReaction(@RequestBody @Validated PostReactionDto dto){ 
-		return ResponseEntity.ok(postReactionService.editRecomment(dto)); 
+	public ResponseEntity<PostReactionDto> updatePostReaction(@RequestBody @Validated PostReactionDto dto){ 
+	    PostReaction updatedReaction = postReactionService.editRecomment(dto);
+	    PostReactionDto updatedDto = PostReactionDto.builder()
+	            .id(updatedReaction.getId())
+	            .reaction(updatedReaction.getReaction())
+	            .user(updatedReaction.getUser().getId())
+	            .post(updatedReaction.getPost().getId())
+	            .postComment(updatedReaction.getPostComment().getId())
+	            .username(updatedReaction.getUser().getUsername())
+	            .createdAt(updatedReaction.getCreatedAt())
+	            .build();
+	    return ResponseEntity.ok(updatedDto); 
 	}
 	@PostMapping(value = "/recomment/delete/{id}")
 	public ResponseEntity<Boolean>deletePostReaction(@PathVariable("id") int id){

@@ -1,9 +1,12 @@
 package vn.aptech.beehub.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.aptech.beehub.models.User;
 
 @Data
 @Builder
@@ -12,10 +15,12 @@ import lombok.NoArgsConstructor;
 public class PostMeDto {
 	private Long id;
 	private String text;
-	//private MultipartFile media;
 	private String mediaUrl;
 	private String background;
 	private String color;
-	private String createdAt;
+	private LocalDateTime createdAt;
 	private Long user;
+	private Long usershare;
+	private Boolean share;
+	private LocalDateTime timeshare;
 }

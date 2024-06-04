@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 import vn.aptech.beehub.dto.PostCommentDto;
 import vn.aptech.beehub.dto.PostMeDto;
+import vn.aptech.beehub.dto.PostReactionDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
+import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.services.PostCommentService;
 
 @Tag(name = "Comment")
@@ -39,6 +41,7 @@ public class PostCommentController {
 						.comment(p.getComment())
 						.post(p.getPost().getId())
 						.user(p.getUser().getId())
+						.username(p.getUser().getUsername())
 						.createdAt(p.getCreatedAt())
 						.build()).toList();
 		return ResponseEntity.ok(result);
@@ -53,7 +56,6 @@ public class PostCommentController {
 	    PostCommentDto post = PostCommentDto.builder()
 	                              .id(p.getId())
 	                              .comment(p.getComment())
-	                              .createdAt(p.getCreatedAt())
 	                              .post(p.getPost().getId())
 	                              .user(p.getUser().getId())
 	                              .build();
@@ -64,12 +66,25 @@ public class PostCommentController {
 	public ResponseEntity<PostComment>create(@RequestBody @Validated PostCommentDto dto){
 		return ResponseEntity.ok(postCommentService.saveComment(dto));
 	}
-	@PostMapping(value = "/comment/update")
-	public ResponseEntity<PostComment>updatePostComment(@RequestBody @Validated PostCommentDto dto){ 
-		return ResponseEntity.ok(postCommentService.editComment(dto)); 
+	@PostMapping(value = "/comment/edit")
+	public ResponseEntity<PostCommentDto>updatePostComment(@RequestBody @Validated PostCommentDto dto){ 
+		PostComment updatedComment = postCommentService.editComment(dto);
+	    PostCommentDto updatedDto = PostCommentDto.builder()
+	            .id(updatedComment.getId())
+	            .comment(updatedComment.getComment())
+	            .user(updatedComment.getUser().getId())
+	            .post(updatedComment.getPost().getId())
+	            .username(updatedComment.getUser().getUsername())
+	            .createdAt(updatedComment.getCreatedAt())
+	            .build();
+	    return ResponseEntity.ok(updatedDto);  
 	}
 	@PostMapping(value = "/comment/delete/{id}")
 	public ResponseEntity<Boolean>deletePostComment(@PathVariable("id") int id){
 		return ResponseEntity.ok(postCommentService.deleteComment(id));
+	}
+	@GetMapping(value = "/comment/post/{postid}")
+	public ResponseEntity<Integer> count(@PathVariable("postid") Long postid){
+		return ResponseEntity.ok(postCommentService.CountCommentByPost(postid));
 	}
 }
