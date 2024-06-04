@@ -85,6 +85,8 @@ public class Post {
 	private String medias;
 	private Boolean share;
 	private LocalDateTime timeshare;
+	private boolean is_blocked;
+
 	public Post(
 			String text,
 			User user,
