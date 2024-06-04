@@ -326,6 +326,22 @@ public class RequirementService implements IRequirementService {
 				result.put("response", "error");
 			}
 			break;
+		case "RETIRE":
+			try {
+				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), requirement.getReceiver_id());
+				if(groupMem.isPresent()&& groupMem.get().getRole().equals(EGroupRole.GROUP_MANAGER)) {
+					GroupMember getGroupMem = groupMem.get();
+					getGroupMem.setRole(EGroupRole.MEMBER);
+					groupMemberRep.save(getGroupMem);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response", "error");
+			}
+			break;
 		case "TOGGLE_ACTIVE_GROUP":
 			try {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);

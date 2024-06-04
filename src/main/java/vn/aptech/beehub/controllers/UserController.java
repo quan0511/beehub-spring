@@ -23,6 +23,8 @@ import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.ReportFormDto;
+import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
@@ -30,6 +32,7 @@ import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.payload.response.MessageResponse;
+import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
@@ -168,6 +171,23 @@ public class UserController {
 	@GetMapping(path= "/get-setting/item/{id}")
 	private ResponseEntity<List<UserSettingDto>> getAllSettingItem(@PathVariable("id") Long id){
 		return ResponseEntity.ok(userSettingService.allSettingItemOfUser(id));
+	}
+	@GetMapping(path="/report-type")
+	private ResponseEntity<List<ReportTypesDto>> getListReportType(){
+		List<ReportTypesDto> result = userService.getListReportType();
+		return ResponseEntity.ok(result);
+	}
+	@PostMapping(path="/user/create-report/{id}")
+	private ResponseEntity<String> createReport(@PathVariable("id") Long id,@RequestBody ReportFormDto report){
+		String result = "unsuccess";
+		try {
+			result = userService.createReport(id, report);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		logger.info(result);
+		return ResponseEntity.ok(result);
 	}
 	@PostMapping(path = "/update/group/{id}")
 	private ResponseEntity<Map<String, Boolean>> updateGroup(@PathVariable("id") Long id, @RequestBody GroupDto group){

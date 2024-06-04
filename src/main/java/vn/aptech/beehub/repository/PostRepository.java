@@ -114,7 +114,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	Optional<Post> randomPostFromGroupNotOwnByUser(@Param("group_id") Long id_group,@Param("user_id") Long id_user);
 	
 	@Modifying(flushAutomatically = true)
-	@Query(value = "DELETE FROM posts WHERE id = ?1",nativeQuery = true)
+	@Query(value = "DELETE FROM  posts p WHERE p.id = ?1 ;",nativeQuery = true)
 	void deletePost(Long id);
+	@Modifying(flushAutomatically = true)
+	@Query(value = "DELETE g,p FROM  gallery g , posts p WHERE p.id = ?1 AND g.post_id = p.id ;",nativeQuery = true)
+	void deletePostWithGallery(Long id);
+	
 	
 }

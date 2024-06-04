@@ -21,19 +21,28 @@ import vn.aptech.beehub.dto.GalleryDto;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.ReportFormDto;
+import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.Gallery;
+import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GalleryRepository;
 import vn.aptech.beehub.repository.GroupMemberRepository;
+import vn.aptech.beehub.repository.GroupRepository;
+import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.ReportRepository;
+import vn.aptech.beehub.repository.ReportTypeRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.services.IGroupService;
@@ -60,6 +69,14 @@ public class UserService implements IUserService {
 	private IGroupService groupSer;
 	@Autowired
 	private GroupMemberRepository groupMemberRep;
+	@Autowired
+	private ReportTypeRepository reportTypeRep;
+	@Autowired 
+	private PostRepository postRep;
+	@Autowired
+	private GroupRepository groupRep;
+	@Autowired
+	private ReportRepository reportRep;
 	@Autowired
 	private S3Service s3Service;
 	@Autowired 
@@ -443,6 +460,42 @@ public class UserService implements IUserService {
 			}
 		}
 		return false;
+	}
+	@Override
+	public List<ReportTypesDto> getListReportType() {
+		List<ReportTypesDto> list = reportTypeRep.findAll().stream().map((type)->
+		ReportTypesDto.builder()
+		.id(type.getId())
+		.title(type.getTitle())
+		.description(type.getDescription())
+		.build()).toList();
+		return list;
+	}
+	@Override
+	public String createReport(Long id_user, ReportFormDto report) {
+		Optional<User> findUser = userRep.findById(id_user);
+		Optional<User> findTargetUser= userRep.findByUsername(report.getUser_username());
+		Optional<Post> findPost = postRep.findById(report.getTarget_post_id());
+		logger.info(findUser.get().getFullname());
+		logger.info(findTargetUser.get().getFullname());
+		logger.info(findPost.get().getText());
+		if(findUser.isPresent()&& findTargetUser.isPresent()&& findPost.isPresent()) 	{
+			Report createreport = new Report();
+			createreport.setTarget_user(findTargetUser.get());
+			createreport.setSender(findUser.get());
+			createreport.setAdd_description(report.getAdd_description());
+			createreport.setCreate_at(LocalDateTime.now());
+			createreport.setUpdate_at(LocalDateTime.now());
+			createreport.setTarget_post(findPost.get());
+			createreport.setReport_type(reportTypeRep.findById(report.getType_id()).get());
+			if(report.getTarget_group_id()!=null ) {
+				Optional<Group> findGroup  = groupRep.findById(report.getTarget_group_id());
+				createreport.setTarget_group(findGroup.get());
+			}
+			reportRep.save(createreport);
+			return "success";
+		}
+		return "unsuccess";
 	}
 	
 	
