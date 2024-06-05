@@ -35,6 +35,7 @@ import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
+import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
 import vn.aptech.beehub.services.IGroupService;
 
@@ -55,7 +56,8 @@ public class GroupService implements IGroupService {
 	private PostRepository postRep;
 	@Autowired
 	private ReportRepository reportRep;
-	
+	@Autowired
+	private UserRepository userRep;
 	@Autowired
 	private RelationshipUsersRepository relationshipRep;
 	@Autowired 
@@ -170,7 +172,7 @@ public class GroupService implements IGroupService {
 			if(checkMember.isPresent()&& !(checkMember.get().getRole().equals(EGroupRole.MEMBER))) {
 				List<RequirementDto> requirements = new LinkedList<RequirementDto>();
 				requireRep.findByGroup_id(id_group).forEach((req)->{ 
-					UserDto userDto = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(),req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null?req.getSender().getImage().getMedia_type():null);
+					UserDto userDto = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(),req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null?req.getSender().getImage().getMedia_type():null,req.getSender().is_banned());
 					RequirementDto reqDto = new RequirementDto();
 					reqDto.set_accept(req.is_accept());
 					reqDto.setId(req.getId());
@@ -180,7 +182,7 @@ public class GroupService implements IGroupService {
 					requirements.add(reqDto);});
 				List<ReportDto> reports = new LinkedList<ReportDto>();
 					reportRep.findByGroup_id(id_group).forEach((rep)->{
-						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null);
+						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null,rep.getSender().is_banned());
 						PostDto postReport = new PostDto(
 								rep.getTarget_post().getId(), 
 								rep.getTarget_post().getText(), 
@@ -326,5 +328,40 @@ public class GroupService implements IGroupService {
 			}
 		}
 		return false;
+	}
+	@Override
+	public Long createGroup(Long id_user, GroupDto group) {
+		Optional<User> findUser = userRep.findById(id_user);
+		if(findUser.isPresent()) {
+			try {
+				User groupCreator= findUser.get();
+				Group newGroup = new Group();
+				newGroup.setGroupname(group.getGroupname());
+				newGroup.setDescription(group.getDescription());
+				newGroup.setCreated_at(LocalDateTime.now());
+				newGroup.setPublic_group(group.isPublic_group());
+				newGroup.setActive(true);
+				if(!group.getBackground_group().isEmpty()) {
+					GroupMedia groupMedia=  new GroupMedia(group.getBackground_group(), "image", LocalDateTime.now());
+					groupMedia.setUser(groupCreator);
+					GroupMedia savedBg= groupMediaRep.save(groupMedia);
+					newGroup.setBackground_group(savedBg);
+				}
+				if(!group.getImage_group().isEmpty()) {
+					GroupMedia groupMedia2=  new GroupMedia(group.getImage_group(), "image", LocalDateTime.now());
+					groupMedia2.setUser(groupCreator);
+					GroupMedia saveImg = groupMediaRep.save(groupMedia2);
+					newGroup.setImage_group(saveImg);
+				}
+				Group savedGroup = groupRep.save(newGroup);
+				GroupMember creator = new GroupMember(groupCreator,savedGroup,EGroupRole.GROUP_CREATOR);
+				groupMemberRep.save(creator);
+				return savedGroup.getId();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return (long) 0;
+			}
+		}
+		return (long) 0;
 	}
 }

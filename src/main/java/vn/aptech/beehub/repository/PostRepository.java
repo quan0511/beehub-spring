@@ -16,7 +16,7 @@ import vn.aptech.beehub.models.Post;
 public interface PostRepository extends JpaRepository<Post, Long> {
 	@Query(value = "SELECT * "
 			  + " from posts p"
-			  + " where p.user_id = ?1 && p.group_id IS NULL"
+			  + " where p.user_id = ?1 && p.group_id IS NULL ORDER BY p.create_at DESC"
 			  , nativeQuery = true)
 	List<Post> findByUserId( Long id);
 	
@@ -54,9 +54,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
 			+ " LEFT JOIN users u ON p.user_id = u.id"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE ((ru.user1_id = :id_user OR ru.user2_id = :id_user) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1)"
+			+ " WHERE (((ru.user1_id = :id_user OR ru.user2_id = :id_user) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1 AND u.is_banned = 0)"
 			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm WHERE gm.user_id = :id_user) "
-			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))) AND u.is_active=1)"
+			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))) AND u.is_active=1 AND u.is_banned =0)) AND p.is_blocked=0 "
 			+ " ORDER BY p.create_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
 	List<Post> getNewestPostFromGroupAndFriend(@Param("id_user") Long id_user,@Param("limit") int limit,@Param("offset") int offset);
 
@@ -64,35 +64,35 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
 			+ " LEFT JOIN users u ON p.user_id = u.id"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE ((ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1)"
+			+ " WHERE (((ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1 AND u.is_banned = 0)"
 			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm  LEFT JOIN groups g ON g.id = gm.group_id WHERE gm.user_id = 1  AND g.active=1) "
 			+ " AND ( p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.type ='BLOCKED') "
-			+ " OR p.user_id NOT IN (SELECT ru3.user2_id FROM relationship_users ru3 WHERE ru3.type ='BLOCKED')) AND u.is_active=1) ORDER BY p.create_at DESC", nativeQuery = true)
+			+ " OR p.user_id NOT IN (SELECT ru3.user2_id FROM relationship_users ru3 WHERE ru3.type ='BLOCKED')) AND u.is_active=1  AND u.is_banned =0)) AND p.is_blocked=0 ORDER BY p.create_at DESC", nativeQuery = true)
 	List<Post> getAllPostsFromGroupAndFriend(Long id);
 	
 	
 	//Search Public and Friend Posts contain string: search
 	@Query(value = "SELECT p.* FROM posts p"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE p.text LIKE CONCAT('%',:search,'%')"
+			+ " WHERE (p.text LIKE CONCAT('%',:search,'%')"
 			+ " AND ((p.user_id NOT IN ( SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id"
-			+ " WHERE ru.type='BLOCKED' AND (ru.user1_id = :id OR ru.user2_id = :id) OR u.is_active=0 "
+			+ " WHERE ru.type='BLOCKED' AND (ru.user1_id = :id OR ru.user2_id = :id) OR u.is_active=0 OR u.is_banned=1 "
 			+ " ) AND s.setting_type='PUBLIC') OR (p.user_id IN (SELECT  u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id"
-			+ " WHERE ru.type='FRIEND'  AND u.is_active=1 AND (ru.user1_id = :id OR ru.user2_id = :id)) AND s.setting_type='FOR_FRIEND')) "
-			+ " AND p.group_id IS NULL"
-			+ " ORDER BY p.create_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
+			+ " WHERE ru.type='FRIEND'  AND u.is_active=1 AND u.is_banned = 0 AND (ru.user1_id = :id OR ru.user2_id = :id)) AND s.setting_type='FOR_FRIEND')) "
+			+ " AND p.group_id IS NULL ) AND p.is_blocked = 0"
+			+ " ORDER BY p.create_at DESC", nativeQuery = true)
 	
 	List<Post> searchPublicPostsContain( @Param("search") String search, @Param("id") Long id );
 	
 	//Search Group joined Posts contain string: search
 	@Query(value = "SELECT p.* FROM posts p LEFT JOIN users u1 ON u1.id = p.user_id"
-			+ " WHERE u1.is_active=1 AND p.group_id IN ( SELECT gm.group_id FROM group_members gm "
+			+ " WHERE u1.is_active=1 AND u1.is_banned = 0 AND p.group_id IN ( SELECT gm.group_id FROM group_members gm "
 			+ " LEFT JOIN users u ON u.id = gm.user_id"
 			+ " LEFT JOIN groups g ON g.id = gm.group_id"
-			+ " WHERE gm.user_id = 1 AND g.public_group=1 )"
+			+ " WHERE gm.user_id = :id AND g.public_group=1 )"
 			+ " AND ( p.user_id NOT IN (SELECT ru.user1_id FROM relationship_users ru WHERE ru.user2_id=:id AND ru.type='BLOCKED')"
 			+ " AND p.user_id NOT IN (SELECT ru.user2_id FROM relationship_users ru WHERE ru.user1_id=:id AND ru.type='BLOCKED') )"
-			+ " AND p.text LIKE '%:search%'"
+			+ " AND p.text LIKE '%:search%' AND p.is_blocked=0 "
 			+ " ORDER BY p.create_at DESC ", nativeQuery = true)
 	List<Post> searchPostsInGroupJoinedContain( @Param("search") String search, @Param("id") Long id);
 //	@Query("SELECT p FROM Post p WHERE p.shareid = :id")
@@ -104,8 +104,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Query(value = "SELECT p.* FROM posts p "
 			+ " WHERE p.user_id NOT IN ( SELECT ur.user1_id FROM relationship_users ur WHERE ur.user2_id = :user_id AND ur.type = 'BLOCKED') "
 			+ " AND p.user_id NOT IN (SELECT ur.user2_id FROM relationship_users ur WHERE ur.user1_id = :user_id AND ur.type = 'BLOCKED')"
-			+ " AND p.user_id NOT IN (SELECT us.id FROM users us WHERE us.is_active =0)"
-			+ " AND p.group_id = :group_id"
+			+ " AND p.user_id NOT IN (SELECT us.id FROM users us WHERE us.is_active =0 OR us.is_banned =1 )"
+			+ " AND p.group_id = :group_id AND p.is_blocked=0 "
 			+ " ORDER BY p.create_at DESC"
 			+ " LIMIT :limit OFFSET :offset", nativeQuery = true)
 	List<Post> getNewestPostFromGroup(@Param("group_id") Long id_group,@Param("user_id") Long id_user,@Param("limit") int limit,@Param("offset") int offset);
@@ -138,6 +138,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Modifying
 	@Query("DELETE FROM UserSetting us WHERE us.id = :postId")
 	void deleteUserSettings(@Param("postId") Long postId);
+//	@Query(value = "DELETE FROM  posts p WHERE p.id = ?1 ;",nativeQuery = true)
+//	void deletePost(Long id);
+//	@Modifying(flushAutomatically = true)
+//	@Query(value = "DELETE g,p FROM  gallery g , posts p WHERE p.id = ?1 AND g.post_id = p.id ;",nativeQuery = true)
+//	void deletePostWithGallery(Long id);
+	
 	
 	@Modifying
 	@Query("DELETE FROM Post p WHERE p.postshare.id = :id ")

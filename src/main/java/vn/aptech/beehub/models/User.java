@@ -58,11 +58,9 @@ public class User {
     @Size(max = 120)
     private String password;
     
-    @NotBlank
     @Size(max= 50)
     private String fullname;
     
-//    @NotNull
     private String gender;
     
     @Nullable
@@ -79,16 +77,8 @@ public class User {
     @Nullable
     private LocalDate birthday;
     
-    @Nullable
-    private String google_id;
-    
-    @Value("${some.key:false}")
-    private boolean email_verified;
-    
-    @Nullable
-    private String email_verification_token;
-    
-//    @NotBlank
+    private boolean is_banned;
+
     @Pattern(regexp = "^(84|0[35789])+([0-9]{8})$",message = "Phone is invalid")
     private String phone;
     
@@ -143,7 +133,7 @@ public class User {
     }
     @Override
     public String toString() {
-    	return "User "+this.id+"\tFullname: "+this.fullname+"\tusername:"+this.username+"\tgender: "+this.gender+"\tphone: "+this.phone+"\ncreate at: "+this.create_at+"\tis active: "+this.is_active+"\temail: "+this.email+"\temail_verified"+this.email_verified;
+    	return "User "+this.id+"\tFullname: "+this.fullname+"\tusername:"+this.username+"\tgender: "+this.gender+"\tphone: "+this.phone+"\ncreate at: "+this.create_at+"\tis active: "+this.is_active+"\temail: "+this.email;
     }
     public void removeImage (Gallery image) {
     	

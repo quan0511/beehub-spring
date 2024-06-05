@@ -21,19 +21,28 @@ import vn.aptech.beehub.dto.GalleryDto;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.ReportFormDto;
+import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.Gallery;
+import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
+import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.GalleryRepository;
 import vn.aptech.beehub.repository.GroupMemberRepository;
+import vn.aptech.beehub.repository.GroupRepository;
+import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
+import vn.aptech.beehub.repository.ReportRepository;
+import vn.aptech.beehub.repository.ReportTypeRepository;
 import vn.aptech.beehub.repository.RequirementRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.services.IGroupService;
@@ -61,12 +70,17 @@ public class UserService implements IUserService {
 	@Autowired
 	private GroupMemberRepository groupMemberRep;
 	@Autowired
+	private ReportTypeRepository reportTypeRep;
+	@Autowired 
+	private PostRepository postRep;
+	@Autowired
+	private GroupRepository groupRep;
+	@Autowired
+	private ReportRepository reportRep;
+	@Autowired
 	private S3Service s3Service;
 	@Autowired 
 	private ModelMapper mapper;
-	private UserDto toDto(User user) {
-		return mapper.map(user, UserDto.class);
-	}
 	@Override
 	public List<UserDto> findAll() {
 		List<UserDto> list = new LinkedList<UserDto>();
@@ -77,7 +91,8 @@ public class UserService implements IUserService {
 					user.getFullname(),
 					user.getGender(),
 					user.getImage()!=null? user.getImage().getMedia():null,
-					user.getImage()!=null?user.getImage().getMedia_type():null));
+					user.getImage()!=null?user.getImage().getMedia_type():null,
+					user.is_banned()));
 		});
 		return list;
 	}
@@ -93,6 +108,7 @@ public class UserService implements IUserService {
 					user.getImage()!=null?user.getImage().getMedia():null,
 					user.getImage()!=null?user.getImage().getMedia_type():null,
 					ERelationshipType.FRIEND.toString(),
+					user.is_banned(),
 					groupMemberRep.findByUser_id(user.getId()).size(),
 					findAllFriends(user.getId()).size()
 					));
@@ -105,7 +121,9 @@ public class UserService implements IUserService {
 					user.getGender(), 
 					user.getImage()!=null?user.getImage().getMedia():null, 
 					user.getImage()!=null?user.getImage().getMedia_type():null,		
-					ERelationshipType.BLOCKED.toString()));
+					ERelationshipType.BLOCKED.toString(),
+					user.is_banned()
+					));
 		});
 		return list;
 	}
@@ -118,7 +136,8 @@ public class UserService implements IUserService {
 					t.getFullname(), 
 					t.getGender(), 
 					t.getImage()!=null?t.getImage().getMedia():null,
-					t.getImage()!=null?t.getImage().getMedia_type():null);
+					t.getImage()!=null?t.getImage().getMedia_type():null,
+					t.is_banned());
 			user.setGroup_counter(groupMemberRep.findByUser_id(id).size());
 			user.setFriend_counter(0);
 			user.setFriend_counter(findAllFriends(id).size());
@@ -129,7 +148,7 @@ public class UserService implements IUserService {
 	public List<UserDto> findAllFriends(Long id) {
 		List<UserDto> list = new LinkedList<UserDto>();
 		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(
-				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null,e.is_banned())
 				));
 		return list;
 	}
@@ -139,7 +158,7 @@ public class UserService implements IUserService {
 		List<Object> listGroup =  groupSer.getGroupUserJoined(id);
 		List<Object> listFriend = new LinkedList<Object>();
 		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(
-				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null,e.is_banned())
 				));
 		res.put("groups", listGroup);
 		res.put("friends", listFriend);
@@ -173,6 +192,7 @@ public class UserService implements IUserService {
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
 						relationship, 
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -193,7 +213,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						ERelationshipType.FRIEND.toString(), 
+						ERelationshipType.FRIEND.toString(),
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -215,6 +236,7 @@ public class UserService implements IUserService {
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
 						"SENT_REQUEST", 
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -275,11 +297,11 @@ public class UserService implements IUserService {
 					user.getBackground()!=null?user.getBackground().getMedia():null,
 					user.getBio(),
 					user.getBirthday(),
-					user.isEmail_verified(),
 					user.getPhone(),
 					user.is_active(),
 					relationship,
 					user.getCreate_at(),
+					user.is_banned(),
 					grList,
 					userSetting,
 					relationshipList,
@@ -314,6 +336,7 @@ public class UserService implements IUserService {
 							user.getImage()!=null?user.getImage().getMedia():null,
 							user.getImage()!=null?user.getImage().getMedia_type():null,
 							relationship,
+							user.is_banned(),
 							groupMemberRep.findByUser_id(user.getId()).size(),
 							findAllFriends(user.getId()).size()));									
 				}
@@ -443,6 +466,42 @@ public class UserService implements IUserService {
 			}
 		}
 		return false;
+	}
+	@Override
+	public List<ReportTypesDto> getListReportType() {
+		List<ReportTypesDto> list = reportTypeRep.findAll().stream().map((type)->
+		ReportTypesDto.builder()
+		.id(type.getId())
+		.title(type.getTitle())
+		.description(type.getDescription())
+		.build()).toList();
+		return list;
+	}
+	@Override
+	public String createReport(Long id_user, ReportFormDto report) {
+		Optional<User> findUser = userRep.findById(id_user);
+		Optional<User> findTargetUser= userRep.findByUsername(report.getUser_username());
+		Optional<Post> findPost = postRep.findById(report.getTarget_post_id());
+		logger.info(findUser.get().getFullname());
+		logger.info(findTargetUser.get().getFullname());
+		logger.info(findPost.get().getText());
+		if(findUser.isPresent()&& findTargetUser.isPresent()&& findPost.isPresent()) 	{
+			Report createreport = new Report();
+			createreport.setTarget_user(findTargetUser.get());
+			createreport.setSender(findUser.get());
+			createreport.setAdd_description(report.getAdd_description());
+			createreport.setCreate_at(LocalDateTime.now());
+			createreport.setUpdate_at(LocalDateTime.now());
+			createreport.setTarget_post(findPost.get());
+			createreport.setReport_type(reportTypeRep.findById(report.getType_id()).get());
+			if(report.getTarget_group_id()!=null ) {
+				Optional<Group> findGroup  = groupRep.findById(report.getTarget_group_id());
+				createreport.setTarget_group(findGroup.get());
+			}
+			reportRep.save(createreport);
+			return "success";
+		}
+		return "unsuccess";
 	}
 	
 	

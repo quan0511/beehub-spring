@@ -68,8 +68,10 @@ public class PostService implements IPostService {
 				                sharedFullName,
 				                sharedUsername,
 				                sharedGender,
-				                sharedCreatedAt 		
+				                sharedCreatedAt,
+				                post.is_blocked()
 								));
+
 		});
 		return listPost;
 	}
@@ -113,10 +115,10 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
-	                sharedCreatedAt
-	        ));
-	    });
-	    return listPost;
+	                sharedCreatedAt,
+            		post.is_blocked()
+					));});
+		return listPost;
 	}
 	@Override
 	public List<PostDto> getSearchPosts(String search, Long id) {
@@ -157,7 +159,8 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
-	                sharedCreatedAt
+	                sharedCreatedAt,
+	        		post.is_blocked()
 					));});
 		postRep.searchPostsInGroupJoinedContain(search, id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
@@ -195,7 +198,8 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
-	                sharedCreatedAt
+	                sharedCreatedAt,
+	        		post.is_blocked()
 					));});
 		return listPost;
 	}
@@ -242,7 +246,8 @@ public class PostService implements IPostService {
 		                sharedFullName,
 		                sharedUsername,
 		                sharedGender,
-		                sharedCreatedAt
+		                sharedCreatedAt,
+    	        		post.is_blocked()
 						));
 			});;
 			
@@ -298,7 +303,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
-	                sharedCreatedAt
+	                sharedCreatedAt,
+	        		post.is_blocked()
+
 					));});
 		return listPost;
 	}

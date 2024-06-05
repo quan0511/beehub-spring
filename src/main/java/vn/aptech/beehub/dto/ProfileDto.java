@@ -23,11 +23,11 @@ public class ProfileDto {
 	private String background;
 	private String bio;
 	private LocalDate birthday;
-	private boolean email_verified;
 	private String phone;
 	private boolean is_active;
 	private String relationship_with_user;
 	private LocalDateTime active_at;
+	private boolean is_banned;
 	private List<Object> group_joined;
 	private List<UserSettingDto> user_settings;
 	private List<UserDto> relationships;
@@ -38,7 +38,7 @@ public class ProfileDto {
 		return "Username "+this.username+"\tFullname: "+this.fullname+"\tEmail: "+this.email+"\nGender: "+this.gender+"\tBirthday: "+this.birthday.toString()+"\tPhone: "+this.phone+"\nImage: "+this.image+"\nBackground: "+this.background;
 	}
 	public ProfileDto(Long id2, String username2, String email2, String fullname2, String gender2, String image,
-			String bg, String bio2, LocalDate birthday2, boolean email_verified2, String phone2,
+			String bg, String bio2, LocalDate birthday2, String phone2,
 			boolean is_active2) {
 		this.id = id2;
 		this.username = username2;
@@ -49,7 +49,6 @@ public class ProfileDto {
 		this.background = bg;
 		this.bio = bio2;
 		this.birthday = birthday2;
-		this.email_verified = email_verified2;
 		this.phone = phone2;
 	}
 }
