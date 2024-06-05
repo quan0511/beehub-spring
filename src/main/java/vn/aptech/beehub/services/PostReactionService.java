@@ -13,4 +13,5 @@ public interface PostReactionService {
 	PostReaction editRecomment(PostReactionDto dto);
 	boolean deletePostReaction(int id);
 	Optional<PostReaction> findReactionById(int id);
+	int CountReactionByPost(Long postid);
 }

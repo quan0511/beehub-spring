@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,16 @@ public class PostService implements IPostService {
 		postRep.findByUserId(id).forEach((post)-> {
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
+			String sharedFullName = null;
+		    String sharedUsername = null;
+		    String sharedGender = null;
+		    LocalDateTime sharedCreatedAt = null;
+		    if (post.getPostshare() != null) {
+		        sharedFullName = post.getPostshare().getUser().getFullname();
+		        sharedUsername = post.getPostshare().getUser().getUsername();
+		        sharedGender = post.getPostshare().getUser().getGender();
+		        sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+		    }
 			listPost.add(new PostDto(
 								post.getId(), 
 								post.getText(), 
@@ -54,47 +65,58 @@ public class PostService implements IPostService {
 						        post.getUser().getId(),
 						        post.getShare(),
 				                post.getMedias(),
-				                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-				    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null 		
+				                sharedFullName,
+				                sharedUsername,
+				                sharedGender,
+				                sharedCreatedAt 		
 								));
 		});
 		return listPost;
 	}
 	@Override
-	public List<PostDto> newestPostsForUser(Long id, int page,int limit) {
-		List<PostDto> listPost = new LinkedList<PostDto>();
-		int offset = page*limit;
-		postRep.getNewestPostFromGroupAndFriend(id, limit, offset).forEach((post)->{
-			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
-			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
-			listPost.add( new PostDto(
-					post.getId(), 
-					post.getText(), 
-					media,
-					groupMedia,
-					post.getGroup()!=null? post.getGroup().getId(): null, 
-					post.getCreate_at(),
-					post.getUser().getFullname(),
-					post.getUser().getUsername(),
-					post.getUser().getImage()!=null? post.getUser().getImage().getMedia():null,
-					post.getUser().getGender(),
-					post.getGroup()!=null?post.getGroup().getGroupname():null,
-					post.getGroup()!=null?post.getGroup().isPublic_group():false,
-					post.getGroup()!=null && post.getGroup().getImage_group()!=null?post.getGroup().getImage_group().getMedia():null,
-					post.getUser_setting()!=null?post.getUser_setting().getSetting_type().toString():ESettingType.PUBLIC.toString(),
-					post.getColor(),
-					post.getBackground(),
-					post.getUser().getId(),
-					post.getShare(),
+	public List<PostDto> newestPostsForUser(Long id, int page, int limit) {
+	    List<PostDto> listPost = new LinkedList<PostDto>();
+	    int offset = page * limit;
+	    postRep.getNewestPostFromGroupAndFriend(id, limit, offset).forEach((post) -> {
+	        GalleryDto media = post.getMedia() != null ? new GalleryDto(post.getId(), post.getMedia().getMedia(), post.getMedia().getMedia_type()) : null;
+	        GroupMediaDto groupMedia = post.getGroup_media() != null ? new GroupMediaDto(post.getGroup_media().getId(), post.getGroup_media().getMedia(), post.getGroup_media().getMedia_type()) : null;
+	        String sharedFullName = null;
+	        String sharedUsername = null;
+	        String sharedGender = null;
+	        LocalDateTime sharedCreatedAt = null;
+	        if (post.getPostshare() != null) {
+	            sharedFullName = post.getPostshare().getUser().getFullname();
+	            sharedUsername = post.getPostshare().getUser().getUsername();
+	            sharedGender = post.getPostshare().getUser().getGender();
+	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	        }
+	        listPost.add(new PostDto(
+	                post.getId(),
+	                post.getText(),
+	                media,
+	                groupMedia,
+	                post.getGroup() != null ? post.getGroup().getId() : null,
+	                post.getCreate_at(),
+	                post.getUser().getFullname(),
+	                post.getUser().getUsername(),
+	                post.getUser().getImage() != null ? post.getUser().getImage().getMedia() : null,
+	                post.getUser().getGender(),
+	                post.getGroup() != null ? post.getGroup().getGroupname() : null,
+	                post.getGroup() != null ? post.getGroup().isPublic_group() : false,
+	                post.getGroup() != null && post.getGroup().getImage_group() != null ? post.getGroup().getImage_group().getMedia() : null,
+	                post.getUser_setting() != null ? post.getUser_setting().getSetting_type().toString() : ESettingType.PUBLIC.toString(),
+	                post.getColor(),
+	                post.getBackground(),
+	                post.getUser().getId(),
+	                post.getShare(),
 	                post.getMedias(),
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
-					));});
-		return listPost;
+	                sharedFullName,
+	                sharedUsername,
+	                sharedGender,
+	                sharedCreatedAt
+	        ));
+	    });
+	    return listPost;
 	}
 	@Override
 	public List<PostDto> getSearchPosts(String search, Long id) {
@@ -102,6 +124,16 @@ public class PostService implements IPostService {
 		postRep.searchPublicPostsContain(search, id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
+			String sharedFullName = null;
+	        String sharedUsername = null;
+	        String sharedGender = null;
+	        LocalDateTime sharedCreatedAt = null;
+	        if (post.getPostshare() != null) {
+	            sharedFullName = post.getPostshare().getUser().getFullname();
+	            sharedUsername = post.getPostshare().getUser().getUsername();
+	            sharedGender = post.getPostshare().getUser().getGender();
+	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	        }
 			listPost.add( new PostDto(
 					post.getId(), 
 					post.getText(), 
@@ -122,14 +154,24 @@ public class PostService implements IPostService {
 					post.getUser().getId(),
 					post.getShare(),
 	                post.getMedias(),
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
+	                sharedFullName,
+	                sharedUsername,
+	                sharedGender,
+	                sharedCreatedAt
 					));});
 		postRep.searchPostsInGroupJoinedContain(search, id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
+			String sharedFullName = null;
+	        String sharedUsername = null;
+	        String sharedGender = null;
+	        LocalDateTime sharedCreatedAt = null;
+	        if (post.getPostshare() != null) {
+	            sharedFullName = post.getPostshare().getUser().getFullname();
+	            sharedUsername = post.getPostshare().getUser().getUsername();
+	            sharedGender = post.getPostshare().getUser().getGender();
+	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	        }
 			listPost.add( new PostDto(
 					post.getId(), 
 					post.getText(), 
@@ -150,10 +192,10 @@ public class PostService implements IPostService {
 					post.getUser().getId(),
 					post.getShare(),
 	                post.getMedias(),
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
+	                sharedFullName,
+	                sharedUsername,
+	                sharedGender,
+	                sharedCreatedAt
 					));});
 		return listPost;
 	}
@@ -167,6 +209,16 @@ public class PostService implements IPostService {
 			int offset = page* limit;
 			postRep.getNewestPostFromGroup(id_group, id_user, limit,offset).forEach((post)->{
 				GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
+				String sharedFullName = null;
+		        String sharedUsername = null;
+		        String sharedGender = null;
+		        LocalDateTime sharedCreatedAt = null;
+		        if (post.getPostshare() != null) {
+		            sharedFullName = post.getPostshare().getUser().getFullname();
+		            sharedUsername = post.getPostshare().getUser().getUsername();
+		            sharedGender = post.getPostshare().getUser().getGender();
+		            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+		        }
 				list.add(new PostDto(
 						post.getId(), 
 						post.getText(), 
@@ -187,10 +239,10 @@ public class PostService implements IPostService {
 						post.getUser().getId(),
 						post.getShare(),
 		                post.getMedias(),
-		                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-		    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
+		                sharedFullName,
+		                sharedUsername,
+		                sharedGender,
+		                sharedCreatedAt
 						));
 			});;
 			
@@ -213,6 +265,16 @@ public class PostService implements IPostService {
 		postRep.getAllPostsFromGroupAndFriend(id).forEach((post)->{
 			GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 			GroupMediaDto groupMedia = post.getGroup_media()!=null? new GroupMediaDto(post.getGroup_media().getId(),post.getGroup_media().getMedia(),post.getGroup_media().getMedia_type()):null;
+			String sharedFullName = null;
+	        String sharedUsername = null;
+	        String sharedGender = null;
+	        LocalDateTime sharedCreatedAt = null;
+	        if (post.getPostshare() != null) {
+	            sharedFullName = post.getPostshare().getUser().getFullname();
+	            sharedUsername = post.getPostshare().getUser().getUsername();
+	            sharedGender = post.getPostshare().getUser().getGender();
+	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	        }
 			listPost.add( new PostDto(
 					post.getId(), 
 					post.getText(), 
@@ -233,10 +295,10 @@ public class PostService implements IPostService {
 					post.getUser().getId(),
 					post.getShare(),
 	                post.getMedias(),
-	                post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getFullname() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getUsername() : null, 
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getGender() : null,
-	    	        post.getPostshare() != null ? post.getPostshare().getOriginalPost().getUser().getCreate_at() : null
+	                sharedFullName,
+	                sharedUsername,
+	                sharedGender,
+	                sharedCreatedAt
 					));});
 		return listPost;
 	}

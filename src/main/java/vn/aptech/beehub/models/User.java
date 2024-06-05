@@ -112,6 +112,19 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = true)
     private List<UserSetting> user_settings;
+ // Phương thức để xóa tất cả các dòng liên quan trước khi xóa người dùng
+    public void deleteRelatedEntities() {
+        if (this.galleries != null) {
+            this.galleries.clear();
+        }
+        if (this.posts != null) {
+            this.posts.clear();
+        }
+        if (this.user_settings != null) {
+            this.user_settings.clear();
+        }
+        // Tiếp tục với các danh sách khác nếu cần
+    }
     
     public User(String username, 
     		String email, 

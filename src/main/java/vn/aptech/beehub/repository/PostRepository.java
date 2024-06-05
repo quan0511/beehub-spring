@@ -95,7 +95,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " AND p.text LIKE '%:search%'"
 			+ " ORDER BY p.create_at DESC ", nativeQuery = true)
 	List<Post> searchPostsInGroupJoinedContain( @Param("search") String search, @Param("id") Long id);
-	
+//	@Query("SELECT p FROM Post p WHERE p.shareid = :id")
+//	List<Post> findAllPostBysharepost(Long id);
 	@Query(value="SELECT COUNT(*) FROM posts p WHERE p.group_id=?1", nativeQuery = true)
 	Integer countPostsInGroup(Long id);
 	
@@ -114,7 +115,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	Optional<Post> randomPostFromGroupNotOwnByUser(@Param("group_id") Long id_group,@Param("user_id") Long id_user);
 	
 	@Modifying(flushAutomatically = true)
-	@Query(value = "DELETE FROM posts WHERE id = ?1",nativeQuery = true)
+	@Query(value = "DELETE FROM  posts  WHERE id = ?1 ;",nativeQuery = true)
 	void deletePost(Long id);
+	@Modifying(flushAutomatically = true)
+	@Query(value = "DELETE FROM  posts  WHERE postshare = ?1 ;",nativeQuery = true)
+	void deletePostByPostShare(Long id);
+	@Modifying(flushAutomatically = true)
+	@Query(value = "DELETE FROM Gallery g WHERE g.post.id = ?1")
+	void deletePostWithGallery(Long id);
+	@Modifying
+	@Query("DELETE FROM PostReaction pr WHERE pr.post.id = :postId")
+	void deletePostReactions(@Param("postId") Long postId);
+	@Modifying
+	@Query("DELETE FROM PostComment pc WHERE pc.post.id = :postId")
+	void deletePostComments(@Param("postId") Long postId);
+	@Modifying
+	@Query("DELETE FROM LikeUser lu WHERE lu.post.id = :postId")
+	void deletePostLikes(@Param("postId") Long postId);
+	@Modifying
+	@Query("DELETE FROM Report r WHERE r.target_post.id = :postId")
+	void deletePostReports(@Param("postId") Long postId);
+	@Modifying
+	@Query("DELETE FROM UserSetting us WHERE us.id = :postId")
+	void deleteUserSettings(@Param("postId") Long postId);
 	
+	@Modifying
+	@Query("DELETE FROM Post p WHERE p.postshare.id = :id ")
+	void deletePostBypostshare(Long id);
+	List<Post> findByPostshareId(Long postshareId);
 }
+	

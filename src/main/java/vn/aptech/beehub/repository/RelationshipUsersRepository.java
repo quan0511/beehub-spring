@@ -16,5 +16,7 @@ public interface RelationshipUsersRepository extends JpaRepository<RelationshipU
 	@Query(value="SELECT * FROM relationship_users WHERE (ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type = ?2", nativeQuery = true)
 	List<RelationshipUsers> findByUser(Long id, String type);
 	@Query(value="SELECT ru.* FROM relationship_users ru WHERE (ru.user1_id = ?1 AND ru.user2_id = ?2) OR (ru.user1_id = ?2 AND ru.user2_id = ?1)", nativeQuery = true)
-	Optional<RelationshipUsers> getRelationship(Long id1, Long id2);	
+	Optional<RelationshipUsers> getRelationship(Long id1, Long id2);
+	@Query(value="SELECT ru.user2_id FROM relationship_users ru WHERE ru.user1_id = :id AND ru.type = 'FRIEND'", nativeQuery = true)
+	List<Long> findFriendsByUser(Long id);
 }

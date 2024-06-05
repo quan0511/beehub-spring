@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.annotation.Nullable;
 import vn.aptech.beehub.models.User;
 
 @Data
@@ -23,4 +24,6 @@ public class PostMeDto {
 	private Long usershare;
 	private Boolean share;
 	private LocalDateTime timeshare;
+	@Nullable
+	private Long group ;
 }

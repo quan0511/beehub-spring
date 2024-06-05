@@ -63,16 +63,16 @@ public class DatabaseSeeder {
 
     @EventListener
     public void seed(ContextRefreshedEvent event) {
-//        seedRoles();
-//        seederUser();
-//        seederGroup();
-//        seederGroupMember();
-//        seederRelationshipUser();
-//        seederReportType();
-//        seederPosts();
-//        seederRequirements();
-//        seederGroupRequirements();
-//        seederGroupReports();
+        seedRoles();
+        seederUser();
+        seederGroup();
+        seederGroupMember();
+        seederRelationshipUser();
+        seederReportType();
+       // seederPosts();
+        seederRequirements();
+        seederGroupRequirements();
+        seederGroupReports();
 
     }
 
