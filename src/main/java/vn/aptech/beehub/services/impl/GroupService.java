@@ -172,7 +172,7 @@ public class GroupService implements IGroupService {
 			if(checkMember.isPresent()&& !(checkMember.get().getRole().equals(EGroupRole.MEMBER))) {
 				List<RequirementDto> requirements = new LinkedList<RequirementDto>();
 				requireRep.findByGroup_id(id_group).forEach((req)->{ 
-					UserDto userDto = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(),req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null?req.getSender().getImage().getMedia_type():null);
+					UserDto userDto = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(),req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null?req.getSender().getImage().getMedia_type():null,req.getSender().is_banned());
 					RequirementDto reqDto = new RequirementDto();
 					reqDto.set_accept(req.is_accept());
 					reqDto.setId(req.getId());
@@ -182,7 +182,7 @@ public class GroupService implements IGroupService {
 					requirements.add(reqDto);});
 				List<ReportDto> reports = new LinkedList<ReportDto>();
 					reportRep.findByGroup_id(id_group).forEach((rep)->{
-						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null);
+						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null,rep.getSender().is_banned());
 						PostDto postReport = new PostDto(
 								rep.getTarget_post().getId(), 
 								rep.getTarget_post().getText(), 

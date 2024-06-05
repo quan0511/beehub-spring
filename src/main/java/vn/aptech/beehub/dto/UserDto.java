@@ -24,9 +24,10 @@ public class UserDto {
 	private String image_type;
 	@Nullable
 	private String typeRelationship;
+	private boolean is_banned;
 	private int group_counter;
 	private int friend_counter;
-	public UserDto(Long id, String username, String fullname, String gender, String image, String image_type,String type) {
+	public UserDto(Long id, String username, String fullname, String gender, String image, String image_type,String type,boolean is_banned) {
 		this.id = id;
 		this.username = username;
 		this.fullname = fullname;
@@ -34,14 +35,15 @@ public class UserDto {
 		this.image = image;
 		this.image_type= image_type;
 		this.typeRelationship = type;
-		
+		this.is_banned = is_banned;
 	}
-	public UserDto(Long id, String username, String fullname, String gender, String image, String image_type) {
+	public UserDto(Long id, String username, String fullname, String gender, String image, String image_type,boolean is_banned) {
 		this.id = id;
 		this.username = username;
 		this.fullname = fullname;
 		this.gender = gender;
 		this.image = image;
 		this.image_type= image_type;
+		this.is_banned = is_banned;
 	}
 }

@@ -81,9 +81,6 @@ public class UserService implements IUserService {
 	private S3Service s3Service;
 	@Autowired 
 	private ModelMapper mapper;
-	private UserDto toDto(User user) {
-		return mapper.map(user, UserDto.class);
-	}
 	@Override
 	public List<UserDto> findAll() {
 		List<UserDto> list = new LinkedList<UserDto>();
@@ -94,7 +91,8 @@ public class UserService implements IUserService {
 					user.getFullname(),
 					user.getGender(),
 					user.getImage()!=null? user.getImage().getMedia():null,
-					user.getImage()!=null?user.getImage().getMedia_type():null));
+					user.getImage()!=null?user.getImage().getMedia_type():null,
+					user.is_banned()));
 		});
 		return list;
 	}
@@ -110,6 +108,7 @@ public class UserService implements IUserService {
 					user.getImage()!=null?user.getImage().getMedia():null,
 					user.getImage()!=null?user.getImage().getMedia_type():null,
 					ERelationshipType.FRIEND.toString(),
+					user.is_banned(),
 					groupMemberRep.findByUser_id(user.getId()).size(),
 					findAllFriends(user.getId()).size()
 					));
@@ -122,7 +121,9 @@ public class UserService implements IUserService {
 					user.getGender(), 
 					user.getImage()!=null?user.getImage().getMedia():null, 
 					user.getImage()!=null?user.getImage().getMedia_type():null,		
-					ERelationshipType.BLOCKED.toString()));
+					ERelationshipType.BLOCKED.toString(),
+					user.is_banned()
+					));
 		});
 		return list;
 	}
@@ -135,7 +136,8 @@ public class UserService implements IUserService {
 					t.getFullname(), 
 					t.getGender(), 
 					t.getImage()!=null?t.getImage().getMedia():null,
-					t.getImage()!=null?t.getImage().getMedia_type():null);
+					t.getImage()!=null?t.getImage().getMedia_type():null,
+					t.is_banned());
 			user.setGroup_counter(groupMemberRep.findByUser_id(id).size());
 			user.setFriend_counter(0);
 			user.setFriend_counter(findAllFriends(id).size());
@@ -146,7 +148,7 @@ public class UserService implements IUserService {
 	public List<UserDto> findAllFriends(Long id) {
 		List<UserDto> list = new LinkedList<UserDto>();
 		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> list.add(
-				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null,e.is_banned())
 				));
 		return list;
 	}
@@ -156,7 +158,7 @@ public class UserService implements IUserService {
 		List<Object> listGroup =  groupSer.getGroupUserJoined(id);
 		List<Object> listFriend = new LinkedList<Object>();
 		userRep.findRelationship(id,ERelationshipType.FRIEND.toString()).forEach(e-> listFriend.add(
-				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null)
+				new UserDto(e.getId(), e.getUsername(), e.getFullname(), e.getGender(), e.getImage()!=null?e.getImage().getMedia():null, e.getImage()!=null?e.getImage().getMedia_type():null,e.is_banned())
 				));
 		res.put("groups", listGroup);
 		res.put("friends", listFriend);
@@ -190,6 +192,7 @@ public class UserService implements IUserService {
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
 						relationship, 
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -210,7 +213,8 @@ public class UserService implements IUserService {
 						user.getGender(),
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
-						ERelationshipType.FRIEND.toString(), 
+						ERelationshipType.FRIEND.toString(),
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -232,6 +236,7 @@ public class UserService implements IUserService {
 						user.getImage()!=null?user.getImage().getMedia():null, 
 						user.getImage()!=null?user.getImage().getMedia_type():null, 
 						"SENT_REQUEST", 
+						user.is_banned(),
 						groupMemberRep.findByUser_id(user.getId()).size(),
 						findAllFriends(user.getId()).size())
 						);
@@ -292,11 +297,11 @@ public class UserService implements IUserService {
 					user.getBackground()!=null?user.getBackground().getMedia():null,
 					user.getBio(),
 					user.getBirthday(),
-					user.isEmail_verified(),
 					user.getPhone(),
 					user.is_active(),
 					relationship,
 					user.getCreate_at(),
+					user.is_banned(),
 					grList,
 					userSetting,
 					relationshipList,
@@ -331,6 +336,7 @@ public class UserService implements IUserService {
 							user.getImage()!=null?user.getImage().getMedia():null,
 							user.getImage()!=null?user.getImage().getMedia_type():null,
 							relationship,
+							user.is_banned(),
 							groupMemberRep.findByUser_id(user.getId()).size(),
 							findAllFriends(user.getId()).size()));									
 				}
