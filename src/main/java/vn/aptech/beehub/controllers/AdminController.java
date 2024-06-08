@@ -7,17 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
-import vn.aptech.beehub.models.ERelationshipType;
-import vn.aptech.beehub.models.Gallery;
-import vn.aptech.beehub.payload.response.MessageResponse;
-import vn.aptech.beehub.payload.response.ReportResponse;
-import vn.aptech.beehub.payload.response.UserResponse;
+import vn.aptech.beehub.models.*;
+import vn.aptech.beehub.payload.request.CreateUserRequest;
+import vn.aptech.beehub.payload.response.*;
 import vn.aptech.beehub.repository.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @Tag(name = "Admin")
@@ -39,10 +40,26 @@ public class AdminController {
     private PostRepository postRepository;
 
     @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
     ModelMapper modelMapper;
 
     @Autowired
+    PasswordEncoder encoder;
+
+    @Autowired
     RelationshipUsersRepository relationshipUsersRepository;
+
+    /*Dashboard*/
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardResponse> getDashboard() {
+        int numOfUsers = userRepository.findAll().size();
+        int numOfGroups = groupRepository.findAll().size();
+        int numOfPosts = postRepository.findAll().size();
+        int numOfReports = reportRepository.findAll().size();
+        return ResponseEntity.ok(new DashboardResponse(numOfUsers, numOfGroups, numOfPosts, numOfReports));
+    }
 
     /*Reports*/
 
@@ -134,8 +151,31 @@ public class AdminController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser() {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest userRequest) {
+        if (userRepository.existsByUsername(userRequest.getUsername())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Username is already taken!"));
+        }
+
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email is already in use!"));
+        }
+
+        // Create new user's account
+        User user = User.builder()
+                .username(userRequest.getUsername())
+                .email(userRequest.getEmail())
+                .password(encoder.encode(userRequest.getPassword()))
+                .build();
+
+        Set<Role> roles = new HashSet<>();
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        roles.add(userRole);
+        user.setRoles(roles);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new MessageResponse("User created successfully!"));
     }
 
     @PatchMapping("/users/role/{id}")
@@ -155,8 +195,14 @@ public class AdminController {
 
     /*Posts*/
     @GetMapping("/posts")
-    public ResponseEntity<List<PostDto>> getPosts() {
-        return ResponseEntity.ok(postRepository.findAll().stream().map(p -> modelMapper.map(p, PostDto.class)).toList());
+    public ResponseEntity<List<PostResponse>> getPosts() {
+        return ResponseEntity.ok(postRepository.findAll().stream().map(p -> PostResponse.builder()
+                .id(p.getId())
+                .creator(p.getUser().getUsername())
+                .timestamp(p.getCreate_at())
+                .status(p.is_blocked() ? "blocked" : "active")
+                .build())
+                .toList());
     }
 
     @GetMapping("/posts/{id}")

@@ -87,4 +87,8 @@ return ResponseEntity.ok(result);
 				.build();
 		return ResponseEntity.ok(reaction);
 	}
+	@GetMapping(value = "/reaction/post/{postid}")
+	public ResponseEntity<Integer> count(@PathVariable("postid") Long postid){
+		return ResponseEntity.ok(postReactionService.CountReactionByPost(postid));
+	}
 }

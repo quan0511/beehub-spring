@@ -14,6 +14,7 @@ public class RelationshipUserDto {
 	private Long user2_id;
 	private String type;
 	private String username;
+	private String fullname;
 	private Long userid;
 	public RelationshipUserDto(
 			Long user1_id,Long user2_id, String type

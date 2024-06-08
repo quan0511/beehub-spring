@@ -32,7 +32,6 @@ import vn.aptech.beehub.dto.RelationshipUserDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
-import vn.aptech.beehub.models.SharePost;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.payload.response.MessageResponse;
 import vn.aptech.beehub.services.PostService;
@@ -130,13 +129,29 @@ public class PostController {
 	                              .mediaUrl(p.getMedias())
 	                              .color(p.getColor())
 	                              .background(p.getBackground())
-	                              .user(p.getUser().getId()) 
+	                              .user(p.getUser().getId())
+	                              .group(p.getGroup() != null ? p.getGroup().getId() : null)
 	                              .build();
 	    return ResponseEntity.ok(post);
 	}
 	@PostMapping(value = "/share")
-	public ResponseEntity<?> sharePost(@RequestBody PostMeDto dto){
+	public ResponseEntity<?> Post(@RequestBody PostMeDto dto){
 		postService.sharePost(dto);
 		return ResponseEntity.ok(dto);
+	}
+	@GetMapping(value = "/countshare/{postid}")
+	public int countShare(@PathVariable("postid") Long id){
+		return postService.countShareByPostId(id);
+	}
+	@GetMapping(value = "/user/friend/{id}")
+	public ResponseEntity<List<UserDto>> findUserFriend(@PathVariable Long id){
+		List<UserDto> result = postService.findUser(id).stream().map((u)->
+			UserDto.builder()
+				.id(u.getId())
+				.username(u.getUsername())
+				.gender(u.getGender())
+				.fullname(u.getFullname())
+				.build()).toList();
+		return ResponseEntity.ok(result);
 	}
 }
