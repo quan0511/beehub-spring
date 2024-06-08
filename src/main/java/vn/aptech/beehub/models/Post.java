@@ -44,8 +44,8 @@ public class Post {
 	private User user;
 	
 	@ManyToOne(cascade = CascadeType.REMOVE)
-	@JoinColumn(name = "usershare")
-	private SharePost postshare;
+	@JoinColumn(name = "postshare")
+	private Post postshare;
 
 	@Nullable
 	@ManyToOne(cascade = CascadeType.REMOVE)
@@ -69,12 +69,8 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LikeUser> likes;
     
-    @OneToMany(mappedBy = "originalPost", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SharePost> shares;
-    
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Gallery> gallerys;
-	@NotBlank
 	private String text;
 	@Nullable
 	private String color;

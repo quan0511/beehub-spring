@@ -7,7 +7,6 @@ import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
-import vn.aptech.beehub.models.SharePost;
 import vn.aptech.beehub.models.User;
 
 public interface PostService {
@@ -18,4 +17,6 @@ public interface PostService {
 	Optional<Post> findByIdPost(Long id);
 	List<User> findAllUser();
 	Post sharePost(PostMeDto dto);
+	int countShareByPostId(Long id);
+	List<User> findUser(Long id);
 }

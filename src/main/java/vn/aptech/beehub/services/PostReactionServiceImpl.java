@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.aptech.beehub.dto.PostReactionDto;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.repository.PostCommentRepository;
@@ -87,4 +88,14 @@ public class PostReactionServiceImpl implements PostReactionService {
         postReactionRepository.deleteById(id);
         return true;
     }
+	public int CountReactionByPost(Long postid) {
+		Optional<Post> optionalPost = postRepository.findById(postid);
+		if (optionalPost.isPresent()) {
+	        Post post = optionalPost.get();
+	        List<PostReaction> reaction = postReactionRepository.findByPost(post);
+	        return reaction.size(); 
+	    } else {
+	        return 0;
+	    }
+	}
 }

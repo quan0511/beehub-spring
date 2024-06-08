@@ -19,21 +19,23 @@ import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.models.ESettingType;
 import vn.aptech.beehub.models.Gallery;
+import vn.aptech.beehub.models.GroupMedia;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.models.RelationshipUsers;
-import vn.aptech.beehub.models.SharePost;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.models.UserSetting;
 import vn.aptech.beehub.repository.GalleryRepository;
+import vn.aptech.beehub.repository.GroupMediaRepository;
+import vn.aptech.beehub.repository.GroupRepository;
 import vn.aptech.beehub.repository.LikeRepository;
 import vn.aptech.beehub.repository.PostCommentRepository;
 import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
-import vn.aptech.beehub.repository.ShareRepository;
+import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.seeders.DatabaseSeeder;
@@ -53,9 +55,6 @@ public class PostServiceImpl implements PostService {
 	private LikeRepository likeRepository;
 	
 	@Autowired
-	private ShareRepository shareRepository;
-	
-	@Autowired
 	private PostReactionRepository postReactionRepository;
 	
 	@Autowired
@@ -64,6 +63,17 @@ public class PostServiceImpl implements PostService {
 	@Autowired
 	private UserSettingRepository userSettingRepository;
 	
+	@Autowired
+	private GroupMediaRepository groupMediaRep;
+	
+	@Autowired
+	private ReportRepository reportRep;
+	
+	@Autowired
+	private GroupRepository groupRepository;
+	
+	@Autowired
+	private RelationshipUsersRepository relationshipUsersRepository;
 	
 	@Autowired
 	private S3Service s3Service;
@@ -92,6 +102,12 @@ public class PostServiceImpl implements PostService {
 	    if (dto.getUser() > 0) {
 	        userRepository.findById(dto.getUser()).ifPresent(post::setUser);
 	    }
+	    if (dto.getGroup() > 0) {
+	    	groupRepository.findById(dto.getGroup()).ifPresent(post::setGroup);
+	    	
+	    }else {
+	    	dto.setGroup(null);
+	    }
 	    post.setMedias(dto.getMediaUrl());
 	    
 	    UserSetting userSetting = new UserSetting();
@@ -110,6 +126,17 @@ public class PostServiceImpl implements PostService {
 		    gallery.setCreate_at(LocalDateTime.now());
 		    galleryRepository.save(gallery);
 	    }
+	    if (post.getGroup() != null && post.getMedias() != null && !post.getMedias().isEmpty()) {
+	        GroupMedia groupMedia = new GroupMedia();
+	        groupMedia.setMedia(post.getMedias());
+	        groupMedia.setMedia_type("image");
+	        groupMedia.setCreate_at(LocalDateTime.now());
+	        groupMedia.setUser(post.getUser());
+	        groupMedia.setGroup(post.getGroup());
+	        groupMedia.setPost(saved);
+	        
+	        groupMediaRep.save(groupMedia);
+	    }
 	    return saved;
 	}
 	@Transactional
@@ -117,29 +144,44 @@ public class PostServiceImpl implements PostService {
 	    Optional<Post> optionalPost = postRepository.findById(id);
 	    if (optionalPost.isPresent()) {
 	        Post post = optionalPost.get();
+	        //post.setUser(null);
 	        String filename = post.getMedias();
 	        String fileExtract = extractFileNameFromUrl(filename);
 	        try {
 	            if (filename != null && !filename.isEmpty()) {
 	                s3Service.deleteToS3(fileExtract);
 	            }
-	            List<PostComment> comments = post.getComments();
-	            postCommentRepository.deleteAll(comments);
-	            List<PostReaction> reactions = post.getReactions();
-	            postReactionRepository.deleteAll(reactions);
-	            List<LikeUser> likes = post.getLikes();
-	            likeRepository.deleteAll(likes);
-	            List<Gallery> galleries = post.getGallerys();
-	            galleryRepository.deleteAll(galleries);
-
-	            // Ensure UserSetting deletion if not required elsewhere
-	            UserSetting userSetting = post.getUser_setting();
-	            if (userSetting != null) {
-	                userSettingRepository.deleteById(userSetting.getId());
+	            if(post.getGroup_media()!=null) {
+	            	String filename2 = post.getGroup_media().getMedia();
+	            	String fileExtract2 = filename2!=null? filename2.substring(filename2.lastIndexOf("/") + 1):null;
+	            	if(fileExtract !=null) {
+	            		s3Service.deleteToS3(fileExtract);
+	            	}
+	            	GroupMedia gallery = post.getGroup_media();
+	            	groupMediaRep.delete(gallery);				            	
 	            }
-
-	            // Now delete the post itself
-	            postRepository.deleteById(id);
+	            
+	            reportRep.deletePostReposts(post.getId());
+	            if(post.getMedias() != null) {
+	            	
+	            	postRepository.deletePostReactions(id);
+	            	postRepository.deletePostComments(id);
+	            	postRepository.deletePostLikes(id);
+	            	postRepository.deletePostReports(id);
+	            	deletePostByPostShare(post.getId());
+	            	postRepository.deletePostWithGallery(id);
+	            	postRepository.deletePost(id);
+	            	postRepository.deleteUserSettings(id);           	
+	            }else {            	
+	            	postRepository.deletePostReactions(id);
+	            	postRepository.deletePostComments(id);
+	            	postRepository.deletePostLikes(id);
+	            	postRepository.deletePostReports(id);	     
+	            	deletePostByPostShare(post.getId());
+	            	postRepository.deletePost(id);
+	            	postRepository.deleteUserSettings(id);
+	            }
+	            
 	            return true;
 	        } catch (SdkClientException e) {
 	            logger.error("Error deleting media from S3", e);
@@ -151,6 +193,17 @@ public class PostServiceImpl implements PostService {
 	    }
 	    return false;
 	}
+	private void deletePostByPostShare(Long id) {
+	    List<Post> posts = postRepository.findByPostshareId(id);
+	    for (Post post : posts) {
+	        postRepository.deletePostReactions(post.getId());
+	        postRepository.deletePostComments(post.getId());
+	        postRepository.deletePostLikes(post.getId());
+	        postRepository.deletePostReports(post.getId());
+	        postRepository.deletePostBypostshare(id);
+	        postRepository.deleteUserSettings(post.getId());
+	    }
+	}
 	private String extractFileNameFromUrl(String fileUrl) {
         if (fileUrl == null || fileUrl.isEmpty()) {
             return null;
@@ -158,34 +211,55 @@ public class PostServiceImpl implements PostService {
         return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
 	public Post updatePost(PostMeDto dto) {
-		Optional<Post> optionalPost = postRepository.findById(dto.getId());
-		if(optionalPost.isPresent()) {
-			Post post = optionalPost.get();
-			String fileOld = post.getMedias();
-			String fileOldEx = extractFileNameFromUrl(fileOld);
-			post.setCreate_at(post.getCreate_at());
-			 if (dto.getText() != null) {
-		            post.setText(dto.getText());
-		        }
-		        if (dto.getColor() != null) {
-		            post.setColor(dto.getColor());
-		        } 
-		        if (dto.getBackground() != null) {
-		            post.setBackground(dto.getBackground());
-		        }
-		        if(fileOld != null && !fileOld.isEmpty()) {
-		        	s3Service.deleteToS3(fileOldEx);
-		        }
-		        if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
-		            post.setMedias(dto.getMediaUrl());
-		            updateGalleryMedias(post, dto.getMediaUrl());
-		        }
-			Post postUpdate = postRepository.save(post);
-			return postUpdate;
-		}
-		 else {
-		    throw new RuntimeException("Post not found with id " + dto.getId());
-		 } 	
+	    Optional<Post> optionalPost = postRepository.findById(dto.getId());
+	    if (optionalPost.isPresent()) {
+	        Post post = optionalPost.get();
+	        String fileOld = post.getMedias();
+	        String fileOldEx = extractFileNameFromUrl(fileOld);
+	        post.setCreate_at(post.getCreate_at());
+	        
+	        // Cập nhật các trường của bài post
+	        if (dto.getText() != null) {
+	            post.setText(dto.getText());
+	        }
+	        if (dto.getColor() != null) {
+	            post.setColor(dto.getColor());
+	        } 
+	        if (dto.getBackground() != null) {
+	            post.setBackground(dto.getBackground());
+	        }
+	        if (fileOld != null && !fileOld.isEmpty()) {
+	            s3Service.deleteToS3(fileOldEx);
+	        }
+	        if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
+	            post.setMedias(dto.getMediaUrl());
+	            if (post.getMedia() != null) {
+	                updateGalleryMedias(post, dto.getMediaUrl());
+	            } else {
+	                Gallery gallery = new Gallery();
+	                gallery.setUser(post.getUser()); 
+	                gallery.setPost(post); 
+	                gallery.setMedia(post.getMedias()); 
+	                gallery.setMedia_type("image");
+	                gallery.setCreate_at(LocalDateTime.now());
+	                galleryRepository.save(gallery);
+	            }
+	        }   
+	        
+	        Post postUpdate = postRepository.save(post);
+	        List<Post> relatedPosts = postRepository.findByPostshareId(post.getId());
+	        for (Post relatedPost : relatedPosts) {
+	            relatedPost.setText(post.getText());
+	            relatedPost.setColor(post.getColor());
+	            relatedPost.setBackground(post.getBackground());
+	            relatedPost.setMedias(post.getMedias());
+	            postRepository.save(relatedPost);
+	        }
+	        
+	        return postUpdate;
+	    } else {
+	        throw new RuntimeException("Post not found with id " + dto.getId());
+	    }
 	}
 	private void updateGalleryMedias(Post post, String mediaUrl) {
 	    Optional<Gallery> optionalGallery = galleryRepository.findByPost(post);
@@ -204,9 +278,7 @@ public class PostServiceImpl implements PostService {
 	}
 	public Post sharePost(PostMeDto dto) {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
-		Optional<User> optionalUser = userRepository.findById(dto.getId());
 		Post post = optionalPost.get();
-		User user = optionalUser.get();
 		User sharedUser = userRepository.findById(dto.getUser()).get();
 		Post sharePost = new Post();
 		sharePost.setText(post.getText());
@@ -222,42 +294,17 @@ public class PostServiceImpl implements PostService {
 	    userSetting.setUser(sharePost.getUser());
 	    userSetting = userSettingRepository.save(userSetting);
 	    sharePost.setUser_setting(userSetting);
-		SharePost share = new SharePost();
-		share.setOriginalPost(post);
-		share.setSharedBy(sharedUser);
-		share.setSharedAt(sharePost.getTimeshare());
-		share = shareRepository.save(share);
-		sharePost.setPostshare(share);
+		sharePost.setPostshare(post);
 		return postRepository.save(sharePost);
 	}
-//	public SharePost sharePost(Long postid, Long useid) {
-//	    Optional<Post> optionalOriginalPost = postRepository.findById(postid);
-//	    if (!optionalOriginalPost.isPresent()) {
-//	        throw new RuntimeException("Original post not found with id " + postid);
-//	    }
-//	    Post originalPost = optionalOriginalPost.get();
-//
-//	    Optional<User> optionalSharedBy = userRepository.findById(useid);
-//	    if (!optionalSharedBy.isPresent()) {
-//	        throw new RuntimeException("User not found with id " + useid);
-//	    }
-//	    User sharedBy = optionalSharedBy.get();
-//	    SharePost sharePost = new SharePost();
-//	    sharePost.setOriginalPost(originalPost);
-//	    sharePost.setSharedBy(sharedBy);
-//	    sharePost.setSharedAt(LocalDateTime.now());
-//	    shareRepository.save(sharePost);
-//	    Post newPost = new Post();
-//	    newPost.setUser(sharedBy);
-//	    newPost.setText(originalPost.getText());
-//	    newPost.setColor(originalPost.getColor());
-//	    newPost.setBackground(originalPost.getBackground());
-//	    newPost.setCreate_at(LocalDateTime.now());
-//	    newPost.setMedias(originalPost.getMedias());
-//	    newPost.setShare(sharePost.getId());
-//	    newPost.setTimeshare(sharePost.getSharedAt());
-//	    newPost = postRepository.save(newPost);
-//	    return shareRepository.save(sharePost);
-//	}
-	
+	public int countShareByPostId(Long id) {
+		List<Post> share = postRepository.findByPostshareId(id);
+		return share.size();
+
+	}
+	public List<User> findUser(Long id){
+		List<Long> rela = relationshipUsersRepository.findFriendsByUser(id);
+		List<User> user = userRepository.findAllById(rela);
+		return userRepository.findAllById(rela);
+	}
 }
