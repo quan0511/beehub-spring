@@ -51,6 +51,7 @@ public class PostDto {
     private String usershare_gender;
     @Nullable
     private LocalDateTime usershare_createdat;
+    private boolean is_blocked;
 	public PostDto(
 			Long id, 
 			String text, 
