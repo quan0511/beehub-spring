@@ -404,7 +404,7 @@ public class DatabaseSeeder {
 	}
 	private void seederGroupReports() {
 		List<Report> listReport = reportRep.findAll();
-		if(listReport.isEmpty()) {
+//		if(listReport.isEmpty()) {
 			List<Group> groups = groupRepository.findAll();
 			if(!groups.isEmpty()) {
 				for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
@@ -420,6 +420,6 @@ public class DatabaseSeeder {
 					}
 				}
 			}
-		}
+//		}
 	}
 }

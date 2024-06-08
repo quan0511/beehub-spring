@@ -364,4 +364,33 @@ public class GroupService implements IGroupService {
 		}
 		return (long) 0;
 	}
+	@Override
+	public List<GroupDto> getListGroupFlutter(Long id) {
+		List<GroupDto> groupJoined = new LinkedList<GroupDto>();
+		groupRep.findAllGroupJoined(id).forEach((group)->{
+			String join = null;
+			Optional<GroupMember> getMem = groupMemberRep.findMemberInGroupWithUser(group.getId(), id);
+			if(getMem.isPresent()) {
+				join = "joined";
+			}else {
+				Optional<Requirement> reqJoin = requireRep.findRequirementJoinGroup(id, group.getId());
+				join = reqJoin.isPresent()? "send request":null;
+			}
+			int count_member = groupMemberRep.findByGroup_id(group.getId()).size();
+			groupJoined.add(new GroupDto(
+					group.getId(), 
+					group.getGroupname(), 
+					group.isPublic_group(), 
+					group.getDescription(), 
+					group.isActive(), 
+					group.getCreated_at(), 
+					group.getImage_group() !=null?group.getImage_group().getMedia():null, 
+					group.getBackground_group() !=null?group.getBackground_group().getMedia():null,
+					join,
+					getMem.isPresent()?getMem.get().getRole().toString():null,
+					count_member
+					));
+		});
+		return groupJoined;
+	}
 }

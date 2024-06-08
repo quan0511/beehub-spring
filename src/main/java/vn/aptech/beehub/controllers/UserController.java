@@ -107,6 +107,10 @@ public class UserController {
 	private ResponseEntity<Map<String, List<GroupDto>>> getListGroups(@PathVariable Long id){
 		return ResponseEntity.ok(groupService.getListGroup(id));
 	}
+	@GetMapping(path = "/user/groups/{id}")
+	private ResponseEntity<List<GroupDto>> getGroups(@PathVariable Long id){
+		return ResponseEntity.ok(groupService.getListGroupFlutter(id));
+	}
 	@GetMapping(path = "/user/{id}/search_all")
 	private ResponseEntity<SearchingDto> getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
 		return ResponseEntity.ok(userService.getSearch(id,search));
