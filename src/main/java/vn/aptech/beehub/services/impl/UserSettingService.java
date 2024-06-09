@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.ESettingType;
+import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.UserSetting;
+import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
 import vn.aptech.beehub.services.IUserSettingService;
@@ -26,6 +29,8 @@ public class UserSettingService implements IUserSettingService {
 	private UserSettingRepository userSettingRep;
 	@Autowired
 	private UserRepository userRep;
+	@Autowired
+	private PostRepository postRep;
 	@Override
 	public List<UserSettingDto> allSettingPostOfUser(Long id) {
 		List<UserSettingDto> listSet = new LinkedList<UserSettingDto>();
@@ -108,5 +113,21 @@ public class UserSettingService implements IUserSettingService {
 			result.add(settingDto);
 		});
 		return result;
+	}
+	@Override
+	public boolean updateSettingPost(Long id, UserSettingDto setting) {
+		Optional<Post> findPost = postRep.findById(setting.getPost_id());
+		if(findPost.isPresent()) {
+			try {
+				UserSetting setting_post = findPost.get().getUser_setting();
+				setting_post.setSetting_type(ESettingType.valueOf(setting.getSetting_type()));
+				userSettingRep.save(setting_post);
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return false;
 	}
 }

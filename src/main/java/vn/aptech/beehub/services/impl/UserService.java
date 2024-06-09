@@ -503,6 +503,14 @@ public class UserService implements IUserService {
 		}
 		return "unsuccess";
 	}
+	@Override
+	public String getUsername(Long id) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()) {
+			return findUser.get().getUsername();
+		}
+		return null;
+	}
 	
 	
 }

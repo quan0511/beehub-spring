@@ -114,6 +114,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Query(value = "SELECT p.* FROM posts p WHERE p.group_id = :group_id AND p.user_id <> :user_id ORDER BY RAND() LIMIT 1;",nativeQuery = true)
 	Optional<Post> randomPostFromGroupNotOwnByUser(@Param("group_id") Long id_group,@Param("user_id") Long id_user);
 	
+	//GetPost 
+	@Query(value = "SELECT DISTINCT p.* FROM posts p"
+			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
+			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id "
+			+ " WHERE p.is_blocked=0 "
+			+ " AND p.id= ?2 "
+			+ " AND ( p.user_id = ?1 OR (s.setting_type='PUBLIC' AND p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.user2_id= ?1 AND ru2.type = 'BLOCKED')) OR "
+			+ "     (s.setting_type='FOR_FRIEND' AND (ru.user1_id = ?1 OR ru.user2_id= ?1 ) AND ru.type = 'FRIEND' ))", nativeQuery = true)
+	Optional<Post> getPostQuery(Long id_user, Long id_post);
+	
 	@Modifying(flushAutomatically = true)
 	@Query(value = "DELETE FROM  posts  WHERE id = ?1 ;",nativeQuery = true)
 	void deletePost(Long id);
@@ -138,12 +148,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Modifying
 	@Query("DELETE FROM UserSetting us WHERE us.id = :postId")
 	void deleteUserSettings(@Param("postId") Long postId);
-//	@Query(value = "DELETE FROM  posts p WHERE p.id = ?1 ;",nativeQuery = true)
-//	void deletePost(Long id);
-//	@Modifying(flushAutomatically = true)
-//	@Query(value = "DELETE g,p FROM  gallery g , posts p WHERE p.id = ?1 AND g.post_id = p.id ;",nativeQuery = true)
-//	void deletePostWithGallery(Long id);
-	
 	
 	@Modifying
 	@Query("DELETE FROM Post p WHERE p.postshare.id = :id ")
