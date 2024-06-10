@@ -6,6 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import vn.aptech.beehub.models.*;
 import vn.aptech.beehub.payload.request.CreateUserRequest;
 import vn.aptech.beehub.payload.response.*;
 import vn.aptech.beehub.repository.*;
+import vn.aptech.beehub.security.services.UserDetailsImpl;
 
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +53,24 @@ public class AdminController {
     @Autowired
     RelationshipUsersRepository relationshipUsersRepository;
 
+    /*Profile*/
+    @GetMapping("/profile")
+    public ResponseEntity<AdminProfile> getProfile() {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = userDetails.getId();
+        var user = userRepository.findById(userId);
+        var admin = new AdminProfile();
+        if (user.isPresent()) {
+            admin.setUsername(user.get().getUsername());
+            admin.setFullName(user.get().getFullname());
+            admin.setEmail(user.get().getEmail());
+            admin.setCreatedAt(user.get().getCreate_at());
+            return ResponseEntity.ok(admin);
+        } else {
+            throw new UsernameNotFoundException("User not found");
+        }
+    }
+
     /*Dashboard*/
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardResponse> getDashboard() {
@@ -67,21 +87,22 @@ public class AdminController {
     public ResponseEntity<List<ReportResponse>> getReports() {
         return ResponseEntity.ok(reportRepository.findAll().stream().map(r -> {
             ReportResponse report = ReportResponse.builder()
-                    .from(r.getSender().getUsername())
+                    .id(r.getId())
+                    .reporter(r.getSender().getUsername())
                     .type(r.getReport_type().getTitle())
-                    .timeStamp(r.getCreate_at())
+                    .timestamp(r.getCreate_at())
                     .build();
             if (r.getTarget_user() != null) {
-                report.setTo(r.getTarget_user().getUsername());
-                report.setUser(true);
+                report.setReportedCase(r.getTarget_user().getUsername());
+                report.setCaseType("user");
                 report.setStatus(r.getTarget_user().is_active() ? "active" : "inactive");
             } else if (r.getTarget_group() != null) {
-                report.setTo(r.getTarget_group().getGroupname());
-                report.setGroup(true);
+                report.setReportedCase(r.getTarget_group().getGroupname());
+                report.setCaseType("group");
                 report.setStatus(r.getTarget_group().isActive() ? "active" : "inactive");
             }else {
-                report.setTo(r.getTarget_post().getId().toString());
-                report.setPost(true);
+                report.setReportedCase(r.getTarget_post().getId().toString());
+                report.setCaseType("post");
                 report.setStatus("blocked");
             }
             return report;
