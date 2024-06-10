@@ -121,9 +121,13 @@ public class UserController {
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")
 	private ResponseEntity<List<PostDto>> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
-		logger.info("Limit: "+limit+"\t Page: "+page);
 		return ResponseEntity.ok(postService.newestPostInGroup(id_group, id_user, limit, page));
 	}
+	@GetMapping (path="/user/request/{id}")
+	private ResponseEntity<List<RequirementDto>> getAddFriendRequest(@PathVariable Long id){
+		List<RequirementDto> result = userService.getNotification(id);
+		return ResponseEntity.ok(result);
+	} 
 	@GetMapping(path = "/check-user")
 	private ResponseEntity<Boolean> checExistUsername (@RequestParam(required = false) String username) {
 		if(username!=null && !username.isEmpty()) {
