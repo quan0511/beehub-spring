@@ -69,6 +69,7 @@ public class PostController {
 
 	@PostMapping(value = "/create")
 	public ResponseEntity<?> create(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto) {
+		
 		logger.info(dto.getUser().toString());
 		System.out.println(dto.getUser().toString());
 		try {
@@ -98,7 +99,7 @@ public class PostController {
 	        PostMeDto updatedDto = PostMeDto.builder()
 		            .id(p.getId())
 		            .text(p.getText())
-		            
+		            .group(p.getGroup().getId())
 		            .color(p.getColor())
 		            .background(p.getBackground())
 		            .createdAt(p.getCreate_at())
@@ -130,6 +131,7 @@ public class PostController {
 	                              .color(p.getColor())
 	                              .background(p.getBackground())
 	                              .user(p.getUser().getId())
+								  .user_fullname(p.getUser().getFullname())
 	                              .group(p.getGroup() != null ? p.getGroup().getId() : null)
 	                              .build();
 	    return ResponseEntity.ok(post);
