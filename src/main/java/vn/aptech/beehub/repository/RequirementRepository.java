@@ -20,4 +20,6 @@ public interface RequirementRepository extends JpaRepository<Requirement, Intege
 	Optional<Requirement> getRequirementsBtwUsers(Long user1_id, Long user2_id);
 	@Query(value = "SELECT * FROM requirements re WHERE re.group_id = :group_id AND re.sender_id = :user_id AND re.is_accept = 0", nativeQuery = true)
 	Optional<Requirement> findRequirementJoinGroup(@Param("user_id") Long user_id,@Param("group_id") Long group_id);
+	@Query(value = "SELECT * FROM requirements re WHERE re.receiver_id = ?1", nativeQuery = true)
+	List<Requirement> getNotificationUser(Long id);
 }
