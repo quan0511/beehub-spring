@@ -11,4 +11,5 @@ public interface IUserSettingService {
 	public Map<String, Integer> settingAllPost(Long id, String type);
 	public boolean updateSettingItem(Long id, Map<String, String> item);
 	public List<UserSettingDto> allSettingItemOfUser(Long id);
+	public boolean updateSettingPost(Long id, UserSettingDto setting);
 }

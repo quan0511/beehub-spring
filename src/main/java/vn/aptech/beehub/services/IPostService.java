@@ -1,6 +1,7 @@
 package vn.aptech.beehub.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import vn.aptech.beehub.dto.PostDto;
 
@@ -11,4 +12,5 @@ public interface IPostService {
 	public List<PostDto> newestPostInGroup(Long id_group, Long id_user, int limit,int page);
 	public List<PostDto> getPostsForUser(Long id,int page, int limit);
 	public List<PostDto>  getAllPostForUser(Long id);
+	public Optional<PostDto> getPost(Long id_user, Long id_post);
 }
