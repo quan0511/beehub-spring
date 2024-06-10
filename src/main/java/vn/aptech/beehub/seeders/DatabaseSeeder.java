@@ -258,6 +258,9 @@ public class DatabaseSeeder {
                     .build();
             bumblebee = userRepository.save(bumblebee);
             Gallery bumbleBeeImage = galleryRepository.save(new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.EmRwBDZe4rBVjntQ1uzpVwHaHa?w=164&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()));
+            bumblebee = userRepository.findByUsername("Bumblebee").get();
+            bumblebee.setImage(bumbleBeeImage);
+            userRepository.save(bumblebee);
             galleryRepository.saveAll(List.of(
                     new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.EmRwBDZe4rBVjntQ1uzpVwHaHa?w=164&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
                     new Gallery(bumblebee, "https://th.bing.com/th/id/OIP.VIHMP3vrUeXRhNq6yaR9sAHaEK?w=321&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
@@ -274,6 +277,9 @@ public class DatabaseSeeder {
                     .build();
             optimus = userRepository.save(optimus);
             Gallery optimusImage = galleryRepository.save(new Gallery(optimus, "https://th.bing.com/th/id/OIP.UhzoNGGIvKYW8YahcshtwAHaHa?w=184&h=184&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()));
+            optimus = userRepository.findByUsername("Optimus").get();
+            optimus.setImage(optimusImage);
+            userRepository.save(optimus);
             galleryRepository.saveAll(List.of(
                     new Gallery(optimus, "https://th.bing.com/th/id/OIP.FGuDQu58aABECzJerNm30wHaEQ?w=326&h=187&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
                     new Gallery(optimus, "https://th.bing.com/th/id/OIP.kPzrHJuZuOnHmgNDs90xOAHaD5?w=324&h=180&c=7&r=0&o=5&pid=1.7", "image", LocalDateTime.now()),
@@ -290,6 +296,7 @@ public class DatabaseSeeder {
             Post optimusPost = new Post();
             Gallery postImage = new Gallery(optimus, "https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain", "image", LocalDateTime.now());
             galleryRepository.save(postImage);
+            optimusPost.setUser(optimus);
             optimusPost.setText("Victory Dance");
             optimusPost.setMedia(postImage);
             optimusPost.setCreate_at(LocalDateTime.now());
