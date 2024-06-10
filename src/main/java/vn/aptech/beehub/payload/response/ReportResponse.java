@@ -8,12 +8,11 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class ReportResponse {
-    private String from;
-    private String to;
-    private boolean isUser;
-    private boolean isGroup;
-    private boolean isPost;
+    private Integer id;
+    private String reporter;
+    private String reportedCase;
+    private String caseType;
     private String type;
-    private LocalDateTime timeStamp;
+    private LocalDateTime timestamp;
     private String status;
 }
