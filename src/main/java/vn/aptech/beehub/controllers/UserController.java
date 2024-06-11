@@ -107,6 +107,10 @@ public class UserController {
 	private ResponseEntity<Map<String, List<GroupDto>>> getListGroups(@PathVariable Long id){
 		return ResponseEntity.ok(groupService.getListGroup(id));
 	}
+	@GetMapping(path = "/user/groups/{id}")
+	private ResponseEntity<List<GroupDto>> getGroups(@PathVariable Long id){
+		return ResponseEntity.ok(groupService.getListGroupFlutter(id));
+	}
 	@GetMapping(path = "/user/{id}/search_all")
 	private ResponseEntity<SearchingDto> getSearchString(@PathVariable Long id,@RequestParam(required = true) String search){
 		return ResponseEntity.ok(userService.getSearch(id,search));
@@ -117,9 +121,13 @@ public class UserController {
 	}
 	@GetMapping (path="/user/{id_user}/group/{id_group}/posts")
 	private ResponseEntity<List<PostDto>> getPostInGroup(@PathVariable Long id_user, @PathVariable Long id_group,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
-		logger.info("Limit: "+limit+"\t Page: "+page);
 		return ResponseEntity.ok(postService.newestPostInGroup(id_group, id_user, limit, page));
 	}
+	@GetMapping (path="/user/request/{id}")
+	private ResponseEntity<List<RequirementDto>> getAddFriendRequest(@PathVariable Long id){
+		List<RequirementDto> result = userService.getNotification(id);
+		return ResponseEntity.ok(result);
+	} 
 	@GetMapping(path = "/check-user")
 	private ResponseEntity<Boolean> checExistUsername (@RequestParam(required = false) String username) {
 		if(username!=null && !username.isEmpty()) {
@@ -141,9 +149,7 @@ public class UserController {
 	}
 	@PostMapping(path = "/update/bio-profile/{id}")
 	private ResponseEntity<Boolean> updateBioUser(@PathVariable("id") Long id, @RequestBody ProfileDto profile) {
-		
 		boolean result = userService.updateBio(id,profile);
-		
 		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
 	}
 	@GetMapping(path="/check-password/{id}")
@@ -167,6 +173,11 @@ public class UserController {
 	private ResponseEntity<Boolean>  updateSettingProfile (@PathVariable("id") Long id,@RequestBody Map<String,String> settingItem) {
 		boolean result=userSettingService.updateSettingItem(id, settingItem);
 		return result? ResponseEntity.ok(result): ResponseEntity.badRequest().body(result);
+	}
+	@PostMapping(path = "/user/{id}/setting/post")
+	private ResponseEntity<Boolean> updatePostSetting(@PathVariable("id") Long id, @RequestBody UserSettingDto setting){
+		boolean result = userSettingService.updateSettingPost(id, setting);
+		return ResponseEntity.ok(result);
 	}
 	@GetMapping(path= "/get-setting/item/{id}")
 	private ResponseEntity<List<UserSettingDto>> getAllSettingItem(@PathVariable("id") Long id){
@@ -205,7 +216,7 @@ public class UserController {
 	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
 	 }
 	@GetMapping("/files")
-	  public ResponseEntity<List<FileInfo>> getListFiles() {
+	public ResponseEntity<List<FileInfo>> getListFiles() {
 	    List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
 	      String filename = path.getFileName().toString();
 	      String url = MvcUriComponentsBuilder
@@ -302,5 +313,19 @@ public class UserController {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+	@GetMapping(path="/user/get-username/{id}")
+	public ResponseEntity<String> getUsername (@PathVariable("id") Long id){
+		try {
+			return ResponseEntity.ok(userService.getUsername(id));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	@GetMapping(path="/user/{id_user}/get-post/{id_post}")
+	public ResponseEntity<Optional<PostDto>> getPost(@PathVariable("id_user") Long id_user, @PathVariable("id_post") Long id_post){
+		Optional<PostDto> findPost = postService.getPost(id_user, id_post);
+		return ResponseEntity.ok(findPost);
 	}
 }

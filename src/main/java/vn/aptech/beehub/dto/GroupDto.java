@@ -98,4 +98,14 @@ public class GroupDto {
 		this.image_group = image;
 		this.background_group = background;
 	}
+	public GroupDto(
+			Long id, 
+			String groupname, 
+			boolean active, 
+			String image) {
+		this.id = id;
+		this.groupname =groupname;
+		this.active = active;
+		this.image_group = image;
+	}
 }

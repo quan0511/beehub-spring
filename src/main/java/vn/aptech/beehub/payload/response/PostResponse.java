@@ -7,12 +7,9 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class ReportResponse {
-    private Integer id;
-    private String reporter;
-    private String reportedCase;
-    private String caseType;
-    private String type;
+public class PostResponse {
+    private Long id;
+    private String creator;
     private LocalDateTime timestamp;
     private String status;
 }

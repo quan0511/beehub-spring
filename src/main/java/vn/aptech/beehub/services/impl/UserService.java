@@ -23,6 +23,7 @@ import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.ReportFormDto;
 import vn.aptech.beehub.dto.ReportTypesDto;
+import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
@@ -306,7 +307,8 @@ public class UserService implements IUserService {
 					userSetting,
 					relationshipList,
 					posts,
-					galleries
+					galleries,
+					user.getCreate_at()
 					);
 		});
 		
@@ -502,6 +504,35 @@ public class UserService implements IUserService {
 			return "success";
 		}
 		return "unsuccess";
+	}
+	@Override
+	public String getUsername(Long id) {
+		Optional<User> findUser = userRep.findById(id);
+		if(findUser.isPresent()) {
+			return findUser.get().getUsername();
+		}
+		return null;
+	}
+	@Override
+	public List<RequirementDto> getNotification(Long id) {
+		List<Requirement> getReq = requirementRep.getNotificationUser(id);
+		List<RequirementDto> getRequirement = new LinkedList<RequirementDto>();
+		getReq.forEach((req)-> {
+			RequirementDto require = new RequirementDto();
+			UserDto sender = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(), req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null? req.getSender().getImage().getMedia_type():null, req.getSender().is_banned());
+			require.setSender_id(req.getSender().getId());
+			require.setSender(sender);
+			if(req.getGroup_receiver()!=null) {
+				GroupDto group = new GroupDto(req.getGroup_receiver().getId(), req.getGroup_receiver().getGroupname(), req.getGroup_receiver().isActive(), req.getGroup_receiver().getImage_group()!=null? req.getGroup_receiver().getImage_group().getMedia():null);				
+				require.setGroup(group);
+			}
+			require.set_accept(req.is_accept());
+			require.setCreate_at(req.getCreate_at());
+			require.setReceiver_id(req.getReceiver().getId());
+			require.setType(req.getType().toString());
+			getRequirement.add(require);
+		});
+		return getRequirement;
 	}
 	
 	

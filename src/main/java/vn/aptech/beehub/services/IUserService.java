@@ -34,5 +34,6 @@ public interface IUserService {
 	public boolean updateBackground(Long id, String background);
 	public List<ReportTypesDto> getListReportType();
 	public String createReport(Long id_user, ReportFormDto report);
-	
+	public String getUsername (Long id);
+	public List<RequirementDto> getNotification(Long id);
 }

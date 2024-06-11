@@ -155,9 +155,26 @@ public class RequirementService implements IRequirementService {
 				result.put("response","error");
 			}
 			break;
+		case "CANCEL_ADDFRIEND":
+			try {
+				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(requirement.getSender_id(),requirement.getReceiver_id());
+				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getReceiver().getId()==id) {
+					Requirement getReq = req.get();
+					requirementRep.delete(getReq);
+					requirementRep.flush();
+					result.put("response",requirement.getType());
+				}else {
+					result.put("response","unsuccess");
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				result.put("response","error");
+			}
+			break;
 		case "ACCEPT":
 			try {
-				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
+				Long sender_id = requirement.getSender_id()!=null?requirement.getSender_id():id;  
+				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(sender_id, requirement.getReceiver_id());
 				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getReceiver().getId()==id) {
 					Requirement getReq = req.get();
 					RelationshipUsers newFriendship = new RelationshipUsers(getReq.getSender(),getReq.getReceiver(), ERelationshipType.FRIEND);
