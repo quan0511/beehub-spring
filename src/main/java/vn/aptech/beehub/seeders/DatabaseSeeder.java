@@ -294,11 +294,9 @@ public class DatabaseSeeder {
             groupMemberRepository.save(new GroupMember(optimus, optimusGang, EGroupRole.GROUP_CREATOR));
             groupMemberRepository.save(new GroupMember(bumblebee, optimusGang, EGroupRole.MEMBER));
             Post optimusPost = new Post();
-            Gallery postImage = new Gallery(optimus, "https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain", "image", LocalDateTime.now());
-            galleryRepository.save(postImage);
             optimusPost.setUser(optimus);
             optimusPost.setText("Victory Dance");
-            optimusPost.setMedia(postImage);
+            optimusPost.setMedias("https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain");
             optimusPost.setCreate_at(LocalDateTime.now());
             postRepository.save(optimusPost);
             Report report1 = new Report();
@@ -410,7 +408,7 @@ public class DatabaseSeeder {
 	}
 	private void seederGroupReports() {
 		List<Report> listReport = reportRep.findAll();
-//		if(listReport.isEmpty()) {
+		if(listReport.isEmpty()) {
 			List<Group> groups = groupRepository.findAll();
 			if(!groups.isEmpty()) {
 				for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
@@ -420,12 +418,12 @@ public class DatabaseSeeder {
 					Optional<ReportTypes> getReportT = reportTypeRepository.getRandomReportType();
 					
 					if(getRandomPost.isPresent() && getReportT.isPresent() && groupMem.size()>2) {
-						Report report = new Report(groupMem.get(2).getUser(), group, getRandomPost.get(), getReportT.get(), "I watn to report this post", LocalDateTime.now().minusHours(14), LocalDateTime.now().minusHours(14));
+						Report report = new Report(groupMem.get(2).getUser(), null, getRandomPost.get(), getReportT.get(), "I watn to report this post", LocalDateTime.now().minusHours(14), LocalDateTime.now().minusHours(14));
 						reportRep.save(report);
 						logger.info("Seed Group Reports");
 					}
 				}
 			}
-//		}
+		}
 	}
 }
