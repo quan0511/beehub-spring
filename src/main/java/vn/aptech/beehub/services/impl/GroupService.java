@@ -182,7 +182,7 @@ public class GroupService implements IGroupService {
 					reqDto.setCreate_at(req.getCreate_at());
 					requirements.add(reqDto);});
 				List<ReportDto> reports = new LinkedList<ReportDto>();
-					reportRep.findByGroup_id(id_group).forEach((rep)->{
+					reportRep.findRepostPostInGroup(id_group).forEach((rep)->{
 						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null,rep.getSender().is_banned());
 						PostDto postReport = new PostDto(
 								rep.getTarget_post().getId(), 

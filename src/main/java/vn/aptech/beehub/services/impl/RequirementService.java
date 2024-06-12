@@ -397,11 +397,13 @@ public class RequirementService implements IRequirementService {
 				logger.info(groupMem.get().getRole().toString());
 				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
-					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
+					if(findReport.isPresent() ) {
 						Report getReport = findReport.get();	
 						Optional<Post> findPost = postRep.findById(getReport.getTarget_post().getId());
+						logger.info("Find Post: "+findPost);
 						if(findPost.isPresent()) {
 							Post post = findPost.get();
+							logger.info("Post: "+post.getId());
 				            if(post.getGroup_media()!=null) {
 				            	String filename = post.getGroup_media().getMedia();
 				            	String fileExtract = filename!=null? filename.substring(filename.lastIndexOf("/") + 1):null;
@@ -411,12 +413,12 @@ public class RequirementService implements IRequirementService {
 				            	GroupMedia gallery = post.getGroup_media();
 				            	groupMediaRep.delete(gallery);				            	
 				            }         	
-			            	postRep.deletePostReactions(id);
-			            	postRep.deletePostComments(id);
-			            	postRep.deletePostLikes(id);
-			            	postRep.deletePostReports(id);	    
-			            	postRep.deletePost(id);
-			            	postRep.deleteUserSettings(id);
+			            	postRep.deletePostReactions(post.getId());
+			            	postRep.deletePostComments(post.getId());
+			            	postRep.deletePostLikes(post.getId());
+			            	postRep.deletePostReports(post.getId());	    
+			            	postRep.deletePost(post.getId());
+			            	postRep.deleteUserSettings(post.getId());
 						}
 						
 						result.put("response", requirement.getType());						
@@ -436,7 +438,7 @@ public class RequirementService implements IRequirementService {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
 				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
-					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
+					if(findReport.isPresent() ) {
 						reportRep.deleteReport(requirement.getReport_id());
 						result.put("response", requirement.getType());
 					}else {

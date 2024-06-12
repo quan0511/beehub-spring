@@ -294,7 +294,7 @@ public class UserService implements IUserService {
 			}
 			List<Object> grList = groupSer.getGroupUserJoined(user.getId());
 			List<UserSettingDto> userSetting = userSettingSer.allSettingItemOfUser(user.getId());
-			List<UserDto> relationshipList = getProfileRelationship(user_id,user.getId());
+			List<UserDto> relationshipList = user.getId()!=user_id? getProfileRelationship(user_id,user.getId()):getRelationship(user_id);
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
 				galleries.add(new GalleryDto(
