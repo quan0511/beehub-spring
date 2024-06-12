@@ -77,7 +77,10 @@ public class AuthController {
                 .toList();
 
         User user = userRepository.findById(userDetails.getId()).get();
-
+        if(!user.is_active()) {
+        	user.set_active(true);
+        	userRepository.save(user);
+        }
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
         ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getToken());

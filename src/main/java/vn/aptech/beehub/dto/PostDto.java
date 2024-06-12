@@ -70,9 +70,47 @@ public class PostDto {
 		this.user_image = user_image;
 		this.user_gender = user_gender;
 	}
-//	public PostDto(Long id2, String text2, List<GalleryDto> media2, Long id3, Long long1, LocalDateTime create_at2,
-//			String fullname, String username, Object object, String gender, Object object2, boolean b, Object object3,
-//			Object object4, UserSettingDto userSettingToDto) {
-//		// TODO Auto-generated constructor stub
-//	}
+	public PostDto(
+			Long id,
+			String text,
+			GalleryDto media,
+			LocalDateTime create_at,
+			String user_fullname,
+			String user_username,
+			String user_image,
+			String user_gender,
+			String setting_type,
+			String color,
+			String background,
+			Long user_id,
+			Boolean share,
+			String medias,
+			String usershare_fullname,
+			String usershare_username,
+			String usershare_gender,
+			LocalDateTime usershare_createdat,
+			boolean is_blocked
+			) {
+		this.id = id;
+		this.text  =text;
+		this.media = media;
+		this.create_at =create_at;
+		this.user_fullname = user_fullname;
+		this.user_username = user_username;
+		this.user_image =user_image;
+		this.user_gender = user_gender;
+		this.setting_type = setting_type;
+		this.color =color;
+		this.background = background;
+		this.user_id =user_id;
+		this.share = share;
+		this.medias = medias;
+		this.usershare_fullname = usershare_fullname;
+		this.usershare_username = usershare_username;
+		this.usershare_gender = usershare_gender;
+		this.usershare_createdat = usershare_createdat;
+		this.is_blocked = is_blocked;
+	}
+	
+
 }

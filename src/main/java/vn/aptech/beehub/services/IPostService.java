@@ -13,4 +13,5 @@ public interface IPostService {
 	public List<PostDto> getPostsForUser(Long id,int page, int limit);
 	public List<PostDto>  getAllPostForUser(Long id);
 	public Optional<PostDto> getPost(Long id_user, Long id_post);
+	public List<PostDto> findUserPosts(Long id_user,String username,int page,int limit);
 }
