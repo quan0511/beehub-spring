@@ -323,7 +323,6 @@ public class UserService implements IUserService {
 					grList,
 					userSetting,
 					relationshipList,
-					posts,
 					galleries,
 					user.getCreate_at()
 					);
