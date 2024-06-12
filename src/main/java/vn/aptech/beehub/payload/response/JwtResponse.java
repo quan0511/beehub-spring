@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -17,5 +18,8 @@ public class JwtResponse {
     private String username;
     private String type;
     private String email;
+    private String image;
+    private String background;
+    private LocalDateTime createdAt;
     private List<String> roles;
 }

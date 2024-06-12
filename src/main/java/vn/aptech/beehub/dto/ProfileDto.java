@@ -33,6 +33,7 @@ public class ProfileDto {
 	private List<UserDto> relationships;
 //	private List<PostDto> posts;
 	private List<GalleryDto> galleries;
+	private LocalDateTime createdAt;
 	@Override
 	public String toString() {
 		return "Username "+this.username+"\tFullname: "+this.fullname+"\tEmail: "+this.email+"\nGender: "+this.gender+"\tBirthday: "+this.birthday.toString()+"\tPhone: "+this.phone+"\nImage: "+this.image+"\nBackground: "+this.background;

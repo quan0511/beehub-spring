@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.aptech.beehub.dto.GroupDto;
+import vn.aptech.beehub.dto.GroupMediaDto;
+import vn.aptech.beehub.dto.GroupMemberDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.models.*;
 import vn.aptech.beehub.payload.request.CreateUserRequest;
@@ -37,6 +39,9 @@ public class AdminController {
 
     @Autowired
     GroupRepository groupRepository;
+
+    @Autowired
+    GroupMemberRepository groupMemberRepository;
 
     @Autowired
     private PostRepository postRepository;
@@ -163,7 +168,7 @@ public class AdminController {
                     .noOfFriends(userRepository.findRelationship(u.getId(), ERelationshipType.FRIEND.toString()).size())
                     .role(role)
                     .status(u.is_active()?"active":"inactive")
-                    .avatar(u.getImage().getMedia())
+                    .avatar(u.getImage() != null ? u.getImage().getMedia() : "")
                     .gallery(u.getGalleries().stream().map(Gallery::getMedia).toList())
                     .build());
         } else {
@@ -247,23 +252,30 @@ public class AdminController {
         return ResponseEntity.ok(groupRepository.findAll().stream().map(g -> {
             var group = new GroupDto();
             group.setId(g.getId());
+            group.setPublic_group(g.isPublic_group());
             group.setGroupname(g.getGroupname());
+            group.setMember_count(groupMemberRepository.findByGroup_id(group.getId()).size());
             group.setActive(g.isActive());
+            group.setCreated_at(g.getCreated_at());
             var image = g.getImage_group();
             if (image != null)  group.setImage_group(image.getMedia());
             return group;
         }).toList());
     }
 
-    @GetMapping("/groups/{groupname}")
-    public ResponseEntity<GroupDto> getGroup(@PathVariable String groupname) throws Exception {
-        var optgroup = groupRepository.findByGroupname(groupname);
+    @GetMapping("/groups/{id}")
+    public ResponseEntity<GroupDto> getGroup(@PathVariable Long id) throws Exception {
+        var optgroup = groupRepository.findById(id);
         if (optgroup.isPresent()) {
             var group = optgroup.get();
             var g = new GroupDto();
             g.setId(group.getId());
-            g.setImage_group(group.getImage_group().getMedia());
+            g.setImage_group(group.getImage_group() != null ? group.getImage_group().getMedia() : "");
             g.setGroupname(group.getGroupname());
+            g.setGroup_medias(group.getGroup_medias().stream().map(m -> modelMapper.map(m, GroupMediaDto.class)).toList());
+            g.setGroup_members(groupMemberRepository.findByGroup_id(group.getId()).stream().map(gm -> modelMapper.map(gm, GroupMemberDto.class)).toList());
+            g.setPost_count(group.getPosts().size());
+            g.setActive(group.isActive());
             return ResponseEntity.ok(g);
         } else {
             throw new Exception("Group not found");
