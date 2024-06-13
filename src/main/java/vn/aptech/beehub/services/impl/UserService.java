@@ -131,7 +131,21 @@ public class UserService implements IUserService {
 	@Override
 	public List<UserDto> getProfileRelationship(Long id_user,Long id_profile){
 		List<UserDto> list = new LinkedList<UserDto>();
-		userRep.findProfileRelationship(id_user , id_profile).forEach((user)->{
+		userRep.findRelationship(id_profile,ERelationshipType.FRIEND.toString()).forEach((user)->{
+			String relationship = null;
+			if(user.getId()!=id_user) {
+				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
+				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
+													? userRe.get().getType().toString()
+													: "BE_BLOCKED")
+												:null;
+				if(userRe.isEmpty()) {
+					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
+					relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
+															"SENT_REQUEST": "NOT_ACCEPT"
+														): null;
+				}
+			}
 			list.add(new UserDto(
 					user.getId(),
 					user.getUsername(), 
@@ -139,7 +153,7 @@ public class UserService implements IUserService {
 					user.getGender(), 
 					user.getImage()!=null?user.getImage().getMedia():null,
 					user.getImage()!=null?user.getImage().getMedia_type():null,
-					ERelationshipType.FRIEND.toString(),
+					relationship,
 					user.is_banned(),
 					groupMemberRep.findByUser_id(user.getId()).size(),
 					findAllFriends(user.getId()).size()

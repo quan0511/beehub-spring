@@ -18,13 +18,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			+ " OR u.id IN (SELECT ru.user1_id FROM relationship_users  ru WHERE ru.user2_id = ?1 AND ru.user1_id <> ?1 AND ru.type = ?2)) AND u.is_active=1 AND u.is_banned=0", nativeQuery = true)
 	List<User> findRelationship(Long id,String type);
     
-    @Query(value = "SELECT *  FROM users u "
-			+ " WHERE (u.id IN (SELECT ru1.user2_id FROM relationship_users  ru1 WHERE ru1.user1_id = ?2 AND ru1.user2_id <> ?2 AND ru1.type = 'FRIEND')"
-			+ " OR u.id IN (SELECT ru2.user1_id FROM relationship_users  ru2 WHERE ru2.user2_id = ?2 AND ru2.user1_id <> ?2 AND ru2.type = 'FRIEND')) "
-			+ " AND u.is_active=1 AND u.is_banned=0 "
-			+ " AND u.id NOT IN (SELECT ru3.user1_id FROM relationship_users  ru3 WHERE ru3.user2_id = ?1 AND ru3.user1_id <> ?1 AND ru3.type = 'BLOCKED')", nativeQuery = true)
-	List<User> findProfileRelationship(Long id_user, Long id_profile);
-    
+//    @Query(value = "SELECT *  FROM users u "
+//			+ " WHERE (u.id IN (SELECT ru1.user2_id FROM relationship_users  ru1 WHERE ru1.user1_id = ?2 AND ru1.user2_id <> ?2 AND ru1.type = 'FRIEND')"
+//			+ " OR u.id IN (SELECT ru2.user1_id FROM relationship_users  ru2 WHERE ru2.user2_id = ?2 AND ru2.user1_id <> ?2 AND ru2.type = 'FRIEND')) "
+//			+ " AND u.is_active=1 AND u.is_banned=0 "
+//			+ " AND u.id NOT IN (SELECT ru3.user1_id FROM relationship_users  ru3 WHERE ru3.user2_id = ?1 AND ru3.user1_id <> ?1 AND ru3.type = 'BLOCKED')", nativeQuery = true)
+//	List<User> findProfileRelationship(Long id_user, Long id_profile);
+//    
     @Query(value = "SELECT *  FROM users u "
 			+ " WHERE u.id IN (SELECT ru.user2_id FROM relationship_users  ru WHERE ru.user1_id = ?1 AND ru.user2_id <> ?1 AND ru.type = 'BLOCKED') AND u.is_active=1 AND u.is_banned=0", nativeQuery = true)
 	List<User> findBlocked(Long id);
