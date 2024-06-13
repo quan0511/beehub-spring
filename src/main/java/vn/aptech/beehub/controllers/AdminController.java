@@ -346,29 +346,11 @@ public class AdminController {
 
     @DeleteMapping("/groups/{id}")
     public ResponseEntity<?> deleteGroup(@PathVariable Long id) {
-        AtomicBoolean result = new AtomicBoolean(false);
-        groupRepository.findById(id).ifPresent(group -> {
-           try {
-               reportRepository.deleteAll(reportRepository.findByGroup_id(id));
-               groupMemberRepository.deleteAll(groupMemberRepository.findByGroup_id(id));
-               group.getPosts().forEach(p -> {
-                   postService.deletePost(p.getId());
-                   reportRepository.deletePostReposts(p.getId());
-               });
-               group.setBackground_group(null);
-               group.setImage_group(null);
-               group.setPosts(null);
-               requirementRepository.findByGroup_id(id).forEach(r -> r.setGroup_receiver(null));
-               groupRepository.delete(group);
-               result.set(true);
-           } catch (Exception e) {
-               result.set(false);
-           }
-        });
-        if (result.get()) {
+        try {
+            groupRepository.findById(id).ifPresent(groupRepository::delete);
             return ResponseEntity.ok("Group delete successfully");
-        } else {
-            return ResponseEntity.badRequest().body(new MessageResponse("Group delete failed"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Group cannot be deleted"));
         }
     }
 }
