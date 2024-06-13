@@ -27,33 +27,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
 			+ " LEFT JOIN users u ON p.user_id = u.id"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE ((ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN')"
-			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm LEFT JOIN groups g ON g.id = gm.group_id WHERE gm.user_id = ?1 AND g.active=1 ) "
-			+ " AND ( p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.type ='BLOCKED') "
-			+ " OR p.user_id NOT IN (SELECT ru3.user2_id FROM relationship_users ru3 WHERE ru3.type ='BLOCKED')))"
-			+ " ORDER BY p.create_at DESC", nativeQuery = true)
-	List<Post> newestPostFromGroupAndFriend(Long id);
-	//Post of user's friends and user
-	//Post of the group joined
-	//Except the Blocked user 
-	//Take random() and limit 
-	@Query(value = "SELECT * FROM posts WHERE id IN (SELECT DISTINCT p.id FROM posts p"
-			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
-			+ " LEFT JOIN users u ON p.user_id = u.id"
-			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
-			+ " WHERE ((ru.user1_id = ?1 OR ru.user2_id = ?1) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN'  AND u.is_active=1)"
-			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm LEFT JOIN groups g ON g.id = gm.group_id WHERE gm.user_id = ?1  AND g.active=1 ) "
-			+ " AND ( p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.type ='BLOCKED') "
-			+ " OR p.user_id NOT IN (SELECT ru3.user2_id FROM relationship_users ru3 WHERE ru3.type ='BLOCKED')) AND u.is_active=1)"
-			+ " ORDER BY p.create_at DESC)"
-			+ " ORDER BY RAND()"
-			+ " LIMIT ?2", nativeQuery = true)
-	List<Post>  randomNewestPostFromGroupAndFriend(Long id, int limit);
-	
-	@Query(value = "SELECT DISTINCT p.* FROM posts p"
-			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id"
-			+ " LEFT JOIN users u ON p.user_id = u.id"
-			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
 			+ " WHERE (((ru.user1_id = :id_user OR ru.user2_id = :id_user) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1 AND u.is_banned = 0)"
 			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm WHERE gm.user_id = :id_user) "
 			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))) AND u.is_active=1 AND u.is_banned =0)) AND p.is_blocked=0 "
@@ -116,13 +89,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	
 	//GetPost 
 	@Query(value = "SELECT DISTINCT p.* FROM posts p"
+			+ " LEFT JOIN users u ON u.id = p.user_id"
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
 			+ " LEFT JOIN relationship_users ru ON ru.user1_id = p.user_id OR ru.user2_id = p.user_id "
-			+ " WHERE p.is_blocked=0 "
+			+ " WHERE p.is_blocked=0 AND u.is_active=1 AND u.is_banned=0 "
 			+ " AND p.id= ?2 "
 			+ " AND ( p.user_id = ?1 OR (s.setting_type='PUBLIC' AND p.user_id NOT IN (SELECT ru2.user1_id FROM relationship_users ru2 WHERE ru2.user2_id= ?1 AND ru2.type = 'BLOCKED')) OR "
 			+ "     (s.setting_type='FOR_FRIEND' AND (ru.user1_id = ?1 OR ru.user2_id= ?1 ) AND ru.type = 'FRIEND' ))", nativeQuery = true)
 	Optional<Post> getPostQuery(Long id_user, Long id_post);
+	//Get user post in profile
+	@Query(value="SELECT DISTINCT p.* FROM posts p"
+			+ " LEFT JOIN users u ON u.id = p.user_id"
+			+ " WHERE u.username = :username AND u.is_banned=0 AND u.is_active=1 AND p.group_id IS NULL AND p.is_blocked = 0 ORDER BY p.create_at DESC LIMIT :limit OFFSET :page",nativeQuery = true)
+	List<Post> getUserPost (@Param("username") String username, @Param("page") int page, @Param("limit") int limit);
 	
 	@Modifying(flushAutomatically = true)
 	@Query(value = "DELETE FROM  posts  WHERE id = ?1 ;",nativeQuery = true)

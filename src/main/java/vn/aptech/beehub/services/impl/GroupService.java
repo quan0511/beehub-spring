@@ -22,6 +22,7 @@ import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.EGroupRole;
+import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMedia;
 import vn.aptech.beehub.models.GroupMember;
@@ -181,7 +182,7 @@ public class GroupService implements IGroupService {
 					reqDto.setCreate_at(req.getCreate_at());
 					requirements.add(reqDto);});
 				List<ReportDto> reports = new LinkedList<ReportDto>();
-					reportRep.findByGroup_id(id_group).forEach((rep)->{
+					reportRep.findRepostPostInGroup(id_group).forEach((rep)->{
 						UserDto sender = new UserDto(rep.getSender().getId(), rep.getSender().getUsername(), rep.getSender().getFullname(), rep.getSender().getGender(), rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia():null, rep.getSender().getImage()!=null?rep.getSender().getImage().getMedia_type():null,rep.getSender().is_banned());
 						PostDto postReport = new PostDto(
 								rep.getTarget_post().getId(), 
@@ -212,7 +213,18 @@ public class GroupService implements IGroupService {
 				}
 				List<GroupMemberDto> members = new LinkedList<GroupMemberDto>();
 				groupMemberRep.findByGroup_id(id_group).forEach((gm)->{
-					Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id_user, gm.getUser().getId());
+					String relationship = null;
+					Optional<RelationshipUsers> userRe = relationshipRep.getRelationship(id_user, gm.getUser().getId());
+					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
+							? userRe.get().getType().toString()
+							: "BE_BLOCKED")
+						:null;
+					if(userRe.isEmpty()) {
+						Optional<Requirement> requires = requireRep.getRequirementsBtwUsersIsNotAccept(id_user, gm.getUser().getId());
+						relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
+																"SENT_REQUEST": "NOT_ACCEPT"
+															): null;
+					}
 					members.add(new GroupMemberDto(
 							gm.getId(),
 							gm.getUser().getId(),
@@ -225,7 +237,7 @@ public class GroupService implements IGroupService {
 							gm.getGroup().getImage_group()!=null? gm.getGroup().getImage_group().getMedia():null,
 							true,
 							gm.getRole().toString(),
-							relationship.isPresent()? relationship.get().getType().toString():null
+							relationship
 							));
 				});
 				List<GroupMediaDto> list_media = new LinkedList<GroupMediaDto>();

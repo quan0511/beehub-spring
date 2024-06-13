@@ -406,24 +406,4 @@ public class DatabaseSeeder {
 			}
 		}
 	}
-	private void seederGroupReports() {
-		List<Report> listReport = reportRep.findAll();
-		if(listReport.isEmpty()) {
-			List<Group> groups = groupRepository.findAll();
-			if(!groups.isEmpty()) {
-				for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
-					Group group = (Group) iterator.next();
-					List<GroupMember> groupMem = groupMemberRepository.findByGroup_id(group.getId());
-					Optional<Post> getRandomPost = postRepository.randomPostFromGroupNotOwnByUser(group.getId(), groupMem.get(0).getUser().getId());
-					Optional<ReportTypes> getReportT = reportTypeRepository.getRandomReportType();
-					
-					if(getRandomPost.isPresent() && getReportT.isPresent() && groupMem.size()>2) {
-						Report report = new Report(groupMem.get(2).getUser(), null, getRandomPost.get(), getReportT.get(), "I watn to report this post", LocalDateTime.now().minusHours(14), LocalDateTime.now().minusHours(14));
-						reportRep.save(report);
-						logger.info("Seed Group Reports");
-					}
-				}
-			}
-		}
-	}
 }
