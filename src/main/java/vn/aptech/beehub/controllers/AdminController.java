@@ -317,7 +317,7 @@ public class AdminController {
             group.setId(g.getId());
             group.setPublic_group(g.isPublic_group());
             group.setGroupname(g.getGroupname());
-            group.setMember_count(groupMemberRepository.findByGroup_id(group.getId()).size());
+            group.setMember_count(groupMemberRepository.findByGroup_id(g.getId()).size());
             group.setActive(g.isActive());
             group.setCreated_at(g.getCreated_at());
             var image = g.getImage_group();
@@ -333,10 +333,12 @@ public class AdminController {
             var group = optgroup.get();
             var g = new GroupDto();
             g.setId(group.getId());
+            g.setPublic_group(group.isPublic_group());
             g.setImage_group(group.getImage_group() != null ? group.getImage_group().getMedia() : "");
             g.setGroupname(group.getGroupname());
             g.setGroup_medias(group.getGroup_medias().stream().map(m -> modelMapper.map(m, GroupMediaDto.class)).toList());
-            g.setGroup_members(groupMemberRepository.findByGroup_id(group.getId()).stream().map(gm -> modelMapper.map(gm, GroupMemberDto.class)).toList());
+//            g.setGroup_members(groupMemberRepository.findByGroup_id(group.getId()).stream().map(gm -> modelMapper.map(gm, GroupMemberDto.class)).toList());
+            g.setMember_count(groupMemberRepository.findByGroup_id(group.getId()).size());
             g.setPost_count(group.getPosts().size());
             g.setActive(group.isActive());
             return ResponseEntity.ok(g);
