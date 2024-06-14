@@ -1,7 +1,7 @@
 package vn.aptech.beehub.controllers;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.aspectj.bridge.Message;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,20 +9,22 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.GroupMediaDto;
 import vn.aptech.beehub.dto.GroupMemberDto;
-import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.models.*;
 import vn.aptech.beehub.payload.request.CreateUserRequest;
 import vn.aptech.beehub.payload.response.*;
 import vn.aptech.beehub.repository.*;
 import vn.aptech.beehub.security.services.UserDetailsImpl;
+import vn.aptech.beehub.services.PostService;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @Tag(name = "Admin")
@@ -47,6 +49,9 @@ public class AdminController {
     private PostRepository postRepository;
 
     @Autowired
+    private PostService postService;
+
+    @Autowired
     RoleRepository roleRepository;
 
     @Autowired
@@ -57,6 +62,9 @@ public class AdminController {
 
     @Autowired
     RelationshipUsersRepository relationshipUsersRepository;
+
+    @Autowired
+    RequirementRepository requirementRepository;
 
     /*Profile*/
     @GetMapping("/profile")
@@ -94,21 +102,25 @@ public class AdminController {
             ReportResponse report = ReportResponse.builder()
                     .id(r.getId())
                     .reporter(r.getSender().getUsername())
+                    .reporterId(r.getSender().getId())
                     .type(r.getReport_type().getTitle())
                     .timestamp(r.getCreate_at())
                     .build();
-            if (r.getTarget_user() != null) {
-                report.setReportedCase(r.getTarget_user().getUsername());
+            if (r.getTarget_user() != null) { // user
+                report.setReportedCaseId(r.getTarget_user().getId());
+                report.setReportedCaseName(r.getTarget_user().getUsername());
                 report.setCaseType("user");
-                report.setStatus(r.getTarget_user().is_active() ? "active" : "inactive");
-            } else if (r.getTarget_group() != null) {
-                report.setReportedCase(r.getTarget_group().getGroupname());
+                report.setStatus(r.getTarget_user().is_banned() ? "banned" : r.getTarget_user().is_active() ? "active" : "inactive");
+            } else if (r.getTarget_group() != null) { // group
+                report.setReportedCaseId(r.getTarget_group().getId());
+                report.setReportedCaseName(r.getTarget_group().getGroupname());
                 report.setCaseType("group");
                 report.setStatus(r.getTarget_group().isActive() ? "active" : "inactive");
-            }else {
-                report.setReportedCase(r.getTarget_post().getId().toString());
+            }else { // post
+                report.setReportedCaseId(r.getTarget_post().getId());
+                report.setReportedCaseName(r.getTarget_post().getId().toString());
                 report.setCaseType("post");
-                report.setStatus("blocked");
+                report.setStatus(r.getTarget_post().is_blocked() ? "blocked" : "active");
             }
             return report;
         }).toList());
@@ -147,13 +159,13 @@ public class AdminController {
                         .noOfPosts(u.getPosts().size())
                         .noOfFriends(userRepository.findRelationship(u.getId(), ERelationshipType.FRIEND.toString()).size())
                         .role(u.getRoles().stream().findFirst().get().getName().name())
-                        .status(u.is_active()?"active":"inactive")
+                        .status(u.is_banned() ? "banned" : u.is_active() ? "active" : "inactive")
                         .build()).toList());
     }
 
-    @GetMapping("/users/{username}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable String username) {
-        var user = userRepository.findByUsername(username);
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        var user = userRepository.findById(id);
         if (user.isPresent()) {
             var u = user.get();
             var role = u.getRoles().stream().findFirst().get().getName().name();
@@ -167,12 +179,12 @@ public class AdminController {
                     .noOfPosts(u.getPosts().size())
                     .noOfFriends(userRepository.findRelationship(u.getId(), ERelationshipType.FRIEND.toString()).size())
                     .role(role)
-                    .status(u.is_active()?"active":"inactive")
+                    .status(u.is_banned() ? "banned" : u.is_active() ? "active" : "inactive")
                     .avatar(u.getImage() != null ? u.getImage().getMedia() : "")
                     .gallery(u.getGalleries().stream().map(Gallery::getMedia).toList())
                     .build());
         } else {
-            throw new UsernameNotFoundException("Username not found: " + username);
+            throw new NotFoundException("User not found with id: " + id);
         }
     }
 
@@ -204,19 +216,46 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("User created successfully!"));
     }
 
-    @PatchMapping("/users/role/{id}")
-    public ResponseEntity<?> updateUser() {
-        return ResponseEntity.ok(null);
+    @PatchMapping("/users/{id}/{role}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id,@Validated @PathVariable ERole role) {
+        var optUser = userRepository.findById(id);
+        if (optUser.isPresent()) {
+            var optRole = roleRepository.findByName(role);
+            if (optRole.isPresent()) {
+                var user = optUser.get();
+                var r = optRole.get();
+                var roles = new HashSet<Role>();
+                roles.add(r);
+                user.setRoles(roles);
+                try {
+                    userRepository.save(user);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(e.getMessage());
+                }
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/users/ban/{id}")
-    public ResponseEntity<?> banUser() {
-        return ResponseEntity.ok(null);
+    @PatchMapping("/users/{id}/ban")
+    public ResponseEntity<?> banUser(@PathVariable Long id) {
+        var ou = userRepository.findById(id);
+        ou.ifPresent(u -> u.set_banned(!u.is_banned()));
+        ou.orElseThrow(() -> new NotFoundException("User not found"));
+        userRepository.save(ou.get());
+        return ResponseEntity.ok("update role successfully");
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser() {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            userRepository.findById(id).ifPresent(userRepository::delete);
+            return ResponseEntity.ok(new MessageResponse("User deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Cannot delete user"));
+        }
     }
 
     /*Posts*/
@@ -225,8 +264,9 @@ public class AdminController {
         return ResponseEntity.ok(postRepository.findAll().stream().map(p -> PostResponse.builder()
                 .id(p.getId())
                 .creator(p.getUser().getUsername())
+                .creatorId(p.getUser().getId())
                 .timestamp(p.getCreate_at())
-                .status(p.is_blocked() ? "blocked" : "active")
+                .isBlocked(p.is_blocked())
                 .build())
                 .toList());
     }
@@ -235,14 +275,37 @@ public class AdminController {
     public ResponseEntity<?> getPost(@PathVariable Long id) {
         var op = postRepository.findById(id);
         if (op.isPresent()) {
-            return ResponseEntity.ok(op.map(p -> modelMapper.map(p, PostDto.class)));
+            var post = op.get();
+
+            return ResponseEntity.ok(PostResponse.builder()
+                    .id(post.getId())
+                    .creator(post.getUser().getUsername())
+                    .creatorId(post.getUser().getId())
+                    .creatorImage(post.getUser().getImage() != null ?post.getUser().getImage().getMedia() : "")
+                    .content(post.getText())
+                    .image(post.getMedias())
+                    .timestamp(post.getCreate_at())
+                    .isBlocked(post.is_blocked())
+                    .build());
         }
         return ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/posts/{id}")
-    public ResponseEntity<?> banPost() {
-        return ResponseEntity.ok(null);
+    @PatchMapping("/posts/{id}/block")
+    public ResponseEntity<?> banPost(@PathVariable Long id) {
+        AtomicBoolean result = new AtomicBoolean(false);
+
+        postRepository.findById(id).ifPresentOrElse(p -> {
+            p.set_blocked(!p.is_blocked());
+            postRepository.save(p);
+            result.set(true);
+        }, () -> result.set(false));
+
+        if (result.get()) {
+            return ResponseEntity.ok(null);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /*Groups*/
@@ -264,7 +327,7 @@ public class AdminController {
     }
 
     @GetMapping("/groups/{id}")
-    public ResponseEntity<GroupDto> getGroup(@PathVariable Long id) throws Exception {
+    public ResponseEntity<?> getGroup(@PathVariable Long id) {
         var optgroup = groupRepository.findById(id);
         if (optgroup.isPresent()) {
             var group = optgroup.get();
@@ -277,10 +340,17 @@ public class AdminController {
             g.setPost_count(group.getPosts().size());
             g.setActive(group.isActive());
             return ResponseEntity.ok(g);
-        } else {
-            throw new Exception("Group not found");
         }
+        return ResponseEntity.badRequest().body(new MessageResponse("Group not found"));
     }
 
-    /*Shop*/
+    @DeleteMapping("/groups/{id}")
+    public ResponseEntity<?> deleteGroup(@PathVariable Long id) {
+        try {
+            groupRepository.findById(id).ifPresent(groupRepository::delete);
+            return ResponseEntity.ok("Group delete successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Group cannot be deleted"));
+        }
+    }
 }

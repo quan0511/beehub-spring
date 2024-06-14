@@ -72,6 +72,7 @@ public class DatabaseSeeder {
 //        seederRequirements();
 //        seederGroupRequirements();
 //        seedReports();
+//        seederGroupReports();
     }
 
     private void seedRoles() {
@@ -293,11 +294,9 @@ public class DatabaseSeeder {
             groupMemberRepository.save(new GroupMember(optimus, optimusGang, EGroupRole.GROUP_CREATOR));
             groupMemberRepository.save(new GroupMember(bumblebee, optimusGang, EGroupRole.MEMBER));
             Post optimusPost = new Post();
-            Gallery postImage = new Gallery(optimus, "https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain", "image", LocalDateTime.now());
-            galleryRepository.save(postImage);
             optimusPost.setUser(optimus);
             optimusPost.setText("Victory Dance");
-            optimusPost.setMedia(postImage);
+            optimusPost.setMedias("https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain");
             optimusPost.setCreate_at(LocalDateTime.now());
             postRepository.save(optimusPost);
             Report report1 = new Report();

@@ -10,6 +10,10 @@ import java.time.LocalDateTime;
 public class PostResponse {
     private Long id;
     private String creator;
+    private Long creatorId;
+    private String creatorImage;
     private LocalDateTime timestamp;
-    private String status;
+    private String content;
+    private String image;
+    private Boolean isBlocked;
 }
