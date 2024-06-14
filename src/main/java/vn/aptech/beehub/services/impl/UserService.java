@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.GalleryDto;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
@@ -30,9 +28,7 @@ import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.Gallery;
-import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
-import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
@@ -78,10 +74,6 @@ public class UserService implements IUserService {
 	private GroupRepository groupRep;
 	@Autowired
 	private ReportRepository reportRep;
-	@Autowired
-	private S3Service s3Service;
-	@Autowired 
-	private ModelMapper mapper;
 	@Override
 	public List<UserDto> findAll() {
 		List<UserDto> list = new LinkedList<UserDto>();

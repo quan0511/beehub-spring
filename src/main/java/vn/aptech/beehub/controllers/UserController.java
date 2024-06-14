@@ -2,6 +2,8 @@ package vn.aptech.beehub.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,16 +14,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.FileInfo;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
-import vn.aptech.beehub.dto.PostMeDto;
 import vn.aptech.beehub.dto.ProfileDto;
 import vn.aptech.beehub.dto.ReportFormDto;
 import vn.aptech.beehub.dto.ReportTypesDto;
@@ -29,10 +32,6 @@ import vn.aptech.beehub.dto.RequirementDto;
 import vn.aptech.beehub.dto.SearchingDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.dto.UserSettingDto;
-import vn.aptech.beehub.models.Post;
-import vn.aptech.beehub.models.User;
-import vn.aptech.beehub.payload.response.MessageResponse;
-import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.services.IFilesStorageService;
 import vn.aptech.beehub.services.IGroupService;
 import vn.aptech.beehub.services.IPostService;
@@ -41,7 +40,6 @@ import vn.aptech.beehub.services.IUserService;
 import vn.aptech.beehub.services.IUserSettingService;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 
 @Tag(name = "User")
 @RestController
@@ -299,24 +297,34 @@ public class UserController {
 	    }
 	}
 	@PostMapping(value="/user/create-group/{id}")
-	public ResponseEntity<Long> createGroup(@PathVariable("id") Long id,@RequestParam(name= "background",required = true) MultipartFile background,@RequestParam(name= "image",required = true) MultipartFile imageGroup, @ModelAttribute  GroupDto group){
-		try {
+	public ResponseEntity<Long> createGroup2(@PathVariable("id") Long id,@RequestParam(name= "background",required = false) MultipartFile background,@RequestParam(name= "image",required = false) MultipartFile imageGroup, @ModelAttribute  GroupDto group)throws InterruptedException{
 			if (background != null && !background.isEmpty()) {
-				String fileUrl1 = s3Service.uploadToS3(background.getInputStream(), background.getOriginalFilename());
-				logger.info(fileUrl1);
-	            group.setBackground_group(fileUrl1);
+				String fileUrl1;
+				try {
+					fileUrl1 = s3Service.uploadToS3(background.getInputStream(), background.getOriginalFilename());
+					group.setBackground_group(fileUrl1);
+				} catch (AmazonServiceException e) {
+					e.printStackTrace();
+				} catch (SdkClientException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}	            
 	        }
 			if(imageGroup!=null&& !imageGroup.isEmpty()) {
-				String fileUrl2 = s3Service.uploadToS3(imageGroup.getInputStream(), imageGroup.getOriginalFilename());
-				logger.info(fileUrl2);
-				group.setImage_group(fileUrl2);
+				String fileUrl2;
+				try {
+					fileUrl2 = s3Service.uploadToS3(imageGroup.getInputStream(), imageGroup.getOriginalFilename());
+					group.setImage_group(fileUrl2);
+				} catch (AmazonServiceException e) {
+					e.printStackTrace();
+				} catch (SdkClientException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-			Long result =groupService.createGroup(id, group);
-			return  ResponseEntity.ok(result );
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+			return ResponseEntity.ok( groupService.createGroup(id, group));	
 	}
 	@GetMapping(path="/user/get-username/{id}")
 	public ResponseEntity<String> getUsername (@PathVariable("id") Long id){

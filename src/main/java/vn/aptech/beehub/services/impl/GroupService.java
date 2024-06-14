@@ -353,13 +353,13 @@ public class GroupService implements IGroupService {
 				newGroup.setCreated_at(LocalDateTime.now());
 				newGroup.setPublic_group(group.isPublic_group());
 				newGroup.setActive(true);
-				if(!group.getBackground_group().isEmpty()) {
+				if(group.getBackground_group()!=null) {
 					GroupMedia groupMedia=  new GroupMedia(group.getBackground_group(), "image", LocalDateTime.now());
 					groupMedia.setUser(groupCreator);
 					GroupMedia savedBg= groupMediaRep.save(groupMedia);
 					newGroup.setBackground_group(savedBg);
 				}
-				if(!group.getImage_group().isEmpty()) {
+				if(group.getImage_group()!=null) {
 					GroupMedia groupMedia2=  new GroupMedia(group.getImage_group(), "image", LocalDateTime.now());
 					groupMedia2.setUser(groupCreator);
 					GroupMedia saveImg = groupMediaRep.save(groupMedia2);
