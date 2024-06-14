@@ -72,7 +72,6 @@ public class DatabaseSeeder {
 //        seederRequirements();
 //        seederGroupRequirements();
 //        seedReports();
-//        seederGroupReports();
     }
 
     private void seedRoles() {
