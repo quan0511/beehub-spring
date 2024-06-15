@@ -42,7 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	List<User> findPeopleSameGroup(Long id);
 	
 	@Query(value="SELECT u.* FROM users u"
-			+ " WHERE u.id IN (SELECT r.receiver_id FROM requirements r WHERE r.sender_id = ?1 AND r.group_id IS NULL) AND u.is_active=1 AND u.is_banned=0", nativeQuery = true)
+			+ " WHERE u.id IN (SELECT r.receiver_id FROM requirements r WHERE r.sender_id = ?1 AND r.group_id IS NULL AND r.is_accept =0) AND u.is_active=1 AND u.is_banned=0", nativeQuery = true)
 	List<User> findPeopleUserSendAddFriend(Long id);
 	@Query(value = "SELECT * FROM users WHERE id IN (SELECT u.id FROM users u WHERE u.id NOT IN (SELECT gm.user_id FROM group_members gm WHERE gm.group_id = ?1))  ORDER BY RAND() LIMIT 2",  nativeQuery = true)
 	List<User> findUsersNotJoinedGroup(Long id_group);

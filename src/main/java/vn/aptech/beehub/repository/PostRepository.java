@@ -29,7 +29,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 			+ " LEFT JOIN user_setting s ON p.setting_id = s.id"
 			+ " WHERE (((ru.user1_id = :id_user OR ru.user2_id = :id_user) AND ru.type <> 'BLOCKED' AND p.group_id IS NULL AND s.setting_type<>'HIDDEN' AND u.is_active=1 AND u.is_banned = 0)"
 			+ " OR ( p.group_id IN ( SELECT gm.group_id FROM group_members gm WHERE gm.user_id = :id_user) "
-			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))) AND u.is_active=1 AND u.is_banned =0)) AND p.is_blocked=0 "
+			+ " AND p.user_id NOT IN (SELECT u.id FROM users u LEFT JOIN relationship_users ru ON ru.user1_id = u.id OR ru.user2_id = u.id WHERE ru.type='BLOCKED' AND ((ru.user1_id= :id_user AND ru.user2_id = u.id) OR (ru.user2_id=:id_user AND ru.user1_id = u.id))) AND u.is_active=1 AND u.is_banned =0)"
+			+ " OR p.user_id = :id_user ) "
+			+ " AND p.is_blocked=0 "
 			+ " ORDER BY p.create_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
 	List<Post> getNewestPostFromGroupAndFriend(@Param("id_user") Long id_user,@Param("limit") int limit,@Param("offset") int offset);
 
