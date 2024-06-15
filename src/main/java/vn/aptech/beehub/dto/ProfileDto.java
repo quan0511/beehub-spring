@@ -31,7 +31,7 @@ public class ProfileDto {
 	private List<Object> group_joined;
 	private List<UserSettingDto> user_settings;
 	private List<UserDto> relationships;
-	private List<PostDto> posts;
+//	private List<PostDto> posts;
 	private List<GalleryDto> galleries;
 	private LocalDateTime createdAt;
 	@Override

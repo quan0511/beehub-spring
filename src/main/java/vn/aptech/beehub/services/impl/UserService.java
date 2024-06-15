@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.GalleryDto;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
@@ -30,9 +28,7 @@ import vn.aptech.beehub.dto.UserSettingDto;
 import vn.aptech.beehub.models.EGroupRole;
 import vn.aptech.beehub.models.ERelationshipType;
 import vn.aptech.beehub.models.Gallery;
-import vn.aptech.beehub.models.Group;
 import vn.aptech.beehub.models.GroupMember;
-import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.Report;
 import vn.aptech.beehub.models.Requirement;
@@ -78,10 +74,6 @@ public class UserService implements IUserService {
 	private GroupRepository groupRep;
 	@Autowired
 	private ReportRepository reportRep;
-	@Autowired
-	private S3Service s3Service;
-	@Autowired 
-	private ModelMapper mapper;
 	@Override
 	public List<UserDto> findAll() {
 		List<UserDto> list = new LinkedList<UserDto>();
@@ -126,6 +118,40 @@ public class UserService implements IUserService {
 					user.is_banned()
 					));
 		});
+		return list;
+	}
+	@Override
+	public List<UserDto> getProfileRelationship(Long id_user,Long id_profile){
+		List<UserDto> list = new LinkedList<UserDto>();
+		userRep.findRelationship(id_profile,ERelationshipType.FRIEND.toString()).forEach((user)->{
+			String relationship = null;
+			if(user.getId()!=id_user) {
+				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
+				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
+													? userRe.get().getType().toString()
+													: "BE_BLOCKED")
+												:null;
+				if(userRe.isEmpty()) {
+					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
+					relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
+															"SENT_REQUEST": "NOT_ACCEPT"
+														): null;
+				}
+			}
+			list.add(new UserDto(
+					user.getId(),
+					user.getUsername(), 
+					user.getFullname(), 
+					user.getGender(), 
+					user.getImage()!=null?user.getImage().getMedia():null,
+					user.getImage()!=null?user.getImage().getMedia_type():null,
+					relationship,
+					user.is_banned(),
+					groupMemberRep.findByUser_id(user.getId()).size(),
+					findAllFriends(user.getId()).size()
+					));
+		});
+		
 		return list;
 	}
 	@Override
@@ -179,7 +205,7 @@ public class UserService implements IUserService {
 														: "BE_BLOCKED")
 													:null;
 					if(userRe.isEmpty()) {
-						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(id, user.getId());
+						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id, user.getId());
 						relationship = requires.isPresent()? (requires.get().getSender().getId()==id?
 																"SENT_REQUEST": "NOT_ACCEPT"
 															): null;
@@ -254,6 +280,9 @@ public class UserService implements IUserService {
 	@Override
 	public Optional<ProfileDto> getProfile(String username, Long user_id) {
 		return userRep.findByUsername(username).map((user)-> {
+			if(!user.is_active()) {
+				return null;
+			}
 			String relationship = null;
 			if(user.getId()!=user_id) {
 				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(user_id, user.getId());
@@ -263,7 +292,7 @@ public class UserService implements IUserService {
 													:"BE_BLOCKED")
 												:null;
 				if(userRe.isEmpty()) {
-					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(user_id, user.getId());
+					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(user_id, user.getId());
 					relationship = requires.isPresent()? (requires.get().getSender().getId()==user_id?
 															"SENT_REQUEST": "NOT_ACCEPT"
 														): null;
@@ -271,13 +300,7 @@ public class UserService implements IUserService {
 			}
 			List<Object> grList = groupSer.getGroupUserJoined(user.getId());
 			List<UserSettingDto> userSetting = userSettingSer.allSettingItemOfUser(user.getId());
-			List<UserDto> relationshipList = getRelationship(user.getId());
-			List<PostDto> posts = postSer.findByUserId(user.getId());
-			if(relationship != "FRIEND" && user_id != user.getId() ) {
-				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN" || post.getSetting_type() =="FOR_FRIEND");
-			}else if(relationship == "FRIEND" && user_id != user.getId()  ){
-				posts.removeIf((post)-> post.getSetting_type()=="HIDDEN");
-			}
+			List<UserDto> relationshipList = user.getId()!=user_id? getProfileRelationship(user_id,user.getId()):getRelationship(user_id);
 			List<GalleryDto> galleries = new LinkedList<GalleryDto>();
 			galleryRep.findByUser_id(user.getId()).forEach((gallery)->{
 				galleries.add(new GalleryDto(
@@ -306,7 +329,6 @@ public class UserService implements IUserService {
 					grList,
 					userSetting,
 					relationshipList,
-					posts,
 					galleries,
 					user.getCreate_at()
 					);
@@ -325,7 +347,7 @@ public class UserService implements IUserService {
 				if(getRelationship.isEmpty()|| !(getRelationship.get().getUser2().getId()==id &&getRelationship.get().getType().equals(ERelationshipType.BLOCKED))) {
 					String relationship = getRelationship.isPresent()? getRelationship.get().getType().toString():null;
 					if(relationship==null) {
-						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsers(id, user.getId());
+						Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id, user.getId());
 						relationship = requires.isPresent()? (requires.get().getSender().getId()==id?
 								"SENT_REQUEST": "NOT_ACCEPT"
 								): null;						
@@ -426,14 +448,6 @@ public class UserService implements IUserService {
 		if(findUser.isPresent()&& image!=null && !image.isEmpty()) {
 			User user = findUser.get();
 			try {
-//				if(user.getImage()!=null) {
-//					String fileUrl = user.getImage().getMedia();
-//					String fileExtract= fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
-//					s3Service.deleteToS3(fileExtract);
-//					Gallery gall= user.getImage();
-//					galleryRep.deleteGallery(gall.getId());
-//					logger.info("Deleted Old image");
-//				}
 				Gallery newGallery = galleryRep.save(new Gallery(user, image, "image", LocalDateTime.now()));
 				user.setImage(newGallery);
 				userRep.save(user);
@@ -451,14 +465,6 @@ public class UserService implements IUserService {
 		if(findUser.isPresent()&& background!=null && !background.isEmpty()) {
 			User user = findUser.get();
 			try {
-//				if(user.getBackground()!=null) {
-//					String fileUrl = user.getBackground().getMedia();
-//					String fileExtract= fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
-//					s3Service.deleteToS3(fileExtract);
-//					Gallery gall= user.getBackground();
-//					galleryRep.deleteGallery(gall.getId());
-//					logger.info("Deleted Old background");
-//				}
 				Gallery newGallery = galleryRep.save(new Gallery(user, background, "image", LocalDateTime.now()));
 				user.setBackground(newGallery);
 				userRep.save(user);
@@ -482,24 +488,29 @@ public class UserService implements IUserService {
 	@Override
 	public String createReport(Long id_user, ReportFormDto report) {
 		Optional<User> findUser = userRep.findById(id_user);
-		Optional<User> findTargetUser= userRep.findByUsername(report.getUser_username());
-		Optional<Post> findPost = postRep.findById(report.getTarget_post_id());
-		logger.info(findUser.get().getFullname());
-		logger.info(findTargetUser.get().getFullname());
-		logger.info(findPost.get().getText());
-		if(findUser.isPresent()&& findTargetUser.isPresent()&& findPost.isPresent()) 	{
+		if(findUser.isPresent()) 	{
 			Report createreport = new Report();
-			createreport.setTarget_user(findTargetUser.get());
+			if(report.getTarget_user_id()!=null) {
+				userRep.findById(report.getTarget_user_id()).ifPresent((user)-> {
+					createreport.setTarget_user(user);				
+				});				
+			}
+			if(report.getTarget_post_id()!=null) {
+				postRep.findById(report.getTarget_post_id()).ifPresent((post)->{
+					createreport.setTarget_post(post);
+				});				
+			}
+			if(report.getTarget_group_id()!=null) {
+				groupRep.findById(report.getTarget_group_id()).ifPresent((group)->{
+					createreport.setTarget_group(group);
+				});				
+			}
 			createreport.setSender(findUser.get());
 			createreport.setAdd_description(report.getAdd_description());
 			createreport.setCreate_at(LocalDateTime.now());
 			createreport.setUpdate_at(LocalDateTime.now());
-			createreport.setTarget_post(findPost.get());
 			createreport.setReport_type(reportTypeRep.findById(report.getType_id()).get());
-			if(report.getTarget_group_id()!=null ) {
-				Optional<Group> findGroup  = groupRep.findById(report.getTarget_group_id());
-				createreport.setTarget_group(findGroup.get());
-			}
+			
 			reportRep.save(createreport);
 			return "success";
 		}
@@ -515,11 +526,16 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public List<RequirementDto> getNotification(Long id) {
-		List<Requirement> getReq = requirementRep.getNotificationUser(id);
+		List<Requirement> getReq = requirementRep.getNotification(id);
 		List<RequirementDto> getRequirement = new LinkedList<RequirementDto>();
 		getReq.forEach((req)-> {
 			RequirementDto require = new RequirementDto();
+			require.setId(req.getId());
 			UserDto sender = new UserDto(req.getSender().getId(), req.getSender().getUsername(), req.getSender().getFullname(), req.getSender().getGender(), req.getSender().getImage()!=null?req.getSender().getImage().getMedia():null, req.getSender().getImage()!=null? req.getSender().getImage().getMedia_type():null, req.getSender().is_banned());
+			if(req.getReceiver()!=null) {
+				UserDto receiver= new UserDto(req.getReceiver().getId(), req.getReceiver().getUsername(), req.getReceiver().getFullname(), req.getReceiver().getGender(), req.getReceiver().getImage()!=null?req.getReceiver().getImage().getMedia():null, req.getReceiver().getImage()!=null? req.getReceiver().getImage().getMedia_type():null, req.getReceiver().is_banned());
+				require.setReceiver(receiver);				
+			}
 			require.setSender_id(req.getSender().getId());
 			require.setSender(sender);
 			if(req.getGroup_receiver()!=null) {
@@ -528,7 +544,7 @@ public class UserService implements IUserService {
 			}
 			require.set_accept(req.is_accept());
 			require.setCreate_at(req.getCreate_at());
-			require.setReceiver_id(req.getReceiver().getId());
+			require.setReceiver_id(req.getReceiver()!=null?req.getReceiver().getId():null);
 			require.setType(req.getType().toString());
 			getRequirement.add(require);
 		});

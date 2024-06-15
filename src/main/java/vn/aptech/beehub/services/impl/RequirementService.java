@@ -63,8 +63,6 @@ public class RequirementService implements IRequirementService {
 	@Autowired 
 	private PostRepository postRep;
 	@Autowired 
-	private UserSettingRepository userSettingRep;
-	@Autowired 
 	private PostReactionRepository postReactRep;
 	@Autowired
 	private PostCommentRepository postComtRep;
@@ -142,8 +140,6 @@ public class RequirementService implements IRequirementService {
 				Optional<Requirement> req = requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
 				if(req.isPresent() && req.get().getType().equals(ERequirement.ADD_FRIEND) && req.get().getSender().getId()==id) {
 					Requirement getReq = req.get();
-					logger.info(getReq.getId().toString());
-					
 					requirementRep.delete(getReq);
 					requirementRep.flush();
 					result.put("response",requirement.getType());
@@ -179,7 +175,9 @@ public class RequirementService implements IRequirementService {
 					Requirement getReq = req.get();
 					RelationshipUsers newFriendship = new RelationshipUsers(getReq.getSender(),getReq.getReceiver(), ERelationshipType.FRIEND);
 					relationshipRep.save(newFriendship);
-					requirementRep.delete(req.get());
+					getReq.set_accept(true);
+					requirementRep.save(getReq);
+//					requirementRep.delete(req.get());
 					result.put("response",requirement.getType());
 				}else {
 					result.put("response","unsuccess");
@@ -224,7 +222,9 @@ public class RequirementService implements IRequirementService {
 				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(requirement.getReceiver_id(), requirement.getGroup_id());
 				if(findReq.isPresent()) {
 					Requirement acceptReq = findReq.get();
-					requirementRep.delete(acceptReq);
+					acceptReq.set_accept(true);
+					requirementRep.save(acceptReq);
+//					requirementRep.delete(acceptReq);
 					GroupMember newMem = new GroupMember();
 					newMem.setGroup(groupRep.findById(requirement.getGroup_id()).get());
 					newMem.setUser(userRep.findById(requirement.getReceiver_id()).get());
@@ -397,29 +397,28 @@ public class RequirementService implements IRequirementService {
 				logger.info(groupMem.get().getRole().toString());
 				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
-					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
-						Report getReport = findReport.get();
-						logger.info(getReport.getTarget_post().getId().toString());		
+					if(findReport.isPresent() ) {
+						Report getReport = findReport.get();	
 						Optional<Post> findPost = postRep.findById(getReport.getTarget_post().getId());
+						logger.info("Find Post: "+findPost);
 						if(findPost.isPresent()) {
-							Post getPost = findPost.get();
-				            List<PostComment> comment = getPost.getComments();
-				            postComtRep.deleteAll(comment);
-				            List<PostReaction> recomment = getPost.getReactions();
-				            postReactRep.deleteAll(recomment);
-				            List<LikeUser> like = getPost.getLikes();
-				            likeRep.deleteAll(like);
-				            if(getPost.getGroup_media()!=null) {
-				            	String filename = getPost.getGroup_media().getMedia();
+							Post post = findPost.get();
+							logger.info("Post: "+post.getId());
+				            if(post.getGroup_media()!=null) {
+				            	String filename = post.getGroup_media().getMedia();
 				            	String fileExtract = filename!=null? filename.substring(filename.lastIndexOf("/") + 1):null;
 				            	if(fileExtract !=null) {
 				            		s3Service.deleteToS3(fileExtract);
 				            	}
-				            	GroupMedia gallery = getPost.getGroup_media();
+				            	GroupMedia gallery = post.getGroup_media();
 				            	groupMediaRep.delete(gallery);				            	
-				            }
-				            reportRep.deletePostReposts(getPost.getId());
-							postRep.deletePost(getPost.getId());
+				            }         	
+			            	postRep.deletePostReactions(post.getId());
+			            	postRep.deletePostComments(post.getId());
+			            	postRep.deletePostLikes(post.getId());
+			            	postRep.deletePostReports(post.getId());	    
+			            	postRep.deletePost(post.getId());
+			            	postRep.deleteUserSettings(post.getId());
 						}
 						
 						result.put("response", requirement.getType());						
@@ -439,7 +438,7 @@ public class RequirementService implements IRequirementService {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
 				if(groupMem.isPresent() && groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
 					Optional<Report> findReport = reportRep.findById(requirement.getReport_id());
-					if(findReport.isPresent() && findReport.get().getTarget_group().getId() == requirement.getGroup_id()) {
+					if(findReport.isPresent() ) {
 						reportRep.deleteReport(requirement.getReport_id());
 						result.put("response", requirement.getType());
 					}else {
@@ -478,6 +477,22 @@ public class RequirementService implements IRequirementService {
 					User getUser = findUser.get();
 					getUser.set_active(true);
 					userRep.save(getUser);
+					result.put("response", requirement.getType());
+				}else {
+					result.put("response", "unsuccess");
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				result.put("response", "error");
+			}
+			break;
+		case "REMOVE_NOTIFICATION":
+			try {
+				Optional<Requirement> findRequirement= requirementRep.findById(requirement.getId());
+				if(findRequirement.isPresent()) {
+					Requirement getRequirement = findRequirement.get();
+					requirementRep.delete(getRequirement);
 					result.put("response", requirement.getType());
 				}else {
 					result.put("response", "unsuccess");

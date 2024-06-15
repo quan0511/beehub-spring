@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 public class ReportResponse {
     private Integer id;
     private String reporter;
-    private String reportedCase;
+    private Long reporterId;
+    private Long reportedCaseId;
+    private String reportedCaseName;
     private String caseType;
     private String type;
     private LocalDateTime timestamp;

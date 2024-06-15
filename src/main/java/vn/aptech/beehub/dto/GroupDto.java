@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GroupDto {
+	@Nullable
 	private Long id;
 	private String groupname;
 	private boolean public_group;

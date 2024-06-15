@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import vn.aptech.beehub.dto.ProfileDto;
-import vn.aptech.beehub.dto.RelationshipUserDto;
 import vn.aptech.beehub.dto.ReportFormDto;
 import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
@@ -20,6 +19,7 @@ public interface IUserService {
 	public Optional<UserDto> getUser(Long id);
 	public Optional<ProfileDto> getProfile(String username,Long id);
 	public List<UserDto> getRelationship(Long id);
+	public  List<UserDto> getProfileRelationship(Long id_user,Long id_profile);
 	public Map<String, List<Object>> getGroupJoinedAndFriends(Long id);
 	public Map<String, List<UserDto>> getPeople(Long id);
 	public SearchingDto getSearch(Long id,String search);
