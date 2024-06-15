@@ -69,8 +69,8 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LikeUser> likes;
     
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Gallery> gallerys;
+    //@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    //private List<Gallery> gallerys;
 	private String text;
 	@Nullable
 	private String color;

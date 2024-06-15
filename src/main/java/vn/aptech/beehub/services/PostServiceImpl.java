@@ -227,7 +227,7 @@ public class PostServiceImpl implements PostService {
 	        if (dto.getBackground() != null) {
 	            post.setBackground(dto.getBackground());
 	        }
-	        if (dto.getMediaUrl()!= fileOld ) {
+	        if (dto.getMediaUrl()!= fileOld && fileOld != null) {
 	            s3Service.deleteToS3(fileOldEx);
 	        }
 	        if (dto.getGroup() != null && dto.getGroup() > 0) {

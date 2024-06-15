@@ -52,21 +52,6 @@ public class PostController {
 	@Autowired
 	private ModelMapper mapper;
 
-	@GetMapping
-	public ResponseEntity<List<Post>> findAllPost() {
-		List<Post> result = postService.findAllPost();
-		return ResponseEntity.ok(result);
-	}
-	@GetMapping(value = "/user")
-	public ResponseEntity<List<UserDto>> findAllUser(){
-		List<UserDto> result = postService.findAllUser().stream().map((r) ->
-		UserDto.builder()
-				.username(r.getUsername())
-				
-				.build()).toList();
-		return ResponseEntity.ok(result);
-	}
-
 	@PostMapping(value = "/create")
 	public ResponseEntity<?> create(@RequestParam(name= "medias",required = false) MultipartFile media, @ModelAttribute @Validated PostMeDto dto) {
 		

@@ -18,4 +18,5 @@ public class PostCommentDto {
 	private Long user;
 	private Long post;
 	private String username;
+	private String fullname;
 }
