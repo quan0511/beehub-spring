@@ -22,6 +22,7 @@ public class PostMeDto {
 	private LocalDateTime createdAt;
 	private Long user;
 	private Long usershare;
+	private String user_fullname;
 	private Boolean share;
 	private LocalDateTime timeshare;
 	@Nullable
