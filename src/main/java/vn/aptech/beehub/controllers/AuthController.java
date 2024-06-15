@@ -34,6 +34,7 @@ import vn.aptech.beehub.security.jwt.JwtUtils;
 import vn.aptech.beehub.security.services.RefreshTokenService;
 import vn.aptech.beehub.security.services.UserDetailsImpl;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Tag(name = "Auth")
@@ -61,7 +62,7 @@ public class AuthController {
     RefreshTokenService refreshTokenService;
 
     @PostMapping("/signin")
-    public ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -77,6 +78,9 @@ public class AuthController {
                 .toList();
 
         User user = userRepository.findById(userDetails.getId()).get();
+
+        if (user.is_banned()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Your account has been banned. Please contact the provider."));
+
         if(!user.is_active()) {
         	user.set_active(true);
         	userRepository.save(user);
@@ -117,6 +121,7 @@ public class AuthController {
                 .email(signUpRequest.getEmail())
                 .fullname(signUpRequest.getFullName())
                 .password(encoder.encode(signUpRequest.getPassword()))
+                .create_at(LocalDateTime.now())
                 .build();
 
         Set<Role> roles = new HashSet<>();
