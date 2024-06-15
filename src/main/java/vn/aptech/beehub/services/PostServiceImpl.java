@@ -8,11 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import com.amazonaws.SdkClientException;
-
 import jakarta.transaction.Transactional;
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.PostDto;
@@ -99,15 +96,15 @@ public class PostServiceImpl implements PostService {
 	    if (dto.getBackground() == null || dto.getBackground().isEmpty()) {
 	        post.setBackground("inherit");
 	    }
-	    if (dto.getUser() > 0) {
-	        userRepository.findById(dto.getUser()).ifPresent(post::setUser);
+	    Long userId = dto.getUser() != null && dto.getUser() > 0 ? dto.getUser() : 1L;
+	    userRepository.findById(userId).ifPresent(post::setUser);
+	    
+	    if (dto.getGroup() != null && dto.getGroup() > 0) {
+	        groupRepository.findById(dto.getGroup()).ifPresent(post::setGroup);
+	    } else {
+	        dto.setGroup(null);
 	    }
-	    if (dto.getGroup() > 0) {
-	    	groupRepository.findById(dto.getGroup()).ifPresent(post::setGroup);
-	    	
-	    }else {
-	    	dto.setGroup(null);
-	    }
+	    
 	    post.setMedias(dto.getMediaUrl());
 	    
 	    UserSetting userSetting = new UserSetting();
@@ -117,15 +114,17 @@ public class PostServiceImpl implements PostService {
 	    
 	    post.setUser_setting(userSetting);
 	    Post saved = postRepository.save(post);
+	    
 	    if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
-		    Gallery gallery = new Gallery();
-		    gallery.setUser(post.getUser()); 
-		    gallery.setPost(saved); 
-		    gallery.setMedia(saved.getMedias()); 
-		    gallery.setMedia_type("image");
-		    gallery.setCreate_at(LocalDateTime.now());
-		    galleryRepository.save(gallery);
+	        Gallery gallery = new Gallery();
+	        gallery.setUser(post.getUser());
+	        gallery.setPost(saved);
+	        gallery.setMedia(saved.getMedias());
+	        gallery.setMedia_type("image");
+	        gallery.setCreate_at(LocalDateTime.now());
+	        galleryRepository.save(gallery);
 	    }
+	    
 	    if (post.getGroup() != null && post.getMedias() != null && !post.getMedias().isEmpty()) {
 	        GroupMedia groupMedia = new GroupMedia();
 	        groupMedia.setMedia(post.getMedias());
@@ -137,6 +136,7 @@ public class PostServiceImpl implements PostService {
 	        
 	        groupMediaRep.save(groupMedia);
 	    }
+	    
 	    return saved;
 	}
 	@Transactional
@@ -218,7 +218,6 @@ public class PostServiceImpl implements PostService {
 	        String fileOldEx = extractFileNameFromUrl(fileOld);
 	        post.setCreate_at(post.getCreate_at());
 	        
-	        // Cập nhật các trường của bài post
 	        if (dto.getText() != null) {
 	            post.setText(dto.getText());
 	        }
@@ -228,9 +227,14 @@ public class PostServiceImpl implements PostService {
 	        if (dto.getBackground() != null) {
 	            post.setBackground(dto.getBackground());
 	        }
-	        if (fileOld != null && !fileOld.isEmpty()) {
+	        if (dto.getMediaUrl()!= fileOld && fileOld != null) {
 	            s3Service.deleteToS3(fileOldEx);
 	        }
+	        if (dto.getGroup() != null && dto.getGroup() > 0) {
+		        groupRepository.findById(dto.getGroup()).ifPresent(post::setGroup);
+		    } else {
+		        dto.setGroup(null);
+		    }
 	        if (dto.getMediaUrl() != null && !dto.getMediaUrl().isEmpty()) {
 	            post.setMedias(dto.getMediaUrl());
 	            if (post.getMedia() != null) {

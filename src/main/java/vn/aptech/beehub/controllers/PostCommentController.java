@@ -42,6 +42,7 @@ public class PostCommentController {
 						.post(p.getPost().getId())
 						.user(p.getUser().getId())
 						.username(p.getUser().getUsername())
+						.fullname(p.getUser().getFullname())
 						.createdAt(p.getCreatedAt())
 						.build()).toList();
 		return ResponseEntity.ok(result);
