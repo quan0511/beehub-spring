@@ -79,6 +79,11 @@ public class RequirementService implements IRequirementService {
 		case "BLOCK":
 			try {
 				Optional<RelationshipUsers> relationship = relationshipRep.getRelationship(id, requirement.getReceiver_id());
+				Optional<Requirement> findRequirement= requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
+				if(findRequirement.isPresent()) {
+					Requirement getRequirement = findRequirement.get();
+					requirementRep.delete(getRequirement);
+				}
 				if(relationship.isPresent()&& relationship.get().getType().equals(ERelationshipType.FRIEND)) {
 					relationshipRep.delete(relationship.get());
 					RelationshipUsers newRelationship =  new RelationshipUsers();
@@ -269,20 +274,7 @@ public class RequirementService implements IRequirementService {
 				result.put("response","error");
 			}
 			break;
-		case "OUT_GROUP":
-			try {
-				Optional<GroupMember> groupMember = groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(), id);
-				if(groupMember.isPresent() && !groupMember.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
-					groupMemberRep.delete(groupMember.get());
-					result.put("response", requirement.getType());
-				}else {
-					result.put("response", "unsuccess");
-				}
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				result.put("response", "error");
-			}
-			break;
+		
 		case "KICK":
 			try {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(),requirement.getReceiver_id());
@@ -301,6 +293,10 @@ public class RequirementService implements IRequirementService {
 			try {
 				Optional<GroupMember> groupMem= groupMemberRep.findMemberInGroupWithUser(requirement.getGroup_id(),id);
 				if(groupMem.isPresent() && !groupMem.get().getRole().equals(EGroupRole.GROUP_CREATOR)) {
+					Optional<Requirement> req = requirementRep.findRequirementJoinGroup(id, requirement.getGroup_id());
+					if(req.isPresent()) {
+						requirementRep.delete(req.get());
+					}
 					groupMemberRep.delete(groupMem.get());
 					result.put("response", requirement.getType());
 				}else {

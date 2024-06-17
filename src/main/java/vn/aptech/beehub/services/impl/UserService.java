@@ -126,16 +126,21 @@ public class UserService implements IUserService {
 		userRep.findRelationship(id_profile,ERelationshipType.FRIEND.toString()).forEach((user)->{
 			String relationship = null;
 			if(user.getId()!=id_user) {
-				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
-				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
-													? userRe.get().getType().toString()
-													: "BE_BLOCKED")
-												:null;
-				if(userRe.isEmpty()) {
-					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
-					relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
-															"SENT_REQUEST": "NOT_ACCEPT"
-														): null;
+				try {
+					Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
+					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
+														? userRe.get().getType().toString()
+														: "BE_BLOCKED")
+													:null;
+					if(userRe.isEmpty()||relationship==null) {
+							Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
+							relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
+									"SENT_REQUEST": "NOT_ACCEPT"
+									): null;
+							
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			list.add(new UserDto(
