@@ -49,9 +49,6 @@ public class AdminController {
     private PostRepository postRepository;
 
     @Autowired
-    private PostService postService;
-
-    @Autowired
     RoleRepository roleRepository;
 
     @Autowired

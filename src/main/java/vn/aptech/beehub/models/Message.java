@@ -1,5 +1,6 @@
 package vn.aptech.beehub.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"messageRecipients", "childrenMessage"})
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
