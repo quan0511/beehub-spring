@@ -398,8 +398,15 @@ public class UserService implements IUserService {
 	@Override
 	public boolean updateUser(Long id,ProfileDto profile) {
 		User user = userRep.findById(id).get();
-		user.setUsername(profile.getUsername());
-		user.setEmail(profile.getEmail());
+		if(profile.getUsername()!=null) {
+			user.setUsername(profile.getUsername());			
+		}
+		if(profile.getEmail()!=null) {
+			user.setEmail(profile.getEmail());			
+		}
+		if(profile.getBio()!=null) {
+			user.setBio(profile.getBio());
+		}
 		user.setFullname(profile.getFullname());
 		user.setGender(profile.getGender());
 		user.setPhone(profile.getPhone());
