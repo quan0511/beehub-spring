@@ -72,7 +72,7 @@ public class UserController {
 		if(user.isPresent()) {
 			return ResponseEntity.ok(userService.getUser(id).get());			
 		}
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		return ResponseEntity.notFound().build();
 	}
 	@GetMapping(path="/user/{id}/profile/{username}")
 	private ResponseEntity<ProfileDto> getProfile(@PathVariable Long id,@PathVariable String username){
@@ -80,7 +80,7 @@ public class UserController {
 		if(res.isPresent()) {
 			return ResponseEntity.ok(userService.getProfile(username,id).get());			
 		}
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		return  ResponseEntity.notFound().build();
 	}
 	@GetMapping(path="/friends/{id}")
 	private ResponseEntity<List<UserDto>> getFriends(@PathVariable Long id){
@@ -350,6 +350,6 @@ public class UserController {
 		if(findPost.isPresent()) {
 			return ResponseEntity.ok(findPost.get());			
 		}
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		return  ResponseEntity.notFound().build();
 	}
 }

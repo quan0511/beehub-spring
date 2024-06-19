@@ -366,7 +366,7 @@ public class PostService implements IPostService {
 					);
 	        return Optional.of(getPost);
 		}
-		return null;
+		return Optional.empty();
 	}
 	@Override
 	public List<PostDto> findUserPosts(Long id_user, String username, int page, int limit) {
