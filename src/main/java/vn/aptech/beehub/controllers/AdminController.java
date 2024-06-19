@@ -155,8 +155,10 @@ public class AdminController {
                         .gender(u.getGender())
                         .noOfPosts(u.getPosts().size())
                         .noOfFriends(userRepository.findRelationship(u.getId(), ERelationshipType.FRIEND.toString()).size())
+                        .reportTitleList(reportRepository.findAllByUserId(u.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
                         .role(u.getRoles().stream().findFirst().get().getName().name())
                         .status(u.is_banned() ? "banned" : u.is_active() ? "active" : "inactive")
+                        .createdAt(u.getCreate_at())
                         .build()).toList());
     }
 
@@ -175,10 +177,12 @@ public class AdminController {
                     .role(u.getRoles().stream().findFirst().get().toString())
                     .noOfPosts(u.getPosts().size())
                     .noOfFriends(userRepository.findRelationship(u.getId(), ERelationshipType.FRIEND.toString()).size())
+                    .reportTitleList(reportRepository.findAllByUserId(u.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
                     .role(role)
                     .status(u.is_banned() ? "banned" : u.is_active() ? "active" : "inactive")
                     .avatar(u.getImage() != null ? u.getImage().getMedia() : "")
                     .gallery(u.getGalleries().stream().map(Gallery::getMedia).toList())
+                    .createdAt(u.getCreate_at())
                     .build());
         } else {
             throw new NotFoundException("User not found with id: " + id);
@@ -190,12 +194,10 @@ public class AdminController {
         if (userRepository.existsByUsername(userRequest.getUsername())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Username is already taken!"));
         }
-
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Email is already in use!"));
         }
 
-        // Create new user's account
         User user = User.builder()
                 .username(userRequest.getUsername())
                 .email(userRequest.getEmail())
@@ -264,6 +266,7 @@ public class AdminController {
                 .creatorId(p.getUser().getId())
                 .timestamp(p.getCreate_at())
                 .isBlocked(p.is_blocked())
+                .reportTitleList(reportRepository.findAllByUserId(p.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
                 .build())
                 .toList());
     }
@@ -283,6 +286,7 @@ public class AdminController {
                     .image(post.getMedias())
                     .timestamp(post.getCreate_at())
                     .isBlocked(post.is_blocked())
+                    .reportTitleList(reportRepository.findAllByUserId(post.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
                     .build());
         }
         return ResponseEntity.notFound().build();
@@ -308,19 +312,18 @@ public class AdminController {
     /*Groups*/
 
     @GetMapping("/groups")
-    public ResponseEntity<List<GroupDto>> getGroups() {
-        return ResponseEntity.ok(groupRepository.findAll().stream().map(g -> {
-            var group = new GroupDto();
-            group.setId(g.getId());
-            group.setPublic_group(g.isPublic_group());
-            group.setGroupname(g.getGroupname());
-            group.setMember_count(groupMemberRepository.findByGroup_id(g.getId()).size());
-            group.setActive(g.isActive());
-            group.setCreated_at(g.getCreated_at());
-            var image = g.getImage_group();
-            if (image != null)  group.setImage_group(image.getMedia());
-            return group;
-        }).toList());
+    public ResponseEntity<List<GroupResponse>> getGroups() {
+        return ResponseEntity.ok(groupRepository.findAll().stream().map(g ->
+            GroupResponse.builder()
+            .id(g.getId())
+            .isPublic(g.isPublic_group())
+            .name(g.getGroupname())
+            .noOfMembers(groupMemberRepository.findByGroup_id(g.getId()).size())
+            .isActive(g.isActive())
+            .createdAt(g.getCreated_at())
+            .reportTitleList(reportRepository.finaAllByGroupId(g.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
+            .build()
+        ).toList());
     }
 
     @GetMapping("/groups/{id}")
@@ -328,16 +331,17 @@ public class AdminController {
         var optgroup = groupRepository.findById(id);
         if (optgroup.isPresent()) {
             var group = optgroup.get();
-            var g = new GroupDto();
+            User creator = userRepository.findGroupCreator(group.getId());
+            var g = new GroupResponse();
             g.setId(group.getId());
-            g.setPublic_group(group.isPublic_group());
-            g.setImage_group(group.getImage_group() != null ? group.getImage_group().getMedia() : "");
-            g.setGroupname(group.getGroupname());
-            g.setGroup_medias(group.getGroup_medias().stream().map(m -> modelMapper.map(m, GroupMediaDto.class)).toList());
-//            g.setGroup_members(groupMemberRepository.findByGroup_id(group.getId()).stream().map(gm -> modelMapper.map(gm, GroupMemberDto.class)).toList());
-            g.setMember_count(groupMemberRepository.findByGroup_id(group.getId()).size());
-            g.setPost_count(group.getPosts().size());
+            g.setPublic(group.isPublic_group());
+            g.setName(group.getGroupname());
+            g.setGallery(group.getGroup_medias().stream().map(GroupMedia::getMedia).toList());
+            g.setNoOfMembers(groupMemberRepository.findByGroup_id(g.getId()).size());
+            g.setCreatorId(creator.getId());
+            g.setCreatorImage(creator.getImage() != null ? creator.getImage().getMedia() : creator.getGender());
             g.setActive(group.isActive());
+            g.setReportTitleList(reportRepository.finaAllByGroupId(g.getId()).stream().map(r -> r.getReport_type().getTitle()).toList());
             return ResponseEntity.ok(g);
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Group not found"));
