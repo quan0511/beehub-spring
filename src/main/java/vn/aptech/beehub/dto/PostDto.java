@@ -50,7 +50,13 @@ public class PostDto {
     @Nullable
     private String usershare_gender;
     @Nullable
-    private LocalDateTime usershare_createdat;
+    private String usershareimage;
+    @Nullable
+    private String usershareGroupName;
+    @Nullable
+    private Long usershareGroupId;
+    @Nullable
+    private LocalDateTime timeshare;
     private boolean is_blocked;
 	public PostDto(
 			Long id, 
@@ -88,7 +94,10 @@ public class PostDto {
 			String usershare_fullname,
 			String usershare_username,
 			String usershare_gender,
-			LocalDateTime usershare_createdat,
+			String usershareimage,
+			String usershareGroupName,
+			Long usershareGroupId,
+			LocalDateTime timeshare,
 			boolean is_blocked
 			) {
 		this.id = id;
@@ -108,7 +117,10 @@ public class PostDto {
 		this.usershare_fullname = usershare_fullname;
 		this.usershare_username = usershare_username;
 		this.usershare_gender = usershare_gender;
-		this.usershare_createdat = usershare_createdat;
+		this.usershareimage = usershareimage;
+		this.usershareGroupName = usershareGroupName;
+		this.usershareGroupId = usershareGroupId;
+		this.timeshare = timeshare;
 		this.is_blocked = is_blocked;
 	}
 	

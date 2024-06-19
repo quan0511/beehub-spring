@@ -19,10 +19,16 @@ public class PostMeDto {
 	private String mediaUrl;
 	private String background;
 	private String color;
-	private LocalDateTime createdAt;
+	private LocalDateTime create_at;
 	private Long user;
 	private Long usershare;
 	private String user_fullname;
+	private String usershare_username;
+	private String usershare_fullname;
+	private String usershare_gender;
+	private String usershareimage;
+	private Long usershareGroupId;
+    private String usershareGroupName;
 	private Boolean share;
 	private LocalDateTime timeshare;
 	@Nullable

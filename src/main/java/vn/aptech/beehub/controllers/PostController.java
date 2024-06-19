@@ -1,5 +1,6 @@
 package vn.aptech.beehub.controllers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,7 +88,7 @@ public class PostController {
 		            .group(p.getGroup().getId())
 		            .color(p.getColor())
 		            .background(p.getBackground())
-		            .createdAt(p.getCreate_at())
+		            .create_at(p.getCreate_at())
 		            .user(p.getUser().getId())
 		            .build();
 		    return ResponseEntity.ok(updatedDto);
@@ -108,16 +109,40 @@ public class PostController {
 	        return ResponseEntity.notFound().build();
 	    }
 	    Post p = optionalPost.get();
+	    String sharedFullName = null;
+	    String sharedUsername = null;
+	    String sharedGender = null;
+	    String sharedUserImage = null;
+	    String sharedUserGroupName = null;
+        Long sharedUserGroupId = null;
+	    LocalDateTime sharedCreatedAt = null;
+	    if (p.getPostshare() != null) {
+	        sharedFullName = p.getPostshare().getUser().getFullname();
+	        sharedUsername = p.getPostshare().getUser().getUsername();
+	        sharedGender = p.getPostshare().getUser().getGender();
+	        sharedUserImage = p.getPostshare().getUser().getImage()!= null ? p.getUser().getImage().getMedia() : null;
+	        sharedUserGroupName = p.getPostshare().getGroup()!=null?p.getGroup().getGroupname():null;
+            sharedUserGroupId = p.getPostshare().getGroup()!=null?p.getGroup().getId():null;
+	        sharedCreatedAt = p.getTimeshare();
+	    }
 	    PostMeDto post = PostMeDto.builder()
 	                              .id(p.getId())
 	                              .text(p.getText())
-	                              .createdAt(p.getCreate_at()) 
+	                              .create_at(p.getCreate_at()) 
 	                              .mediaUrl(p.getMedias())
 	                              .color(p.getColor())
 	                              .background(p.getBackground())
 	                              .user(p.getUser().getId())
 								  .user_fullname(p.getUser().getFullname())
 	                              .group(p.getGroup() != null ? p.getGroup().getId() : null)
+	                              .usershare_username(sharedUsername)
+	                              .usershare_fullname(sharedFullName)
+	                              .usershare_gender(sharedGender)
+	                              .usershareGroupId(sharedUserGroupId)
+	                              .usershareGroupName(sharedUserGroupName)
+	                              .usershareimage(sharedUserImage)
+	                              .timeshare(sharedCreatedAt)
+	                              .share(p.getShare())
 	                              .build();
 	    return ResponseEntity.ok(post);
 	}
