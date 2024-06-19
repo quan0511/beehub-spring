@@ -397,19 +397,27 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean updateUser(Long id,ProfileDto profile) {
-		try {
-			User user = userRep.findById(id).get();
-			user.setUsername(profile.getUsername());
-			user.setEmail(profile.getEmail());
+		User user = userRep.findById(id).get();
+		if(profile.getUsername()!=null) {
+			user.setUsername(profile.getUsername());			
+		}
+		if(profile.getEmail()!=null) {
+			user.setEmail(profile.getEmail());			
+		}
+		if(profile.getBio()!=null) {
+			user.setBio(profile.getBio());
+		}
+		if(profile.getFullname()!=null&&profile.getGender()!=null&& profile.getPhone()!=null) {
 			user.setFullname(profile.getFullname());
 			user.setGender(profile.getGender());
-			user.setPhone(profile.getPhone());
+			user.setPhone(profile.getPhone());			
+		}
+		try {
 			user.setBirthday(profile.getBirthday());
-			userRep.save(user);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
+		userRep.save(user);
 		return true;
 	}
 	@Override

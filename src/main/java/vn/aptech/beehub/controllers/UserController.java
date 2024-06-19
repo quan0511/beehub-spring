@@ -26,6 +26,7 @@ import vn.aptech.beehub.dto.FileInfo;
 import vn.aptech.beehub.dto.GroupDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.ProfileFormDto;
 import vn.aptech.beehub.dto.ReportFormDto;
 import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;
@@ -66,12 +67,20 @@ public class UserController {
 		return ResponseEntity.ok(userService.findAll());
 	}
 	@GetMapping(path = "/user/{id}")
-	private ResponseEntity<Optional<UserDto>> getUser(@PathVariable Long id){
-		return ResponseEntity.ok(userService.getUser(id));
+	private ResponseEntity<UserDto> getUser(@PathVariable Long id){
+		Optional<UserDto> user = userService.getUser(id);
+		if(user.isPresent()) {
+			return ResponseEntity.ok(userService.getUser(id).get());			
+		}
+		return ResponseEntity.notFound().build();
 	}
 	@GetMapping(path="/user/{id}/profile/{username}")
-	private ResponseEntity<Optional<ProfileDto>> getProfile(@PathVariable Long id,@PathVariable String username){
-		return ResponseEntity.ok(userService.getProfile(username,id));
+	private ResponseEntity<ProfileDto> getProfile(@PathVariable Long id,@PathVariable String username){
+		Optional<ProfileDto> res = userService.getProfile(username,id);
+		if(res.isPresent()) {
+			return ResponseEntity.ok(userService.getProfile(username,id).get());			
+		}
+		return  ResponseEntity.notFound().build();
 	}
 	@GetMapping(path="/friends/{id}")
 	private ResponseEntity<List<UserDto>> getFriends(@PathVariable Long id){
@@ -336,8 +345,11 @@ public class UserController {
 		}
 	}
 	@GetMapping(path="/user/{id_user}/get-post/{id_post}")
-	public ResponseEntity<Optional<PostDto>> getPost(@PathVariable("id_user") Long id_user, @PathVariable("id_post") Long id_post){
+	public ResponseEntity<PostDto> getPost(@PathVariable("id_user") Long id_user, @PathVariable("id_post") Long id_post){
 		Optional<PostDto> findPost = postService.getPost(id_user, id_post);
-		return ResponseEntity.ok(findPost);
+		if(findPost.isPresent()) {
+			return ResponseEntity.ok(findPost.get());			
+		}
+		return  ResponseEntity.notFound().build();
 	}
 }
