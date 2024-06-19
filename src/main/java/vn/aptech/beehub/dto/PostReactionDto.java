@@ -17,5 +17,8 @@ public class PostReactionDto {
 	private Long post;
 	private String username;
 	private Long user;
+	private String fullname;
+	private String usergender;
+	private String userimage;
 	private int postComment;
 }

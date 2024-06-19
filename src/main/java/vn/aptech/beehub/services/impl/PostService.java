@@ -50,12 +50,18 @@ public class PostService implements IPostService {
 			String sharedFullName = null;
 		    String sharedUsername = null;
 		    String sharedGender = null;
+		    String sharedUserImage = null;
+		    String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 		    LocalDateTime sharedCreatedAt = null;
 		    if (post.getPostshare() != null) {
 		        sharedFullName = post.getPostshare().getUser().getFullname();
 		        sharedUsername = post.getPostshare().getUser().getUsername();
 		        sharedGender = post.getPostshare().getUser().getGender();
-		        sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+		        sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+		        sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+		        sharedCreatedAt = post.getTimeshare();
 		    }
 			listPost.add(new PostDto(
 								post.getId(), 
@@ -80,6 +86,9 @@ public class PostService implements IPostService {
 				                sharedFullName,
 				                sharedUsername,
 				                sharedGender,
+				                sharedUserImage,
+				                sharedUserGroupName,
+				                sharedUserGroupId,
 				                sharedCreatedAt,
 				                post.is_blocked()
 								));
@@ -97,12 +106,18 @@ public class PostService implements IPostService {
 	        String sharedFullName = null;
 	        String sharedUsername = null;
 	        String sharedGender = null;
+	        String sharedUserImage = null;
+	        String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 	        LocalDateTime sharedCreatedAt = null;
 	        if (post.getPostshare() != null) {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+	            sharedCreatedAt = post.getTimeshare();
 	        }
 	        listPost.add(new PostDto(
 	                post.getId(),
@@ -127,6 +142,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
+	                sharedUserImage,
+	                sharedUserGroupName,
+	                sharedUserGroupId,
 	                sharedCreatedAt,
             		post.is_blocked()
 					));});
@@ -141,12 +159,18 @@ public class PostService implements IPostService {
 			String sharedFullName = null;
 	        String sharedUsername = null;
 	        String sharedGender = null;
+	        String sharedUserImage = null;
+	        String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 	        LocalDateTime sharedCreatedAt = null;
 	        if (post.getPostshare() != null) {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+	            sharedCreatedAt = post.getTimeshare();
 	        }
 			listPost.add( new PostDto(
 					post.getId(), 
@@ -171,6 +195,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
+	                sharedUserImage,
+	                sharedUserGroupName,
+	                sharedUserGroupId,
 	                sharedCreatedAt,
 	        		post.is_blocked()
 					));});
@@ -180,12 +207,18 @@ public class PostService implements IPostService {
 			String sharedFullName = null;
 	        String sharedUsername = null;
 	        String sharedGender = null;
+	        String sharedUserImage = null;
+	        String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 	        LocalDateTime sharedCreatedAt = null;
 	        if (post.getPostshare() != null) {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+	            sharedCreatedAt = post.getTimeshare();
 	        }
 			listPost.add( new PostDto(
 					post.getId(), 
@@ -210,6 +243,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
+	                sharedUserImage,
+	                sharedUserGroupName,
+	                sharedUserGroupId,
 	                sharedCreatedAt,
 	        		post.is_blocked()
 					));});
@@ -228,12 +264,18 @@ public class PostService implements IPostService {
 				String sharedFullName = null;
 		        String sharedUsername = null;
 		        String sharedGender = null;
+		        String sharedUserImage = null;
+		        String sharedUserGroupName = null;
+		        Long sharedUserGroupId = null;
 		        LocalDateTime sharedCreatedAt = null;
 		        if (post.getPostshare() != null) {
 		            sharedFullName = post.getPostshare().getUser().getFullname();
 		            sharedUsername = post.getPostshare().getUser().getUsername();
 		            sharedGender = post.getPostshare().getUser().getGender();
-		            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+		            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+		            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+		            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+		            sharedCreatedAt = post.getTimeshare();
 		        }
 				list.add(new PostDto(
 						post.getId(), 
@@ -258,6 +300,9 @@ public class PostService implements IPostService {
 		                sharedFullName,
 		                sharedUsername,
 		                sharedGender,
+		                sharedUserImage,
+		                sharedUserGroupName,
+		                sharedUserGroupId,
 		                sharedCreatedAt,
     	        		post.is_blocked()
 						));
@@ -285,12 +330,18 @@ public class PostService implements IPostService {
 			String sharedFullName = null;
 	        String sharedUsername = null;
 	        String sharedGender = null;
+	        String sharedUserImage = null;
+	        String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 	        LocalDateTime sharedCreatedAt = null;
 	        if (post.getPostshare() != null) {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+	            sharedCreatedAt = post.getTimeshare();
 	        }
 			listPost.add( new PostDto(
 					post.getId(), 
@@ -315,6 +366,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
+	                sharedUserImage,
+	                sharedUserGroupName,
+	                sharedUserGroupId,
 	                sharedCreatedAt,
 	        		post.is_blocked()
 
@@ -331,12 +385,18 @@ public class PostService implements IPostService {
 			String sharedFullName = null;
 	        String sharedUsername = null;
 	        String sharedGender = null;
+	        String sharedUserImage = null;
+	        String sharedUserGroupName = null;
+	        Long sharedUserGroupId = null;
 	        LocalDateTime sharedCreatedAt = null;
 	        if (post.getPostshare() != null) {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+	            sharedCreatedAt = post.getTimeshare();
 	        }
 	        PostDto getPost = new PostDto(
 					post.getId(), 
@@ -361,6 +421,9 @@ public class PostService implements IPostService {
 	                sharedFullName,
 	                sharedUsername,
 	                sharedGender,
+	                sharedUserImage,
+	                sharedUserGroupName,
+	                sharedUserGroupId,
 	                sharedCreatedAt,
 	        		post.is_blocked()
 					);
@@ -403,12 +466,18 @@ public class PostService implements IPostService {
 					String sharedFullName = null;
 					String sharedUsername = null;
 					String sharedGender = null;
+					String sharedUserImage = null;
+					String sharedUserGroupName = null;
+			        Long sharedUserGroupId = null;
 					LocalDateTime sharedCreatedAt = null;
 					if (post.getPostshare() != null) {
 						sharedFullName = post.getPostshare().getUser().getFullname();
 						sharedUsername = post.getPostshare().getUser().getUsername();
 						sharedGender = post.getPostshare().getUser().getGender();
-						sharedCreatedAt = post.getPostshare().getUser().getCreate_at();
+						sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+						sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
+			            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
+						sharedCreatedAt = post.getTimeshare();
 					}
 					result.add(new PostDto(
 							post.getId(), 
@@ -428,6 +497,9 @@ public class PostService implements IPostService {
 											sharedFullName,
 											sharedUsername,
 											sharedGender,
+											sharedUserImage,
+											sharedUserGroupName,
+							                sharedUserGroupId,
 											sharedCreatedAt,
 											post.is_blocked()
 							));

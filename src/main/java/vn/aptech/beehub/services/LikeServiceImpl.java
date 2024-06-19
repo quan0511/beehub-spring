@@ -1,5 +1,6 @@
 package vn.aptech.beehub.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,11 +11,14 @@ import org.springframework.stereotype.Service;
 import vn.aptech.beehub.dto.LikeDto;
 import vn.aptech.beehub.dto.LikeUserDto;
 import vn.aptech.beehub.models.LikeUser;
+import vn.aptech.beehub.models.Notification;
+import vn.aptech.beehub.models.NotificationType;
 import vn.aptech.beehub.models.Post;
 import vn.aptech.beehub.models.PostComment;
 import vn.aptech.beehub.models.PostReaction;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.repository.LikeRepository;
+import vn.aptech.beehub.repository.NotificationRepository;
 import vn.aptech.beehub.repository.PostCommentRepository;
 import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
@@ -29,6 +33,9 @@ public class LikeServiceImpl implements LikeService {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private NotificationRepository notificationRepository;
 	
 	@Autowired
 	private LikeRepository likeRepository;
@@ -59,6 +66,7 @@ public class LikeServiceImpl implements LikeService {
         		}
         		
         		LikeUser saved = likeRepository.save(like);
+        		sendNotification(saved);
         		return saved;
         	}
         }else {
@@ -114,8 +122,6 @@ public class LikeServiceImpl implements LikeService {
 	     Optional<User> optionalUser = userRepository.findById(userId);
 	     Post post = optionalPost.get();
          User user = optionalUser.get();
-         
-         // Tìm và xóa like nếu tồn tại
          LikeUser like = likeRepository.findByPostAndUser(post, user);
          if (like != null) {
              return true; 
@@ -173,5 +179,43 @@ public class LikeServiceImpl implements LikeService {
 		}else {
 			return 0;
 		}
+	}
+	public List<Notification> getNoteByUser(Long userid){
+		return notificationRepository.findNoteByUser(userid);
+	}
+	private void sendNotification(LikeUser likeUser) {
+		Optional<Post> optionalPost = postRepository.findById(likeUser.getPost().getId());
+		Optional<User> optionalUser = userRepository.findById(likeUser.getUser().getId());
+		
+		if(optionalPost.isPresent() && optionalUser.isPresent()) {
+			Post post = optionalPost.get();
+			User liker = optionalUser.get();
+			
+			String notificationContent = String.format("%s liked your post.", liker.getFullname());		
+			Notification notification = new Notification();
+			notification.setContent(notificationContent);
+			notification.setUser(post.getUser()); // Send notification to the post owner
+            notification.setPost(post);
+            notification.setNotificationType(NotificationType.LIKE); 
+            notification.setSeen(false);
+            notification.setCreatedAt(LocalDateTime.now());
+            
+             //Save the notification to the database
+            notificationRepository.save(notification);    
+		}
+	}
+	public void changeSeenNote(int id) {
+		Optional<Notification> optionalNotification = notificationRepository.findById(id);
+		if(optionalNotification.isPresent()) {
+			Notification notification = optionalNotification.get();
+			notification.setSeen(true);
+			notificationRepository.save(notification);
+		}else {
+			throw new RuntimeException("Notification not found with id: " + id);
+		}
+	}
+	public Boolean checkSeenNote(Long userid) {
+		List<Notification> notes = notificationRepository.findNoteSeenByUser(userid);
+		return !notes.isEmpty();
 	}
 }
