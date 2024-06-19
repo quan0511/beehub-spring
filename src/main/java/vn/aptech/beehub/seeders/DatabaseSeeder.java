@@ -44,7 +44,7 @@ public class DatabaseSeeder {
             RequirementRepository requirementRep,
             ReportRepository reportRep,
             GalleryRepository galleryRepository,
-            GroupMediaRepository groupMediaRepository) {
+            GroupMediaRepository groupMediaRepository, UserSettingRepository userSettingRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -292,12 +292,12 @@ public class DatabaseSeeder {
             groupRepository.save(optimusGang);
             groupMemberRepository.save(new GroupMember(optimus, optimusGang, EGroupRole.GROUP_CREATOR));
             groupMemberRepository.save(new GroupMember(bumblebee, optimusGang, EGroupRole.MEMBER));
-            Post optimusPost = new Post();
-            optimusPost.setUser(optimus);
-            optimusPost.setText("Victory Dance");
+
+            Post optimusPost = new Post("Victory Dance",optimus , LocalDateTime.now().minusDays(1),ESettingType.PUBLIC);
             optimusPost.setMedias("https://th.bing.com/th/id/OIP.JsDu3_q9ZIft7cATRgztQAHaFG?rs=1&pid=ImgDetMain");
             optimusPost.setCreate_at(LocalDateTime.now());
-            postRepository.save(optimusPost);
+            optimusPost = postRepository.save(optimusPost);
+
             Report report1 = new Report();
             report1.setCreate_at(LocalDateTime.now());
             report1.setUpdate_at(LocalDateTime.now());
@@ -392,7 +392,7 @@ public class DatabaseSeeder {
     }
     private void seederGroupRequirements() {
 		List<Group> groups = groupRepository.findAll();
-		if(!groups.isEmpty()) {
+		if(groups.isEmpty()) {
 			for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
 				Group group = (Group) iterator.next();
 				List<User> listUser = userRepository.findUsersNotJoinedGroup(group.getId());

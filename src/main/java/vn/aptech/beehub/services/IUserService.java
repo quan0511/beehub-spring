@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import vn.aptech.beehub.dto.ProfileDto;
+import vn.aptech.beehub.dto.ProfileFormDto;
 import vn.aptech.beehub.dto.ReportFormDto;
 import vn.aptech.beehub.dto.ReportTypesDto;
 import vn.aptech.beehub.dto.RequirementDto;

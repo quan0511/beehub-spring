@@ -126,16 +126,21 @@ public class UserService implements IUserService {
 		userRep.findRelationship(id_profile,ERelationshipType.FRIEND.toString()).forEach((user)->{
 			String relationship = null;
 			if(user.getId()!=id_user) {
-				Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
-				relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
-													? userRe.get().getType().toString()
-													: "BE_BLOCKED")
-												:null;
-				if(userRe.isEmpty()) {
-					Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
-					relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
-															"SENT_REQUEST": "NOT_ACCEPT"
-														): null;
+				try {
+					Optional<RelationshipUsers> userRe= relationshipRep.getRelationship(id_user, user.getId());
+					relationship = userRe.isPresent()? (userRe.get().getUser1().getId()== id_user || userRe.get().getType().equals(ERelationshipType.FRIEND) 
+														? userRe.get().getType().toString()
+														: "BE_BLOCKED")
+													:null;
+					if(userRe.isEmpty()||relationship==null) {
+							Optional<Requirement> requires = requirementRep.getRequirementsBtwUsersIsNotAccept(id_user, user.getId());
+							relationship = requires.isPresent()? (requires.get().getSender().getId()==id_user?
+									"SENT_REQUEST": "NOT_ACCEPT"
+									): null;
+							
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			list.add(new UserDto(
@@ -392,19 +397,27 @@ public class UserService implements IUserService {
 	}
 	@Override
 	public boolean updateUser(Long id,ProfileDto profile) {
-		try {
-			User user = userRep.findById(id).get();
-			user.setUsername(profile.getUsername());
-			user.setEmail(profile.getEmail());
+		User user = userRep.findById(id).get();
+		if(profile.getUsername()!=null) {
+			user.setUsername(profile.getUsername());			
+		}
+		if(profile.getEmail()!=null) {
+			user.setEmail(profile.getEmail());			
+		}
+		if(profile.getBio()!=null) {
+			user.setBio(profile.getBio());
+		}
+		if(profile.getFullname()!=null&&profile.getGender()!=null&& profile.getPhone()!=null) {
 			user.setFullname(profile.getFullname());
 			user.setGender(profile.getGender());
-			user.setPhone(profile.getPhone());
+			user.setPhone(profile.getPhone());			
+		}
+		try {
 			user.setBirthday(profile.getBirthday());
-			userRep.save(user);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
+		userRep.save(user);
 		return true;
 	}
 	@Override

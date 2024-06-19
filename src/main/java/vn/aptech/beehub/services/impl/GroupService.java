@@ -210,6 +210,9 @@ public class GroupService implements IGroupService {
 				if(checkMember.isPresent()) {
 					groupDto.setMember_role(checkMember.get().getRole().toString());
 					groupDto.setJoined("joined");;
+				}else {
+					Optional<Requirement> reqJoin = requireRep.findRequirementJoinGroup(id_user, group.get().getId());
+					if(reqJoin.isPresent()) {groupDto.setJoined("send request");}else{groupDto.setJoined(null);}
 				}
 				List<GroupMemberDto> members = new LinkedList<GroupMemberDto>();
 				groupMemberRep.findByGroup_id(id_group).forEach((gm)->{
