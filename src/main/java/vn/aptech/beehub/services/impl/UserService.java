@@ -407,9 +407,11 @@ public class UserService implements IUserService {
 		if(profile.getBio()!=null) {
 			user.setBio(profile.getBio());
 		}
-		user.setFullname(profile.getFullname());
-		user.setGender(profile.getGender());
-		user.setPhone(profile.getPhone());
+		if(profile.getFullname()!=null&&profile.getGender()!=null&& profile.getPhone()!=null) {
+			user.setFullname(profile.getFullname());
+			user.setGender(profile.getGender());
+			user.setPhone(profile.getPhone());			
+		}
 		try {
 			user.setBirthday(profile.getBirthday());
 		} catch (Exception e) {
