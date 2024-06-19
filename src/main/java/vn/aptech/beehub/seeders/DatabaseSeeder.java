@@ -392,7 +392,7 @@ public class DatabaseSeeder {
     }
     private void seederGroupRequirements() {
 		List<Group> groups = groupRepository.findAll();
-		if(!groups.isEmpty()) {
+		if(groups.isEmpty()) {
 			for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
 				Group group = (Group) iterator.next();
 				List<User> listUser = userRepository.findUsersNotJoinedGroup(group.getId());

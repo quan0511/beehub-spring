@@ -1,7 +1,5 @@
 package vn.aptech.beehub.services;
 
-import vn.aptech.beehub.models.Message;
-import vn.aptech.beehub.models.MessageRecipient;
 import vn.aptech.beehub.payload.request.SendMessageRequest;
 import vn.aptech.beehub.payload.response.GetMessageResponse;
 
@@ -9,14 +7,12 @@ import java.util.List;
 
 public interface MessageService {
 
-    MessageRecipient sendMessageForUser(SendMessageRequest request) throws Exception;
+    GetMessageResponse sendMessageForUser(SendMessageRequest request);
 
-    MessageRecipient sendMessageForGroup(SendMessageRequest request) throws Exception;
+    GetMessageResponse sendMessageForGroup(SendMessageRequest request);
 
-    List<GetMessageResponse> getChatMessagesByUserId(Long id) throws Exception;
+    List<GetMessageResponse> getChatMessagesByUserId(Long id);
 
-    Message findMessageById();
-
-    void deleteMessage();
+    List<GetMessageResponse> getChatMessagesByGroupId(Long id);
 
 }
