@@ -16,7 +16,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import vn.aptech.beehub.models.GroupMember;
 import vn.aptech.beehub.payload.response.GetMessageResponse;
 import vn.aptech.beehub.repository.GroupMemberRepository;
-import vn.aptech.beehub.repository.GroupRepository;
 import vn.aptech.beehub.repository.UserRepository;
 
 import java.io.IOException;
@@ -107,21 +106,28 @@ public class SocketHandler extends TextWebSocketHandler {
                 ogm.forEach(gm -> {
                     var user = gm.getUser();
                     var userEmail = user.getEmail();
-                    for (WebSocketSession webSocketSession : sessions) { // loop through every socket
-                        if (webSocketSession.isOpen()) {
-                            Principal principal = null;
-                            Object object = webSocketSession.getAttributes().get("principal");
-                            if (object instanceof Principal) principal = (Principal) object;
-
-                            if (principal != null && userEmail.equals(principal.getName()) && !Objects.equals(user.getId(), userMessage.getCreatorId())) { // looking for a principal match the email of receiver
-                                try {
-                                    webSocketSession.sendMessage(getTextMessage("RECEIVE_GROUP_MESSAGE", userMessage)); // send
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
+                    if (!Objects.equals(user.getId(), userMessage.getCreatorId())) { // if user is not sender
+                        LOGGER.info(user.getId().toString());
+                        LOGGER.info(userMessage.getCreatorId().toString());
+                        for (WebSocketSession webSocketSession : sessions) { // loop through every socket
+                            if (webSocketSession.isOpen()) {
+                                Principal principal = null;
+                                Object object = webSocketSession.getAttributes().get("principal");
+                                if (object instanceof Principal) principal = (Principal) object;
+                                if (principal != null) {
+                                    String principalEmail = principal.getName();
+                                    if (principalEmail.equals(userEmail)) {
+                                        try {
+                                            webSocketSession.sendMessage(getTextMessage("RECEIVE_GROUP_MESSAGE", userMessage)); // send
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+
                 });
                 break;
             }

@@ -20,12 +20,12 @@ public interface MessageRecipientRepository extends JpaRepository<MessageRecipie
     List<MessageRecipient> findAllByUserVsUser(Long user1, Long user2);
 
     @Query(value = """
-            SELECT mr.*
+            SELECT * FROM (SELECT mr.*
             FROM group_members gm
             JOIN message_recipient mr ON gm.id = mr.recipient_group_id
             JOIN message m ON m.id = mr.message_id
-            WHERE (gm.group_id = :id AND mr.recipient_group_id = :id)
-            ORDER BY m.create_at""", nativeQuery = true)
+            WHERE gm.group_id = :id
+            ORDER BY m.create_at)x GROUP BY x.message_id""", nativeQuery = true)
     List<MessageRecipient> findAllByGroupIdOrderByCreatedAt(Long id);
 }
 
