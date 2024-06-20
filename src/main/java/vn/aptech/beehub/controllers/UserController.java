@@ -94,6 +94,7 @@ public class UserController {
 	private ResponseEntity<List<PostDto>> getPosts(@PathVariable Long id){
 		return ResponseEntity.ok(postService.findByUserId(id));
 	}
+	//Post in Profile 
 	@GetMapping(path = "/user/{id_user}/get-posts/{username}")
 	private ResponseEntity<List<PostDto>> getUserPosts(@PathVariable Long id_user,@PathVariable String username,@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int limit){
 		return ResponseEntity.ok(postService.findUserPosts(id_user,username,page,limit));
