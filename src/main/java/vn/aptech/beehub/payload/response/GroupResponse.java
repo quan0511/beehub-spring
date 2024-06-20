@@ -15,15 +15,16 @@ import java.util.List;
 @AllArgsConstructor
 public class GroupResponse {
     private Long id;
-    private boolean isPublic;
     private String name;
+    private boolean isPublic;
     private Long creatorId;
     private String creatorUsername;
     private String creatorImage;
     private int noOfMembers;
+    private int noOfPosts;
     private boolean isActive;
     private LocalDateTime createdAt;
-    private String background;
+    private String avatar;
     private List<String> gallery;
     private List<String> reportTitleList;
 }

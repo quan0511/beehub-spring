@@ -113,6 +113,7 @@ public class DatabaseSeeder {
                     .username("admin")
                     .email("admin@gmail.com")
                     .fullname("admin")
+                    .gender("male")
                     .password(passwordEncoder.encode("123456"))
                     .create_at(LocalDateTime.now())
                     .build();

@@ -11,8 +11,8 @@ import java.util.List;
 @Builder
 public class PostResponse {
     private Long id;
-    private String creator;
     private Long creatorId;
+    private String creatorUsername;
     private String creatorImage;
     private LocalDateTime timestamp;
     private String content;

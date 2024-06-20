@@ -123,26 +123,6 @@ public class AdminController {
         }).toList());
     }
 
-    @GetMapping("/reports/user/{id}")
-    public ResponseEntity<UserResponse> getUserReports(@PathVariable Long id) {
-        return ResponseEntity.ok(null);
-    }
-
-    @GetMapping("/reports/post/{id}")
-    public ResponseEntity<?> getPostReports(@PathVariable Long id) {
-        return ResponseEntity.ok(null);
-    }
-
-    @GetMapping("/reports/group/{id}")
-    public ResponseEntity<?> getGroupReports(@PathVariable Long id) {
-        return ResponseEntity.ok(null);
-    }
-
-    @DeleteMapping("/reports/{id}")
-    public ResponseEntity<?> deleteReport(@PathVariable Long id) {
-        return ResponseEntity.ok(null);
-    }
-
     /*Users*/
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getUsers() {
@@ -262,7 +242,7 @@ public class AdminController {
     public ResponseEntity<List<PostResponse>> getPosts() {
         return ResponseEntity.ok(postRepository.findAll().stream().map(p -> PostResponse.builder()
                 .id(p.getId())
-                .creator(p.getUser().getUsername())
+                .creatorUsername(p.getUser().getUsername())
                 .creatorId(p.getUser().getId())
                 .timestamp(p.getCreate_at())
                 .isBlocked(p.is_blocked())
@@ -279,8 +259,8 @@ public class AdminController {
 
             return ResponseEntity.ok(PostResponse.builder()
                     .id(post.getId())
-                    .creator(post.getUser().getUsername())
                     .creatorId(post.getUser().getId())
+                    .creatorUsername(post.getUser().getUsername())
                     .creatorImage(post.getUser().getImage() != null ?post.getUser().getImage().getMedia() : "")
                     .content(post.getText())
                     .image(post.getMedias())
@@ -319,6 +299,7 @@ public class AdminController {
             .isPublic(g.isPublic_group())
             .name(g.getGroupname())
             .noOfMembers(groupMemberRepository.findByGroup_id(g.getId()).size())
+            .noOfPosts(g.getPosts().size())
             .isActive(g.isActive())
             .createdAt(g.getCreated_at())
             .reportTitleList(reportRepository.finaAllByGroupId(g.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
@@ -338,10 +319,13 @@ public class AdminController {
             g.setName(group.getGroupname());
             g.setGallery(group.getGroup_medias().stream().map(GroupMedia::getMedia).toList());
             g.setNoOfMembers(groupMemberRepository.findByGroup_id(g.getId()).size());
+            g.setNoOfPosts(group.getPosts().size());
             g.setCreatorId(creator.getId());
+            g.setCreatorUsername(creator.getUsername());
             g.setCreatorImage(creator.getImage() != null ? creator.getImage().getMedia() : creator.getGender());
             g.setActive(group.isActive());
             g.setReportTitleList(reportRepository.finaAllByGroupId(g.getId()).stream().map(r -> r.getReport_type().getTitle()).toList());
+            g.setAvatar(group.getImage_group() != null ? group.getImage_group().getMedia() : "group");
             return ResponseEntity.ok(g);
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Group not found"));

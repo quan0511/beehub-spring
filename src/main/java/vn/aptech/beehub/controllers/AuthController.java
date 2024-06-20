@@ -79,7 +79,7 @@ public class AuthController {
 
         User user = userRepository.findById(userDetails.getId()).get();
 
-        if (user.is_banned()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Your account has been banned. Please contact the provider."));
+        if (user.is_banned()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Your account has been banned. Please contact the provider.");
 
         if(!user.is_active()) {
         	user.set_active(true);
@@ -120,6 +120,8 @@ public class AuthController {
                 .username(signUpRequest.getUsername())
                 .email(signUpRequest.getEmail())
                 .fullname(signUpRequest.getFullName())
+                .is_active(false)
+                .is_banned(false)
                 .password(encoder.encode(signUpRequest.getPassword()))
                 .create_at(LocalDateTime.now())
                 .build();
