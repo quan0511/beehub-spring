@@ -436,14 +436,15 @@ public class PostService implements IPostService {
 		Optional<User> findUser = userRep.findByUsername(username);
 		if(findUser.isPresent()) {
 			List<Post> listPost = postRep.getUserPost(username, page*limit, limit);
+			List<Post> listFilter =  new LinkedList<Post>();
 			if(id_user != findUser.get().getId()) {
 				Optional<RelationshipUsers> getRelationship = relationshipRep.getRelationship(id_user, findUser.get().getId());
 				if(getRelationship.isPresent()) {
 					RelationshipUsers relationship = getRelationship.get();
 					if(relationship.getType().equals(ERelationshipType.FRIEND)) {
 						for (int i = 0; i< listPost.size();i++) {
-							if(listPost.get(i).getUser_setting().getSetting_type().equals(ESettingType.HIDDEN)) {
-								listPost.remove(listPost.get(i));
+							if(!listPost.get(i).getUser_setting().getSetting_type().equals(ESettingType.HIDDEN)) {
+								listFilter.add(listPost.get(i));
 							}
 						}
 					}else {
@@ -451,17 +452,18 @@ public class PostService implements IPostService {
 					}
 				}else {
 					for (int i = 0; i< listPost.size();i++) {
-						logger.info("Post "+listPost.get(i).getId()+""+listPost.get(i).getUser_setting().getSetting_type());
-						if(listPost.get(i).getUser_setting().getSetting_type().equals(ESettingType.HIDDEN) ||listPost.get(i).getUser_setting().getSetting_type().equals(ESettingType.FOR_FRIEND)) {
-							listPost.remove(listPost.get(i));
+						if(listPost.get(i).getUser_setting().getSetting_type().equals(ESettingType.PUBLIC)) {
+							listFilter.add(listPost.get(i));
 						}
 											
 					}					
 				}
+			}else {
+				listFilter.addAll(listPost);
 			}
 			List<PostDto> result = new LinkedList<PostDto>();
 			if(listPost!=null&& listPost.size()>0 ) {
-				listPost.forEach((post)->{
+				listFilter.forEach((post)->{
 					GalleryDto media = post.getMedia()!=null? new GalleryDto(post.getId(),post.getMedia().getMedia(),post.getMedia().getMedia_type()):null;
 					String sharedFullName = null;
 					String sharedUsername = null;

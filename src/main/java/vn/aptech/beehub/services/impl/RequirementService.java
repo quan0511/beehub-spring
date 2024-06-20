@@ -194,13 +194,16 @@ public class RequirementService implements IRequirementService {
 			break;
 		case "ADD_FRIEND":
 			try {
-				Requirement newReq = new Requirement();
-				newReq.setSender(userRep.findById(id).get());
-				newReq.setReceiver(userRep.findById(requirement.getReceiver_id()).get());
-				newReq.setType(ERequirement.ADD_FRIEND);
-				newReq.setCreate_at(LocalDateTime.now());
-				newReq.set_accept(false);
-				requirementRep.save(newReq);
+				Optional<Requirement> findRequirement= requirementRep.getRequirementsBtwUsers(id, requirement.getReceiver_id());
+				if(findRequirement.isEmpty()) {
+					Requirement newReq = new Requirement();
+					newReq.setSender(userRep.findById(id).get());
+					newReq.setReceiver(userRep.findById(requirement.getReceiver_id()).get());
+					newReq.setType(ERequirement.ADD_FRIEND);
+					newReq.setCreate_at(LocalDateTime.now());
+					newReq.set_accept(false);
+					requirementRep.save(newReq);					
+				}
 				result.put("response",requirement.getType());
 			} catch (Exception e) {
 				logger.error(e.getMessage());
@@ -209,13 +212,16 @@ public class RequirementService implements IRequirementService {
 			break;
 		case "JOIN":
 			try {
-				Requirement newReq = new Requirement();
-				newReq.setSender(userRep.findById(id).get());
-				newReq.setGroup_receiver(groupRep.findById(requirement.getGroup_id()).get());
-				newReq.setType(ERequirement.JOIN_GROUP);
-				newReq.setCreate_at(LocalDateTime.now());
-				newReq.set_accept(false);
-				requirementRep.save(newReq);
+				Optional<Requirement> findReq = requirementRep.findRequirementJoinGroup(requirement.getReceiver_id(), requirement.getGroup_id());
+				if(findReq.isEmpty()) {
+					Requirement newReq = new Requirement();
+					newReq.setSender(userRep.findById(id).get());
+					newReq.setGroup_receiver(groupRep.findById(requirement.getGroup_id()).get());
+					newReq.setType(ERequirement.JOIN_GROUP);
+					newReq.setCreate_at(LocalDateTime.now());
+					newReq.set_accept(false);
+					requirementRep.save(newReq);					
+				}
 				result.put("response",requirement.getType());
 			} catch (Exception e) {
 				logger.error(e.getMessage());
