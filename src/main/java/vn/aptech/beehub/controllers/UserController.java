@@ -336,6 +336,10 @@ public class UserController {
 			}
 			return ResponseEntity.ok( groupService.createGroup(id, group));	
 	}
+	@PostMapping(value="/user/create-group/flutter/{id}")
+	public ResponseEntity<Long> createGroup1(@PathVariable("id") Long id,@RequestBody  GroupDto group){
+			return ResponseEntity.ok( groupService.createGroup(id, group));	
+	}
 	@GetMapping(path="/user/get-username/{id}")
 	public ResponseEntity<String> getUsername (@PathVariable("id") Long id){
 		try {

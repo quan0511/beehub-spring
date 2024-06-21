@@ -94,12 +94,13 @@ public class DatabaseSeeder {
     private void seederUser() {
         List<User> users = userRepository.findAll();
         if(users.isEmpty()) {
+        	List<String> names = Arrays.asList("Laurentina","Olivia Silence","Celinia Texas","Lappland Saluzzo","Lavinia Falcone","Heidi Thomson");
             Role userRole = roleRepository.findByName(ERole.ROLE_USER).get();
             for(int i =1; i<=6;i++) {
                 String gernateGen= i%2==0?"female":"male";
                 String phone = "09192343"+ (int) Math.floor(Math.random()*70+10);
                 logger.info(phone);
-                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123456"), "User "+i,gernateGen, phone, LocalDateTime.now());
+                User user= new User("user"+i, "user"+i+"@gmail.com",passwordEncoder.encode("a123456"), names.get(i-1),gernateGen, phone, LocalDateTime.now());
                 HashSet<Role> user1roles = new HashSet<Role>();
                 user1roles.add(userRole);
                 user.setRoles(user1roles);
@@ -131,8 +132,9 @@ public class DatabaseSeeder {
     private void seederGroup() {
         List<Group> groups = groupRepository.findAll();
         if(groups.isEmpty()) {
+        	List<String> names = Arrays.asList("Rhodes Island ","Abyssal Hunters","Rhine Lab LLC.","Siracusa","Blacksteel Worldwide","Penguin Logistics","Ursus Student Group");
             for(int i =1; i<=7;i++) {
-                Group group= new Group("Group "+i,"Description of Group "+i);
+                Group group= new Group(names.get(i-1),"Description of "+names.get(i-1));
                 group.setActive(true);
                 group.setPublic_group(i%2==0);
                 groupRepository.save(group);
@@ -222,10 +224,10 @@ public class DatabaseSeeder {
         if(reportTypes.isEmpty()) {
             List<ReportTypes>listRep = Arrays.asList(
                     new ReportTypes("nudity","If someone is in immediate danger, get help before reporting to Beehub. Don't wait."),
-                    new ReportTypes("violence","If someone is in immediate danger, get help before reporting to Facebook. Don't wait."),
-                    new ReportTypes("spam","We don't allow things such as: Buying, selling or giving away accounts, roles or permissions, directing people away from Facebook through the misleading use of links"),
-                    new ReportTypes("involve a child","If someone is in immediate danger, get help before reporting to Facebook. Don't wait."),
-                    new ReportTypes("drugs","If someone is in immediate danger, get help before reporting to Facebook. Don't wait.")
+                    new ReportTypes("violence","If someone is in immediate danger, get help before reporting to Beehub. Don't wait."),
+                    new ReportTypes("spam","We don't allow things such as: Buying, selling or giving away accounts, roles or permissions, directing people away from Beehub through the misleading use of links"),
+                    new ReportTypes("involve a child","If someone is in immediate danger, get help before reporting to Beehub. Don't wait."),
+                    new ReportTypes("drugs","If someone is in immediate danger, get help before reporting to Beehub. Don't wait.")
             );
             for (Iterator<ReportTypes> iterator = listRep.iterator(); iterator.hasNext();) {
                 ReportTypes reportT = (ReportTypes) iterator.next();
@@ -326,22 +328,25 @@ public class DatabaseSeeder {
         if(posts.isEmpty()) {
             List<User> users = userRepository.findAll();
             List<Post> listPo = Arrays.asList(
-                    new Post("THis is a post",users.get(0) , LocalDateTime.now().minusDays(1),ESettingType.PUBLIC),
-                    new Post("Hellow world ",users.get(0) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("Tomcat started on port 9001",users.get(1) , LocalDateTime.now().minusDays(2),ESettingType.HIDDEN),
-                    new Post("Hello world",users.get(1) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("HHAHAHAHHAHHAH",users.get(2) , LocalDateTime.now().minusDays(3),ESettingType.PUBLIC),
-                    new Post("Welcome to my WOLRD",users.get(2) , LocalDateTime.now().minusDays(1),ESettingType.PUBLIC),
-                    new Post("HELLOW ",users.get(3) , LocalDateTime.now().minusDays(1),ESettingType.FOR_FRIEND),
-                    new Post("Let add some word",users.get(3) , LocalDateTime.now().minusHours(3),ESettingType.PUBLIC),
-                    new Post("I try to add some word",users.get(4) , LocalDateTime.now(),ESettingType.HIDDEN),
-                    new Post("I dont know what to post",users.get(4) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("I love you",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
-                    new Post("I will go to the cinema",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("Deadline like the death in line",users.get(5) , LocalDateTime.now(),ESettingType.HIDDEN),
-                    new Post("Just seeding some posts",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
-                    new Post("Trying post",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
-                    new Post("Post color test", users.get(1), LocalDateTime.now(), ESettingType.PUBLIC,"#fff","rgb(0, 157, 255)")
+                    new Post("Naturally, they and the darkness behind them will occasionally prevail... But mark my words, even the most frustrating rainy season will pass in time. Until then, all we can do is persevere, and keep trying.",users.get(0) , LocalDateTime.now().minusDays(1),ESettingType.PUBLIC),
+                    new Post("There is no such thing as absolute justice, but I still invoke it!.",users.get(0) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("Sitting around in an office won't bring about justice. That's one thing I know for a fact.",users.get(0) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("Sleep tight... enjoy your sweet dreams while you still can.",users.get(1) , LocalDateTime.now().minusDays(2),ESettingType.HIDDEN),
+                    new Post("The fence was confused about whether it was supposed to keep things in or keep things out.",users.get(1) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("You showed me that even weeds struggling to grow in the ruins can stand tall. Thank you.",users.get(1) , LocalDateTime.now(),ESettingType.PUBLIC),
+                    new Post("No matter how hard I run, my past will catch me one day.",users.get(2) , LocalDateTime.now().minusDays(3),ESettingType.PUBLIC),
+                    new Post("Where did you find the courage to challenge me?",users.get(2) , LocalDateTime.now().minusDays(1),ESettingType.PUBLIC),
+                    new Post("Texas? Ha, she's afraid of me, but I don't wanna do anything to her, except maybe try to bring back the old Texas. The one we got here's a cucciolo impaurito",users.get(3) , LocalDateTime.now().minusDays(1),ESettingType.FOR_FRIEND),
+                    new Post("You want to know what happened between me and Texas? Hehe, you don't have a single idea of what you are sticking your nose into. You'll find out the truth someday, but not from me.",users.get(3) , LocalDateTime.now().minusHours(3),ESettingType.PUBLIC),
+                    new Post("The only way to solve a problem is to clear all the obstacles in the way, no matter what they might be and keep moving.",users.get(4) , LocalDateTime.now(),ESettingType.HIDDEN),
+                    new Post("Clouds ranged as billows, distant-run roads withered. I, departed of the vistas, sailed a ferry in late autumn.",users.get(4) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("Though antithetical at a glance, your nature is quite similar.",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
+                    new Post("Though antithetical at a glance, your nature is quite similar.",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
+                    new Post("To scatter the fill of a brimming cup, to share the sip for a soothed sorrow.",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("I've had a taste of how Rhodes Island fights before, but, well, this still makes a great reference...",users.get(5) , LocalDateTime.now(),ESettingType.HIDDEN),
+                    new Post("Running is useless... resist it, even if you are not willing to resist. This is the only way I've come to know to face suffering.",users.get(5) , LocalDateTime.now(),ESettingType.FOR_FRIEND),
+                    new Post("They say \"the law is the basis of morality,\" but that's not a natural truth. It emerges from a consensus of the people. When the people come to see violence as order, the law is nothing but a fantasy to dream of.",users.get(4) , LocalDateTime.now(),ESettingType.PUBLIC),
+                    new Post("In Siracusa, being a city court judge is a dangerous job. Either you join \"them,\" or... you disappear. ", users.get(5), LocalDateTime.now(), ESettingType.PUBLIC,"#fff","rgb(0, 157, 255)")
             );
             for (Iterator<Post> iterator = listPo.iterator(); iterator.hasNext();) {
                 Post post = (Post) iterator.next();
@@ -351,6 +356,20 @@ public class DatabaseSeeder {
                 logger.info("Saved Post.");
             }
             List<Group> groups = groupRepository.findAll();
+            List<String> content = Arrays.asList(
+            		"Follow my light. Watch out for the tides and mist.",
+            		"The most dangerous enemies are usually masters of disguise.",
+            		"You can't let them see you exhausted, can you...?",
+            		"Give me a reason to let you go. Don't have one? What a pity.",
+            		"I hope I won't have to explain to you what we mean by \"necessary methods.\"",
+            		"There is always a way to correct a mistake. Don't let anger get the best of you.",
+            		"\"When 'tis a choice of life and death, why shouldst thou lay down thy arms?\"",
+            		"Such simple misfortunes are only the beginning.",
+            		"Better safe than sorry.",
+            		"Mm, another beautiful day.",
+            		"Show me what you've got.",
+            		"Honey to me, poison to you."
+            		);
 			for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
 				Group group = (Group) iterator.next();
 				List<GroupMember> members = groupMemberRepository.findByGroup_id(group.getId());
@@ -358,7 +377,9 @@ public class DatabaseSeeder {
 					GroupMember groupMember = (GroupMember) iterator2.next();
 					User member = groupMember.getUser();
 					int randomDay=(int) Math.round(Math.random()+5);
-					Post postFromMem = new Post("Seeding a post in group "+group.getGroupname()+" from user "+member.getUsername(),member, LocalDateTime.now().minusDays(randomDay),group);
+					int randomPost=(int) Math.floor(Math.random()*content.size());
+					randomPost = randomPost<0?0:randomPost;
+					Post postFromMem = new Post(content.get(randomPost),member, LocalDateTime.now().minusDays(randomDay),group);
 					postFromMem.setColor("inherit") ;
 					postFromMem.setBackground("inherit");
 					postRepository.save(postFromMem);
