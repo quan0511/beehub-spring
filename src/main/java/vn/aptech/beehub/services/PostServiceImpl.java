@@ -13,6 +13,7 @@ import com.amazonaws.SdkClientException;
 import jakarta.transaction.Transactional;
 import vn.aptech.beehub.aws.S3Service;
 import vn.aptech.beehub.dto.PostMeDto;
+import vn.aptech.beehub.dto.PostShareDto;
 import vn.aptech.beehub.models.ESettingType;
 import vn.aptech.beehub.models.Gallery;
 import vn.aptech.beehub.models.GroupMedia;
@@ -153,13 +154,15 @@ public class PostServiceImpl implements PostService {
 	            	postRepository.deletePostReports(id);
 	            	deletePostByPostShare(post.getId());
 	            	postRepository.deletePostWithGallery(id);
+	            	postRepository.deleteNotification(id);
 	            	postRepository.deletePost(id);
 	            	postRepository.deleteUserSettings(id);           	
 	            }else {            	
 	            	postRepository.deletePostReactions(id);
 	            	postRepository.deletePostComments(id);
 	            	postRepository.deletePostLikes(id);
-	            	postRepository.deletePostReports(id);	     
+	            	postRepository.deletePostReports(id);
+	            	postRepository.deleteNotification(id);
 	            	deletePostByPostShare(post.getId());
 	            	postRepository.deletePost(id);
 	            	postRepository.deleteUserSettings(id);
@@ -210,7 +213,7 @@ public class PostServiceImpl implements PostService {
 	        if (dto.getBackground() != null) {
 	            post.setBackground(dto.getBackground());
 	        }
-	        if (dto.getMediaUrl()!= fileOld && dto.getMediaUrl() != null) {
+	        if (dto.getMediaUrl()!= fileOld && dto.getMediaUrl() != null && fileOld != null) {
 	            s3Service.deleteToS3(fileOldEx);
 	        }
 	        if (dto.getGroup() != null && dto.getGroup() > 0) {
@@ -263,7 +266,7 @@ public class PostServiceImpl implements PostService {
 	public List<User> findAllUser(){
 		return userRepository.findAll();
 	}
-	public Post sharePost(PostMeDto dto) {
+	public Post sharePost(PostShareDto dto) {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
 		Post post = optionalPost.get();
 		User sharedUser = userRepository.findById(dto.getUser()).get();

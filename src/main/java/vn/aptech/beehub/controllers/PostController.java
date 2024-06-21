@@ -29,6 +29,7 @@ import vn.aptech.beehub.controllers.PostController;
 import vn.aptech.beehub.dto.PostCommentDto;
 import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
+import vn.aptech.beehub.dto.PostShareDto;
 import vn.aptech.beehub.dto.RelationshipUserDto;
 import vn.aptech.beehub.dto.UserDto;
 import vn.aptech.beehub.models.Post;
@@ -147,7 +148,7 @@ public class PostController {
 	    return ResponseEntity.ok(post);
 	}
 	@PostMapping(value = "/share")
-	public ResponseEntity<?> Post(@RequestBody PostMeDto dto){
+	public ResponseEntity<?> Post(@RequestBody PostShareDto dto){
 		postService.sharePost(dto);
 		return ResponseEntity.ok(dto);
 	}
@@ -162,6 +163,7 @@ public class PostController {
 				.id(u.getId())
 				.username(u.getUsername())
 				.gender(u.getGender())
+				.image(u.getImage()!=null?u.getImage().getMedia():null)
 				.fullname(u.getFullname())
 				.build()).toList();
 		return ResponseEntity.ok(result);
