@@ -94,6 +94,7 @@ public class AuthController {
                 .body(JwtResponse.builder()
                         .id(userDetails.getId())
                         .username(user.getUsername())
+                        .fullname(user.getFullname())
                         .email(userDetails.getEmail())
                         .image(user.getImage() != null ? user.getImage().getMedia() : "")
                         .background(user.getBackground() != null ? user.getBackground().getMedia() : "")
@@ -157,6 +158,7 @@ public class AuthController {
                         String token = jwtUtils.generateTokenFromEmail(user.getEmail());
                         return ResponseEntity.ok(JwtResponse.builder()
                                 .id(user.getId())
+                                .fullname(user.getFullname())
                                 .username(user.getUsername())
                                 .email(user.getEmail())
                                 .image(user.getImage() != null ? user.getImage().getMedia() : "")
