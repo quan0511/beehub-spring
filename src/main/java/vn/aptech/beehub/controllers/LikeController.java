@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 import vn.aptech.beehub.dto.LikeDto;
 import vn.aptech.beehub.dto.LikeUserDto;
+import vn.aptech.beehub.dto.NotificationDto;
 import vn.aptech.beehub.models.LikeUser;
+import vn.aptech.beehub.models.Notification;
 import vn.aptech.beehub.services.LikeService;
 
 @Tag(name = "Like")
@@ -69,5 +71,28 @@ public class LikeController {
 	@GetMapping(value = "/getenum/{userid}/{postid}")
 	public ResponseEntity<String> getEnum(@PathVariable("userid") Long userid, @PathVariable("postid") Long postid){ 
 		return ResponseEntity.ok(likeService.getEnumEmoByUserIdAndPostId(postid, userid)); 
+	}
+	@GetMapping(value = "/check/note/{userid}")
+	public ResponseEntity<Boolean> checkNote(@PathVariable("userid") Long userid){ 
+		return ResponseEntity.ok(likeService.checkSeenNote(userid)); 
+	}
+	@PostMapping(value = "/note/change/{id}")
+	public ResponseEntity<Notification>changeSeen(@PathVariable("id") int id){ 
+		likeService.changeSeenNote(id); 
+	    return ResponseEntity.ok().build();
+	}
+	@GetMapping(value = "/note/{userid}")
+	public ResponseEntity<List<NotificationDto>> getNoteByUser(@PathVariable("userid") Long userid){
+		List<NotificationDto> result = likeService.getNoteByUser(userid).stream().map((n)->
+		NotificationDto.builder()
+			.id(n.getId())
+			.content(n.getContent())
+			.createdAt(n.getCreatedAt())
+			.seen(n.isSeen())
+			.post(n.getPost().getId())
+			.user(n.getUser().getId())
+			.build()).toList();
+		
+		return ResponseEntity.ok(result);
 	}
 }

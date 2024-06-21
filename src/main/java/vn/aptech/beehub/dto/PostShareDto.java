@@ -2,21 +2,19 @@ package vn.aptech.beehub.dto;
 
 import java.time.LocalDateTime;
 
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.annotation.Nullable;
-import vn.aptech.beehub.models.User;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostMeDto {
+public class PostShareDto {
 	private Long id;
 	private String text;
-	private String mediaUrl;
+	private String medias;
 	private String background;
 	private String color;
 	private LocalDateTime create_at;

@@ -12,30 +12,22 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.SdkClientException;
 import jakarta.transaction.Transactional;
 import vn.aptech.beehub.aws.S3Service;
-import vn.aptech.beehub.dto.PostDto;
 import vn.aptech.beehub.dto.PostMeDto;
+import vn.aptech.beehub.dto.PostShareDto;
 import vn.aptech.beehub.models.ESettingType;
 import vn.aptech.beehub.models.Gallery;
 import vn.aptech.beehub.models.GroupMedia;
-import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Post;
-import vn.aptech.beehub.models.PostComment;
-import vn.aptech.beehub.models.PostReaction;
-import vn.aptech.beehub.models.RelationshipUsers;
 import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.models.UserSetting;
 import vn.aptech.beehub.repository.GalleryRepository;
 import vn.aptech.beehub.repository.GroupMediaRepository;
 import vn.aptech.beehub.repository.GroupRepository;
-import vn.aptech.beehub.repository.LikeRepository;
-import vn.aptech.beehub.repository.PostCommentRepository;
-import vn.aptech.beehub.repository.PostReactionRepository;
 import vn.aptech.beehub.repository.PostRepository;
 import vn.aptech.beehub.repository.RelationshipUsersRepository;
 import vn.aptech.beehub.repository.ReportRepository;
 import vn.aptech.beehub.repository.UserRepository;
 import vn.aptech.beehub.repository.UserSettingRepository;
-import vn.aptech.beehub.seeders.DatabaseSeeder;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -43,16 +35,7 @@ public class PostServiceImpl implements PostService {
 	private PostRepository postRepository;
 	
 	@Autowired
-	private PostCommentRepository postCommentRepository;
-	
-	@Autowired
 	private UserRepository userRepository;
-	
-	@Autowired
-	private LikeRepository likeRepository;
-	
-	@Autowired
-	private PostReactionRepository postReactionRepository;
 	
 	@Autowired
 	private GalleryRepository galleryRepository;
@@ -89,6 +72,7 @@ public class PostServiceImpl implements PostService {
 	public Post savePost(PostMeDto dto) {
 	    Post post = mapper.map(dto, Post.class);
 	    post.setCreate_at(LocalDateTime.now());
+	    post.setShare(false);
 	    
 	    if (dto.getColor() == null || dto.getColor().isEmpty()) {
 	        post.setColor("inherit");
@@ -148,10 +132,10 @@ public class PostServiceImpl implements PostService {
 	        String filename = post.getMedias();
 	        String fileExtract = extractFileNameFromUrl(filename);
 	        try {
-	            if (filename != null && !filename.isEmpty()) {
+	            if (filename != null && !filename.isEmpty()&& post.getShare() != true) {
 	                s3Service.deleteToS3(fileExtract);
 	            }
-	            if(post.getGroup_media()!=null) {
+	            if(post.getGroup_media()!=null && post.getShare() != true) {
 	            	String filename2 = post.getGroup_media().getMedia();
 	            	String fileExtract2 = filename2!=null? filename2.substring(filename2.lastIndexOf("/") + 1):null;
 	            	if(fileExtract !=null) {
@@ -170,13 +154,15 @@ public class PostServiceImpl implements PostService {
 	            	postRepository.deletePostReports(id);
 	            	deletePostByPostShare(post.getId());
 	            	postRepository.deletePostWithGallery(id);
+	            	postRepository.deleteNotification(id);
 	            	postRepository.deletePost(id);
 	            	postRepository.deleteUserSettings(id);           	
 	            }else {            	
 	            	postRepository.deletePostReactions(id);
 	            	postRepository.deletePostComments(id);
 	            	postRepository.deletePostLikes(id);
-	            	postRepository.deletePostReports(id);	     
+	            	postRepository.deletePostReports(id);
+	            	postRepository.deleteNotification(id);
 	            	deletePostByPostShare(post.getId());
 	            	postRepository.deletePost(id);
 	            	postRepository.deleteUserSettings(id);
@@ -227,7 +213,7 @@ public class PostServiceImpl implements PostService {
 	        if (dto.getBackground() != null) {
 	            post.setBackground(dto.getBackground());
 	        }
-	        if (dto.getMediaUrl()!= fileOld && fileOld != null) {
+	        if (dto.getMediaUrl()!= fileOld && dto.getMediaUrl() != null && fileOld != null) {
 	            s3Service.deleteToS3(fileOldEx);
 	        }
 	        if (dto.getGroup() != null && dto.getGroup() > 0) {
@@ -280,7 +266,7 @@ public class PostServiceImpl implements PostService {
 	public List<User> findAllUser(){
 		return userRepository.findAll();
 	}
-	public Post sharePost(PostMeDto dto) {
+	public Post sharePost(PostShareDto dto) {
 		Optional<Post> optionalPost = postRepository.findById(dto.getId());
 		Post post = optionalPost.get();
 		User sharedUser = userRepository.findById(dto.getUser()).get();

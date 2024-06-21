@@ -40,6 +40,9 @@ public class PostReactionController {
 				.post(p.getPost().getId())
 				.postComment(p.getPostComment().getId())
 				.username(p.getUser().getUsername())
+				.fullname(p.getUser().getFullname())
+				.usergender(p.getUser().getGender())
+				.userimage(p.getUser().getImage()!= null ? p.getUser().getImage().getMedia() : null)
 				.createdAt(p.getCreatedAt())
 				.build()).toList();
 return ResponseEntity.ok(result);

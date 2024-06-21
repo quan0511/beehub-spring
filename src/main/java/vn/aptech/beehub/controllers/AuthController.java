@@ -79,7 +79,7 @@ public class AuthController {
 
         User user = userRepository.findById(userDetails.getId()).get();
 
-        if (user.is_banned()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Your account has been banned. Please contact the provider."));
+        if (user.is_banned()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Your account has been banned. Please contact the provider.");
 
         if(!user.is_active()) {
         	user.set_active(true);
@@ -94,6 +94,7 @@ public class AuthController {
                 .body(JwtResponse.builder()
                         .id(userDetails.getId())
                         .username(user.getUsername())
+                        .fullname(user.getFullname())
                         .email(userDetails.getEmail())
                         .image(user.getImage() != null ? user.getImage().getMedia() : "")
                         .background(user.getBackground() != null ? user.getBackground().getMedia() : "")
@@ -120,6 +121,8 @@ public class AuthController {
                 .username(signUpRequest.getUsername())
                 .email(signUpRequest.getEmail())
                 .fullname(signUpRequest.getFullName())
+                .is_active(false)
+                .is_banned(false)
                 .password(encoder.encode(signUpRequest.getPassword()))
                 .create_at(LocalDateTime.now())
                 .build();
@@ -155,6 +158,7 @@ public class AuthController {
                         String token = jwtUtils.generateTokenFromEmail(user.getEmail());
                         return ResponseEntity.ok(JwtResponse.builder()
                                 .id(user.getId())
+                                .fullname(user.getFullname())
                                 .username(user.getUsername())
                                 .email(user.getEmail())
                                 .image(user.getImage() != null ? user.getImage().getMedia() : "")
