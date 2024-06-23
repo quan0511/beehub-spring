@@ -165,6 +165,7 @@ public class GroupService implements IGroupService {
 			groupDto.setId(group.get().getId());
 			groupDto.setGroupname(group.get().getGroupname());
 			groupDto.setPublic_group(group.get().isPublic_group());
+			groupDto.setDescription(group.get().getDescription());
 			groupDto.setActive(group.get().isActive());
 			groupDto.setCreated_at(group.get().getCreated_at());
 			groupDto.setImage_group(group.get().getImage_group()!=null?group.get().getImage_group().getMedia():null);
@@ -286,10 +287,18 @@ public class GroupService implements IGroupService {
 		Map<String, Boolean> result =new HashMap<String, Boolean>();
 		Optional<Group> findGroup = groupRep.findById(group.getId());
 		if(findGroup.isPresent()) {
-			Group gr = findGroup.get();
-			gr.setGroupname(group.getGroupname());
-			gr.setDescription(group.getDescription());
-			groupRep.save(gr);
+			try {
+				Group gr = findGroup.get();
+				if(gr.isPublic_group()!=group.isPublic_group()) {
+					gr.setPublic_group(group.isPublic_group());
+				}
+				gr.setGroupname(group.getGroupname());
+				gr.setDescription(group.getDescription());
+				groupRep.save(gr);				
+			} catch (Exception e) {
+				e.printStackTrace();
+				result.put("result", false);
+			}
 			result.put("result", true);
 		}else {
 			result.put("result", false);

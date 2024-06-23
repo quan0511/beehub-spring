@@ -4,6 +4,7 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,15 +12,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import vn.aptech.beehub.dto.GroupDto;
-import vn.aptech.beehub.dto.GroupMediaDto;
-import vn.aptech.beehub.dto.GroupMemberDto;
 import vn.aptech.beehub.models.*;
 import vn.aptech.beehub.payload.request.CreateUserRequest;
 import vn.aptech.beehub.payload.response.*;
 import vn.aptech.beehub.repository.*;
 import vn.aptech.beehub.security.services.UserDetailsImpl;
-import vn.aptech.beehub.services.PostService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -211,7 +208,7 @@ public class AdminController {
                 } catch (Exception e) {
                     return ResponseEntity.badRequest().body(e.getMessage());
                 }
-                return ResponseEntity.ok(null);
+                return ResponseEntity.ok(role);
             }
             return ResponseEntity.badRequest().build();
         }
@@ -336,7 +333,7 @@ public class AdminController {
         try {
             groupRepository.findById(id).ifPresent(groupRepository::delete);
             return ResponseEntity.ok("Group delete successfully");
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body(new MessageResponse("Group cannot be deleted"));
         }
     }
