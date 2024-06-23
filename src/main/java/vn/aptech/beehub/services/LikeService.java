@@ -4,11 +4,12 @@ import java.util.List;
 
 import vn.aptech.beehub.dto.LikeDto;
 import vn.aptech.beehub.dto.LikeUserDto;
+import vn.aptech.beehub.dto.NotificationDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Notification;
 
 public interface LikeService {
-	LikeUser addLike(LikeDto dto);
+	NotificationDto addLike(LikeDto dto);
 	LikeUser updateLike(LikeDto dto);
 	boolean removeLike(Long postId, Long userId);
 	boolean checklike(Long postId, Long userId);

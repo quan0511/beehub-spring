@@ -134,6 +134,8 @@ public class PostController {
 	                              .color(p.getColor())
 	                              .background(p.getBackground())
 	                              .user(p.getUser().getId())
+	                              .user_gender(p.getUser().getGender())
+	                              .user_image(p.getUser().getImage()!= null ? p.getUser().getImage().getMedia() : null)
 								  .user_fullname(p.getUser().getFullname())
 	                              .group(p.getGroup() != null ? p.getGroup().getId() : null)
 	                              .usershare_username(sharedUsername)

@@ -21,6 +21,8 @@ public class PostMeDto {
 	private String color;
 	private LocalDateTime create_at;
 	private Long user;
+	private String user_image;
+	private String user_gender;
 	private Long usershare;
 	private String user_fullname;
 	private String usershare_username;

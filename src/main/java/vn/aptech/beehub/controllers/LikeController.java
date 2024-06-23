@@ -53,7 +53,7 @@ public class LikeController {
 		return ResponseEntity.ok(likeService.countLikesByPost(postid));
 	}
 	@PostMapping(value = "/like/create")
-	public ResponseEntity<LikeUser>create(@RequestBody @Validated LikeDto dto){ 
+	public ResponseEntity<?>create(@RequestBody @Validated LikeDto dto){ 
 		return ResponseEntity.ok(likeService.addLike(dto)); 
 	}
 	@PostMapping(value = "/like/update")

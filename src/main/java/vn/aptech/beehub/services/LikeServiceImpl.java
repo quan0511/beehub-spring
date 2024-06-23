@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import vn.aptech.beehub.dto.LikeDto;
 import vn.aptech.beehub.dto.LikeUserDto;
+import vn.aptech.beehub.dto.NotificationDto;
 import vn.aptech.beehub.models.LikeUser;
 import vn.aptech.beehub.models.Notification;
 import vn.aptech.beehub.models.NotificationType;
@@ -46,7 +47,7 @@ public class LikeServiceImpl implements LikeService {
 	@Autowired
 	private ModelMapper mapper;
 	
-	public LikeUser addLike(LikeDto dto) {
+	public NotificationDto addLike(LikeDto dto) {
 		Optional<Post> optionalPost = postRepository.findById(dto.getPost());
         Optional<User> optionalUser = userRepository.findById(dto.getUser());
         if(optionalPost.isPresent() && optionalUser.isPresent()) {
@@ -66,8 +67,7 @@ public class LikeServiceImpl implements LikeService {
         		}
         		
         		LikeUser saved = likeRepository.save(like);
-        		sendNotification(saved);
-        		return saved;
+        		return sendNotification(saved);
         	}
         }else {
         	throw new RuntimeException("Bài viết hoặc người dùng không tồn tại.");
@@ -183,7 +183,7 @@ public class LikeServiceImpl implements LikeService {
 	public List<Notification> getNoteByUser(Long userid){
 		return notificationRepository.findNoteByUser(userid);
 	}
-	private void sendNotification(LikeUser likeUser) {
+	private NotificationDto sendNotification(LikeUser likeUser) {
 		Optional<Post> optionalPost = postRepository.findById(likeUser.getPost().getId());
 		Optional<User> optionalUser = userRepository.findById(likeUser.getUser().getId());
 		
@@ -201,8 +201,17 @@ public class LikeServiceImpl implements LikeService {
             notification.setCreatedAt(LocalDateTime.now());
             
              //Save the notification to the database
-            notificationRepository.save(notification);    
+            var noti = notificationRepository.save(notification); 
+            return NotificationDto.builder()
+            		.id(noti.getId())
+            		.user(noti.getUser().getId())
+            		.post(noti.getPost().getId())
+            		.content(notificationContent)
+            		.createdAt(noti.getCreatedAt())
+            		.notificationType(noti.getNotificationType())
+            		.build();
 		}
+		return new NotificationDto();
 	}
 	public void changeSeenNote(int id) {
 		Optional<Notification> optionalNotification = notificationRepository.findById(id);
