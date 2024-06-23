@@ -13,7 +13,10 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import vn.aptech.beehub.dto.NotificationDto;
 import vn.aptech.beehub.models.GroupMember;
+import vn.aptech.beehub.models.User;
 import vn.aptech.beehub.payload.response.GetMessageResponse;
 import vn.aptech.beehub.repository.GroupMemberRepository;
 import vn.aptech.beehub.repository.GroupRepository;
@@ -125,6 +128,27 @@ public class SocketHandler extends TextWebSocketHandler {
                 });
                 break;
             }
+            case "SEND_NOTI":{
+            	NotificationDto noti = getNotificationDtoResponse(socketMessage.getData());
+            	String receiverEmail = userRepository.findById(noti.getUser()).map(User::getEmail).get();
+            	for (WebSocketSession webSocketSession : sessions) { // loop through every socket
+                    if (webSocketSession.isOpen()) {
+                        Principal principal = null;
+                        Object object = webSocketSession.getAttributes().get("principal");
+                        if (object instanceof Principal) principal = (Principal) object;
+
+                        if (principal != null && receiverEmail.equals(principal.getName())) { // looking for a principal match the email of receiver
+                            try {
+                                webSocketSession.sendMessage(getTextMessage("RECEIVE_NOTI", noti)); // send
+                            } catch (IOException e) {
+                            	LOGGER.info(e.getMessage());
+                            }
+                        }
+                    }
+                }
+            	LOGGER.info(receiverEmail);
+            	break;
+            }
             default:
                 break;
         }
@@ -144,5 +168,7 @@ public class SocketHandler extends TextWebSocketHandler {
         return objectMapper.readValue(data, GetMessageResponse.class);
     }
 
-
+    private NotificationDto getNotificationDtoResponse(String data) throws JsonProcessingException {
+    	return objectMapper.readValue(data, NotificationDto.class);
+    }
 }
