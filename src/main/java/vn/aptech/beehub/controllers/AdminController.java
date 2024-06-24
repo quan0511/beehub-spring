@@ -157,7 +157,7 @@ public class AdminController {
                     .reportTitleList(reportRepository.findAllByUserId(u.getId()).stream().map(r -> r.getReport_type().getTitle()).toList())
                     .role(role)
                     .status(u.is_banned() ? "banned" : u.is_active() ? "active" : "inactive")
-                    .avatar(u.getImage() != null ? u.getImage().getMedia() : "")
+                    .avatar(u.getImage() != null ? u.getImage().getMedia() : u.getGender())
                     .gallery(u.getGalleries().stream().map(Gallery::getMedia).toList())
                     .createdAt(u.getCreate_at())
                     .build());
@@ -258,7 +258,7 @@ public class AdminController {
                     .id(post.getId())
                     .creatorId(post.getUser().getId())
                     .creatorUsername(post.getUser().getUsername())
-                    .creatorImage(post.getUser().getImage() != null ?post.getUser().getImage().getMedia() : "")
+                    .creatorImage(post.getUser().getImage() != null ?post.getUser().getImage().getMedia() : post.getUser().getGender())
                     .content(post.getText())
                     .image(post.getMedias())
                     .timestamp(post.getCreate_at())
