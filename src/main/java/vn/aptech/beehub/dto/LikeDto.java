@@ -14,4 +14,8 @@ public class LikeDto {
 	private Long post;
 	private Long user;
 	private String enumEmo;
+	private String userUsername;
+	private String userImage;
+	private String userGender;
+	private String userFullname;
 }

@@ -162,6 +162,10 @@ public class LikeServiceImpl implements LikeService {
 		List<LikeDto> likeUsers = likeRepository.findByPost(post).stream().map((user) ->
 				LikeDto.builder()
 						.id(user.getId())
+						.userFullname(user.getUser().getFullname())
+						.userGender(user.getUser().getGender())
+						.userUsername(user.getUser().getUsername())
+						.userImage(user.getUser().getImage()!= null ? user.getUser().getImage().getMedia() : null)
 						.user(user.getUser().getId())
 						.post(user.getPost().getId())
 						.enumEmo(user.getEnumEmo())
