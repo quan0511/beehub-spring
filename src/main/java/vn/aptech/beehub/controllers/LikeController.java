@@ -35,10 +35,13 @@ public class LikeController {
 	public ResponseEntity<List<LikeUserDto>> findEmoByPostEnum(@PathVariable("postid") Long postid,@PathVariable("emoji")String emoji){
 		List<LikeUserDto> result = likeService.findEmoByPostEnum(postid, emoji).stream().map((l)->
 		LikeUserDto.builder()
+			.id(l.getId())
 			.enumEmo(l.getEnumEmo())
 			.user(l.getUser().getId())
-			.username(l.getUser().getUsername())
-			.gender(l.getUser().getGender())
+			.userUsername(l.getUser().getUsername())
+			.userFullname(l.getUser().getFullname())
+			.userGender(l.getUser().getGender())
+			.userImage(l.getUser().getImage()!= null ? l.getUser().getImage().getMedia() : null)
 			.build()).toList();
 		
 		return ResponseEntity.ok(result);

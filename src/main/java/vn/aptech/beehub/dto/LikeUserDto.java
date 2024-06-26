@@ -1,6 +1,5 @@
 package vn.aptech.beehub.dto;
 
-import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,9 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LikeUserDto {
+	private int id;
     private String enumEmo;
     private Long user;
-    private String username;
-    private String gender;
+    private String userUsername;
     private Long post;
+	private String userImage;
+	private String userGender;
+	private String userFullname;
 }

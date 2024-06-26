@@ -58,7 +58,7 @@ public class PostService implements IPostService {
 		        sharedFullName = post.getPostshare().getUser().getFullname();
 		        sharedUsername = post.getPostshare().getUser().getUsername();
 		        sharedGender = post.getPostshare().getUser().getGender();
-		        sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+		        sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 		        sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 		        sharedCreatedAt = post.getTimeshare();
@@ -114,7 +114,7 @@ public class PostService implements IPostService {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 	            sharedCreatedAt = post.getTimeshare();
@@ -167,7 +167,7 @@ public class PostService implements IPostService {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 	            sharedCreatedAt = post.getTimeshare();
@@ -215,7 +215,7 @@ public class PostService implements IPostService {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 	            sharedCreatedAt = post.getTimeshare();
@@ -272,7 +272,7 @@ public class PostService implements IPostService {
 		            sharedFullName = post.getPostshare().getUser().getFullname();
 		            sharedUsername = post.getPostshare().getUser().getUsername();
 		            sharedGender = post.getPostshare().getUser().getGender();
-		            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+		            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 		            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 		            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 		            sharedCreatedAt = post.getTimeshare();
@@ -338,7 +338,7 @@ public class PostService implements IPostService {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 	            sharedCreatedAt = post.getTimeshare();
@@ -393,7 +393,7 @@ public class PostService implements IPostService {
 	            sharedFullName = post.getPostshare().getUser().getFullname();
 	            sharedUsername = post.getPostshare().getUser().getUsername();
 	            sharedGender = post.getPostshare().getUser().getGender();
-	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+	            sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 	            sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 	            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 	            sharedCreatedAt = post.getTimeshare();
@@ -476,7 +476,7 @@ public class PostService implements IPostService {
 						sharedFullName = post.getPostshare().getUser().getFullname();
 						sharedUsername = post.getPostshare().getUser().getUsername();
 						sharedGender = post.getPostshare().getUser().getGender();
-						sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getUser().getImage().getMedia() : null;
+						sharedUserImage = post.getPostshare().getUser().getImage()!= null ? post.getPostshare().getUser().getImage().getMedia() : null;
 						sharedUserGroupName = post.getPostshare().getGroup()!=null?post.getGroup().getGroupname():null;
 			            sharedUserGroupId = post.getPostshare().getGroup()!=null?post.getGroup().getId():null;
 						sharedCreatedAt = post.getTimeshare();
