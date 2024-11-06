@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk-alpine
+FROM openjdk:17-jdk-alpine
 
 # Thiết lập JAVA_OPTS
 ENV JAVA_OPTS=""
