@@ -18,4 +18,6 @@ public class LikeDto {
 	private String userImage;
 	private String userGender;
 	private String userFullname;
+	
+	//hello
 }
