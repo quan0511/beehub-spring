@@ -1,15 +1,13 @@
-FROM openjdk:21-jdk-slim
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 
-# Thiết lập JAVA_OPTS
-ENV JAVA_OPTS=""
+COPY . .
 
-# Sao chép file Maven Wrapper trước và cấp quyền thực thi
-COPY . /app
-WORKDIR /app
-RUN chmod +x ./mvnw
+RUN mvn clean package -DskipTests
 
-# Build dự án mà không chạy các bài test
-RUN ./mvnw clean install -DskipTests
+FROM eclipse-temurin:17-alpine
 
-# Chạy ứng dụng
-CMD ["java", "-jar", "target/beehub-0.0.1-SNAPSHOT.jar"]
+COPY --from=build /target/*.jar beehub-0.0.1-SNAPSHOT.jar
+
+EXPOSE 8080
+
+ENTRYPOINT [ "java", "-jar", "target/beehub-0.0.1-SNAPSHOT.jar" ]
