@@ -11,7 +11,7 @@ import vn.aptech.beehub.services.MessageService;
 import java.util.List;
 
 @Tag(name = "Message")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {

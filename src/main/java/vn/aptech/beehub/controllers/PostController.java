@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Tag(name = "Posts")
 @RestController
 @RequestMapping("/api/posts")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class PostController {
 	private Logger logger = LoggerFactory.getLogger(PostController.class);

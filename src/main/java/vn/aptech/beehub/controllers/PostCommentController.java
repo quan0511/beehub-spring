@@ -27,7 +27,7 @@ import vn.aptech.beehub.services.PostCommentService;
 @Tag(name = "Comment")
 @RestController
 @RequestMapping("/api/posts")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class PostCommentController {
 	@Autowired

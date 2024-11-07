@@ -25,7 +25,7 @@ import vn.aptech.beehub.services.LikeService;
 @Tag(name = "Like")
 @RestController
 @RequestMapping("/api/posts")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @Slf4j
 public class LikeController {
 	@Autowired

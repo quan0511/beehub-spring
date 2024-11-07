@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Tag(name = "Admin")
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600)
 public class AdminController {
 
     @Autowired

@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Tag(name = "Auth")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

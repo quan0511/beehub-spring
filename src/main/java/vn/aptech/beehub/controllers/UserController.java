@@ -45,7 +45,7 @@ import org.springframework.http.HttpStatus;
 @Tag(name = "User")
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "https://beehub-spring.onrender.com", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", maxAge = 3600, allowCredentials = "true")
 public class UserController {
 	private Logger logger = LoggerFactory.getLogger(UserController.class);
 	@Autowired 
