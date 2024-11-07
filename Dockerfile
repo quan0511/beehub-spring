@@ -1,4 +1,4 @@
-FROM maven:3.9.9-eclipse-temurin-17 AS build
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
 # Đặt thư mục làm việc cho Maven
 WORKDIR /app
@@ -9,7 +9,7 @@ COPY . .
 # Build ứng dụng
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-alpine
+FROM eclipse-temurin:21-alpine
 
 # Đặt thư mục làm việc cho image cuối cùng
 WORKDIR /app
